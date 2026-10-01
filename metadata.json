@@ -1,0 +1,6 @@
+{
+  "name": "Health Care AI",
+  "description": "Virtual medical triage and health education assistant with clinical triage protocols, emergency red flag detection, and symptom tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
