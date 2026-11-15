@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">હેલ્થ કેર AI</string>
+    <string name="app_subtitle">વર્ચ્યુઅલ મેડિકલ ટ્રાયજ</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">ટ્રાયજ</string>
+    <string name="nav_water">પાણી</string>
+    <string name="nav_water_reminder">પાણી રિમાઇન્ડર</string>
+    <string name="nav_medicine">દવા</string>
+    <string name="nav_medicine_reminder">દવા રિમાઇન્ડર</string>
+    <string name="nav_emergency">ઇમરજન્સી</string>
+    <string name="nav_history">હેલ્થ લોગ</string>
+    <string name="nav_profile">પ્રોફાઇલ</string>
+    <string name="nav_app_info">એપ માહિતી</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">સિસ્ટમ થીમ</string>
+    <string name="theme_dark">ડાર્ક મોડ</string>
+    <string name="theme_light">લાઇટ મોડ</string>
+    <string name="theme_toggle_desc">ડાર્ક / લાઇટ / સિસ્ટમ થીમ બદલો</string>
+    <string name="theme_switched_system">સિસ્ટમ થીમ સેટ થઈ</string>
+    <string name="theme_switched_dark">ડાર્ક મોડ સેટ થયો</string>
+    <string name="theme_switched_light">લાઇટ મોડ સેટ થયો</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">બોલીને સમજાવવું ચાલુ છે</string>
+    <string name="auto_speak_off">બોલીને સમજાવવું બંધ છે</string>
+    <string name="emergency_sos">ઇમરજન્સી SOS</string>
+    <string name="language_selector">ભાષા</string>
+    <string name="language_switched">ભાષા બદલાઈ ગઈ છે</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">હેલ્થકેર સહાયકમાં આપનું સ્વાગત છે</string>
+    <string name="chat_input_placeholder">લક્ષણો અથવા આરોગ્ય સમસ્યા જણાવો...</string>
+    <string name="btn_send">મોકલો</string>
+    <string name="btn_voice_input">અવાજ દ્વારા ઇનપુટ</string>
+    <string name="btn_attach_image">ફોટો જોડો</string>
+    <string name="btn_add_symptoms">વધુ વિગતો ઉમેરો</string>
+    <string name="listening">સાંભળી રહ્યું છે...</string>
+    <string name="analyzing">લક્ષણો તપાસી રહ્યું છે...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">ઇમરજન્સી પ્રોટોકોલ</string>
+    <string name="emergency_alert_title">ઇમરજન્સી રેડ ફ્લેગ ચેતવણી</string>
+    <string name="emergency_alert_desc">ગંભીર લક્ષણો જણાયા છે. તાત્કાલિક તબીબી સારવાર મેળવો.</string>
+    <string name="emergency_dispatch_title">તાત્કાલિક ઇમરજન્સી સેવા</string>
+    <string name="emergency_dispatch_desc">જો કોઈ દર્દી ગંભીર હાલતમાં હોય તો વિલંબ ન કરો. તાત્કાલિક કૉલ કરવા નીચે ક્લિક કરો.</string>
+    <string name="emergency_call_112">112 ઇમરજન્સી</string>
+    <string name="emergency_call_108">108 એમ્બ્યુલન્સ</string>
+    <string name="emergency_call_104">104 આરોગ્ય હેલ્પલાઇન</string>
+    <string name="emergency_send_gps_sos">🚨 સંપર્કને લાઇવ GPS SOS SMS મોકલો</string>
+    <string name="emergency_sending_gps_sos">GPS લોકેશન મેળવી SOS SMS મોકલી રહ્યું છે...</string>
+    <string name="emergency_call_contact_format">%1$s ને કૉલ કરો (%2$s)</string>
+    <string name="emergency_red_flags_header">🚨 જીવલેણ ઇમરજન્સી લક્ષણો (રેડ ફ્લેગ)</string>
+    <string name="emergency_red_flags_sub">જો નીચે આપેલા કોઈપણ લક્ષણો દેખાય તો તરત જ નજીકના દવાખાને અથવા ઇમરજન્સી રૂમમાં જાઓ:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">છાતીમાં અસહ્ય દુખાવો</string>
+    <string name="emergency_sign_chest_desc">છાતી દબાતી હોય તેવો દુખાવો જે હાથ, ખભા, ગરદન કે જડબા સુધી ફેલાય.</string>
+    <string name="emergency_sign_breath_title">અચાનક શ્વાસ લેવામાં તકલીફ</string>
+    <string name="emergency_sign_breath_desc">હાંફ ચડવી, ગૂંગળામણ થવી અથવા એક આખું વાક્ય પણ ન બોલી શકવું.</string>
+    <string name="emergency_sign_stroke_title">લકવા (સ્ટ્રોક) ના લક્ષણો</string>
+    <string name="emergency_sign_stroke_desc">મોઢું એક તરફ નમી જવું, હાથમાં અચાનક કમજોરી આવવી કે બોલવામાં લથડાવું.</string>
+    <string name="emergency_sign_headache_title">અતિ તીવ્ર અચાનક માથાનો દુખાવો</string>
+    <string name="emergency_sign_headache_desc">સેકન્ડોમાં વધતો અસહ્ય અને જિંદગીનો સૌથી ભયંકર માથાનો દુખાવો.</string>
+    <string name="emergency_sign_bleeding_title">અતિશય રક્તસ્રાવ કે ખાંસીમાં લોહી</string>
+    <string name="emergency_sign_bleeding_desc">ન રોકાતું લોહી વહેવું કે ઉધરસમાં લોહી પડવું.</string>
+    <string name="emergency_sign_allergy_title">ગંભીર એલર્જીક રિએક્શન (એનાફિલેક્સિસ)</string>
+    <string name="emergency_sign_allergy_desc">ખોરાક કે ડંખ પછી હોઠ/જીભ સૂજી જવી, શ્વાસમાં સીટીનો અવાજ કે ચક્કર આવવા.</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. લકવા (સ્ટ્રોક) તપાસ માર્ગદર્શિકા</string>
+    <string name="emergency_fast_f_title">F - ચહેરો (Face)</string>
+    <string name="emergency_fast_f_desc">દર્દીને હસવા કહો. શું ચહેરાનો એક ભાગ એક તરફ નમી જાય છે?</string>
+    <string name="emergency_fast_a_title">A - હાથ (Arms)</string>
+    <string name="emergency_fast_a_desc">બંને હાથ ઊંચા કરવા કહો. શું એક હાથ નબળો પડી નીચે ઢળી પડે છે?</string>
+    <string name="emergency_fast_s_title">S - બોલી (Speech)</string>
+    <string name="emergency_fast_s_desc">એક સાદું વાક્ય બોલવા કહો. શું તેમની જીભ લથડાય છે કે બોલવામાં વિચિત્રતા છે?</string>
+    <string name="emergency_fast_t_title">T - સમય (Time)</string>
+    <string name="emergency_fast_t_desc">સમય ખૂબ કિંમતી છે! તરત જ 112/108 પર ફોન કરો અને લક્ષણ ક્યારે શરૂ થયું તે સમય નોંધી રાખો.</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 તાત્કાલિક પ્રાથમિક સારવારની સૂચનાઓ</string>
+    <string name="emergency_fa_heart_title">• છાતીમાં દુખાવો / હાર્ટ એટેકની શંકા:</string>
+    <string name="emergency_fa_heart_desc">દર્દીને ટેકો આપી ઘૂંટણ વાળીને \'W\' આકારમાં બેસાડો. ગળાના બટન અને પટ્ટો ઢીલા કરો. એમ્બ્યુલન્સ આવે ત્યાં સુધી દર્દીને શાંત રાખો અને ગભરાવા ન દો.</string>
+    <string name="emergency_fa_allergy_title">• ગંભીર એલર્જી (એનાફિલેક્સિસ):</string>
+    <string name="emergency_fa_allergy_desc">જો ડોક્ટરે એપિપેન આપેલી હોય તો તરત સાથળના ભાગમાં આપો. જો ઉલટી ન થતી હોય તો પગ ઊંચા રાખી સીધા સુવડાવો.</string>
+    <string name="emergency_fa_unconscious_title">• બેભાન પરંતુ શ્વાસ સામાન્ય ચાલતો હોય:</string>
+    <string name="emergency_fa_unconscious_desc">દર્દીને એક પડખે સુવડાવી રિકવરી પોઝિશનમાં રાખો જેથી શ્વાસનળી ખુલ્લી રહે. ડોક્ટર કે એમ્બ્યુલન્સ આવે ત્યાં સુધી શ્વાસ પર સતત નજર રાખો.</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">દૈનિક પાણી હાઇડ્રેશન ટ્રેકર</string>
+    <string name="water_goal">દૈનિક લક્ષ્ય: 2,500 મિલી</string>
+    <string name="water_log_cup">+250 મિલી (ગ્લાસ)</string>
+    <string name="water_log_bottle">+500 મિલી (બોટલ)</string>
+    <string name="water_reminder_interval">રિમાઇન્ડર સમયગાળો</string>
+    <string name="water_reminder_enable">હાઇડ્રેશન એલર્ટ શરૂ કરો</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">દૈનિક દવા રિમાઇન્ડર</string>
+    <string name="medicine_reminder_subtitle">દૈનિક પ્રિસ્ક્રિપ્શન • સમયસર નોટિફિકેશન</string>
+    <string name="medicine_automated_alerts_title">ઓટોમેટિક દવા રિમાઇન્ડર</string>
+    <string name="medicine_automated_alerts_desc">ચાલુ દવાઓ માટે નિયમિત નોટિફિકેશન મળશે જેથી દવા સમયસર લેવાય.</string>
+    <string name="medicine_empty_title">કોઈ દવા ઉમેરેલી નથી</string>
+    <string name="medicine_empty_desc">દૈનિક ગોળીઓ, વિટામિન કે પ્રિસ્ક્રિપ્શનનો હિસાબ રાખો અને સમયસર રિમાઇન્ડર મેળવો.</string>
+    <string name="add_medicine">દવા ઉમેરો</string>
+    <string name="add_daily_medicine">દવા ઉમેરો</string>
+    <string name="add_medicine_dialog_title">દવા રિમાઇન્ડર ઉમેરો</string>
+    <string name="edit_medicine_dialog_title">દવાનો સમય એડજસ્ટ કરો અને વિગત બદલો</string>
+    <string name="adjust_time_title">દવા પીવાનો સમય એડજસ્ટ કરો</string>
+    <string name="adjust_time_btn">સમય એડજસ્ટ કરો</string>
+    <string name="medicine_name">દવાનું નામ</string>
+    <string name="medicine_dosage">માત્રા (ડોઝ, દા.ત. 500mg, 1 ગોળી)</string>
+    <string name="medicine_time">સમય</string>
+    <string name="medicine_time_preference">દવા લેવાનો સમય પસંદ કરો:</string>
+    <string name="medicine_instruction">સૂચના:</string>
+    <string name="medicine_saved">દવા રિમાઇન્ડર સેટ થયું</string>
+    <string name="medicine_updated">દવાનો સમય સફળતાપૂર્વક બદલાઈ ગયો!</string>
+    <string name="medicine_deleted_format">%1$s દૂર કરવામાં આવી</string>
+    <string name="medicine_schedule_btn">રિમાઇન્ડર સેટ કરો</string>
+    <string name="medicine_update_btn">સમય સાચવો અને અપડેટ કરો</string>
+    <string name="medicine_preset_morning">સવાર (08:00 AM)</string>
+    <string name="medicine_preset_noon">બપોર (01:00 PM)</string>
+    <string name="medicine_preset_evening">સાંજ (06:00 PM)</string>
+    <string name="medicine_preset_night">રાત્રે (09:00 PM)</string>
+    <string name="medicine_inst_after_food">જમ્યા પછી</string>
+    <string name="medicine_inst_before_food">જમ્યા પહેલાં</string>
+    <string name="medicine_inst_with_water">પાણી સાથે</string>
+    <string name="medicine_inst_bedtime">ઊંઘતા પહેલાં</string>
+    <string name="medicine_hour">કલાક</string>
+    <string name="medicine_minute">મિનિટ</string>
+    <string name="medicine_am">AM (સવાર)</string>
+    <string name="medicine_pm">PM (બપોર/સાંજ)</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">આરોગ્ય અને લક્ષણ લોગ</string>
+    <string name="symptom_severity_chart">સમય સાથે લક્ષણોની તીવ્રતા</string>
+    <string name="filter_all">તમામ લક્ષણો</string>
+    <string name="filter_headache">માથાનો દુખાવો ટ્રેકર</string>
+    <string name="btn_export_pdf">ડોક્ટર PDF રિપોર્ટ બનાવો</string>
+    <string name="btn_backup_cloud">ક્લાઉડ બેકઅપ (ફાયરબેઝ)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">દર્દી તબીબી પ્રોફાઇલ</string>
+    <string name="full_name">પૂરું નામ</string>
+    <string name="age">ઉંમર</string>
+    <string name="gender">જાતિ</string>
+    <string name="blood_group">બ્લડ ગ્રૂપ</string>
+    <string name="allergies">એલર્જી</string>
+    <string name="chronic_conditions">કાયમી બીમારીઓ</string>
+    <string name="current_medications">ચાલુ દવાઓ</string>
+    <string name="emergency_contact_name">ઇમરજન્સી સંપર્ક નામ</string>
+    <string name="emergency_contact_phone">ઇમરજન્સી સંપર્ક ફોન</string>
+    <string name="btn_save_profile">પ્રોફાઇલ સાચવો</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">સાચવો</string>
+    <string name="action_cancel">રદ કરો</string>
+    <string name="action_delete">કાઢી નાખો</string>
+    <string name="action_close">બંધ કરો</string>
+    <string name="disclaimer_text">ડિસ્ક્લેમર: આ એપ શૈક્ષણિક માર્ગદર્શન માટે છે, વ્યાવસાયિક તબીબી સલાહનો વિકલ્પ નથી.</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI મેડિકલ રિપોર્ટ સ્કેનર</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • Gemini AI સમજૂતી</string>
+    <string name="scan_camera_btn">કેમેરાથી સ્કેન કરો</string>
+    <string name="scan_gallery_btn">ગેલેરીમાંથી અપલોડ કરો</string>
+    <string name="scan_pdf_btn">PDF લેબ રિપોર્ટ અપલોડ કરો</string>
+    <string name="scan_type_prescription">પ્રિસ્ક્રિપ્શન / દવાઓ</string>
+    <string name="scan_type_lab_report">લેબ અને બ્લડ રિપોર્ટ</string>
+    <string name="scan_type_discharge">ડિસ્ચાર્જ સમરી</string>
+    <string name="scan_type_medicine_strip">દવાની પટ્ટી (સ્ટ્રિપ)</string>
+    <string name="ocr_processing_title">AI દ્વારા રિપોર્ટનું વિશ્લેષણ ચાલુ છે…</string>
+    <string name="ocr_processing_desc">Google ML Kit ફોટો/PDF માંથી લખાણ ઓળખી રહ્યું છે અને Gemini AI સરળ ભાષામાં સમજૂતી તૈયાર કરી રહ્યું છે.</string>
+    <string name="tab_ai_explanation">AI સરળ સમજૂતી</string>
+    <string name="tab_raw_ocr">વંચાયેલ ઓરિજિનલ લખાણ</string>
+    <string name="btn_copy_text">ટેક્સ્ટ કોપી કરો</string>
+    <string name="btn_ask_in_chat">ચેટમાં ચર્ચા કરો</string>
+    <string name="btn_add_to_reminders">રિમાઇન્ડરમાં ઉમેરો</string>
+    <string name="text_copied">ક્લિપબોર્ડ પર કોપી થઈ ગયું!</string>
+    <string name="saved_reports_header">સાચવેલા સ્કેન દસ્તાવેજો</string>
+    <string name="no_scanned_reports">હજુ કોઈ રિપોર્ટ સ્કેન નથી કર્યો. પ્રિસ્ક્રિપ્શન કે લેબ રિપોર્ટ સ્કેન કરવા ઉપર ક્લિક કરો.</string>
+    <string name="scan_report_fab">સ્કેન Rx / રિપોર્ટ</string>
+
+    <!-- Step Counter & Fitness Tracking (Gujarati) -->
+    <string name="step_counter_title">સ્ટેપ કાઉન્ટર અને ફિટનેસ</string>
+    <string name="step_counter_subtitle">હાર્ડવેર સેન્સર • કેલરી અને મુવમેન્ટ ટ્રેકર</string>
+    <string name="steps_label">પગલાં (સ્ટેપ્સ)</string>
+    <string name="step_goal_label">દૈનિક લક્ષ્ય</string>
+    <string name="calories_burned_label">કેલરી</string>
+    <string name="distance_walked_label">અંતર</string>
+    <string name="active_time_label">ચાલવાનો સમય</string>
+    <string name="sensor_active_label">સેન્સર ચાલુ છે</string>
+    <string name="sensor_paused_label">સેન્સર થોભાવ્યું</string>
+    <string name="add_steps_btn">સ્ટેપ્સ ઉમેરો</string>
+    <string name="reset_steps_btn">આજનો દિવસ રીસેટ</string>
+    <string name="set_goal_dialog_title">દૈનિક સ્ટેપ્સ લક્ષ્ય નક્કી કરો</string>
+    <string name="weekly_movement_history">૭ દિવસનો સ્ટેપ ટ્રેન્ડ</string>
+    <string name="activity_permission_rationale">તમારા ફોનના બિલ્ટ-ઇન સેન્સરથી ચાલવાના સાચા પગલાં ગણવા માટે ફિઝિકલ એક્ટિવિટી પરવાનગી જરૂરી છે.</string>
+    <string name="activity_permission_btn">સ્ટેપ ટ્રેકિંગ શરૂ કરો</string>
+    <string name="fitness_tips_header">હૃદય અને શારીરિક સ્વાસ્થ્ય માર્ગદર્શન</string>
+    <string name="nav_steps">સ્ટેપ્સ</string>
+
+    <!-- Nearby Hospitals & Emergency Map (Gujarati) -->
+    <string name="tab_emergency_sos">ઇમરજન્સી &amp; પ્રાથમિક સારવાર</string>
+    <string name="tab_nearby_hospitals">નજીકની હોસ્પિટલો &amp; મેપ</string>
+    <string name="nearby_map_header_title">નજીકના દવાખાના અને હોસ્પિટલો</string>
+    <string name="nearby_map_header_subtitle">જીપીએસ (GPS) વડે નજીકના ઇમરજન્સી ટ્રોમા સેન્ટર, મલ્ટી-સ્પેશિયાલિટી હોસ્પિટલો અને ૨૪ કલાક મેડિકલ સ્ટોર્સ.</string>
+    <string name="nearby_filter_all">બધા સ્થળો</string>
+    <string name="nearby_filter_hospitals">હોસ્પિટલો</string>
+    <string name="nearby_filter_clinics">ક્લિનિક્સ / દવાખાના</string>
+    <string name="nearby_filter_pharmacies">૨૪/૭ મેડિકલ સ્ટોર્સ</string>
+    <string name="btn_open_google_maps">લાઇવ મેપમાં શોધો</string>
+    <string name="btn_navigate_facility">દિશા / રસ્તો</string>
+    <string name="btn_call_facility">ઇમરજન્સી કૉલ</string>
+    <string name="nearby_gps_detecting">લાઇવ GPS લોકેશન શોધી રહ્યું છે…</string>
+    <string name="nearby_gps_refresh">લોકેશન રિફ્રેશ કરો</string>
+    <string name="nearby_beds_available">%d બેડ ઉપલબ્ધ છે</string>
+    <string name="emergency_room_badge">૨૪ કલાક ટ્રોમા / ICU ઉપલબ્ધ</string>
+    <string name="locating_permission_notice">નજીકના ઇમરજન્સી દવાખાના અને હોસ્પિટલ સુધીનું ચોક્કસ અંતર અને દિશા બતાવવા માટે GPS લોકેશન જરૂરી છે.</string>
+    <string name="grant_location_btn">GPS લોકેશન ચાલુ કરો</string>
+    <string name="btn_refresh_language">એપ અને ભાષા રિફ્રેશ કરો</string>
+    <string name="toast_language_refreshed">ભાષા અને એપ્લિકેશન સફળતાપૂર્વક રિફ્રેશ થઈ ગઈ છે!</string>
+    <string name="btn_download_apk_label">Health Care AI APK ડાઉનલોડ કરો</string>
+    <string name="apk_download_banner_title">Health Care AI APK ડાઉનલોડ કરો</string>
+    <string name="apk_download_banner_desc">નવા ફીચર્સ (GPS હોસ્પિટલો, OCR સ્કેનર અને સ્ટેપ્સ) વાળી સંપૂર્ણ ૬૯ MB ની APK ડાઉનલોડ અથવા ઇન્સ્ટોલ કરવા અહીં ક્લિક કરો.</string>
+    <string name="btn_test_med_notification">દવા નોટિફિકેશન ટેસ્ટ કરો</string>
+    <string name="toast_med_notification_sent">દવા નોટિફિકેશન બહાર સ્ક્રીન પર મોકલાઈ ગયું છે!</string>
+    <string name="real_hospital_tracking_badge">લાઈવ GPS રીયલ-ટાઇમ ટ્રેકિંગ ચાલુ</string>
+    <string name="startup_permissions_dialog_title">હેલ્થ કેર AI માં સ્વાગત છે</string>
+    <string name="startup_permissions_dialog_desc">નજીકના દવાખાના/હોસ્પિટલ, ચાલવાના પગલાં (સ્ટેપ્સ), કેમેરાથી દવા સ્કેનિંગ, અવાજ દ્વારા બોલવું અને સમયસર દવાના નોટિફિકેશન મેળવવા માટે કૃપા કરીને જરૂરી પરમિશન આપો.</string>
+    <string name="btn_grant_all_permissions">બધી પરમિશન મંજૂર કરો</string>
+</resources>

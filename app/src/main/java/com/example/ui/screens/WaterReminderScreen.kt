@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,11 +21,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocalDrink
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.ui.res.stringResource
+import com.example.R
+import com.example.ui.theme.ThemeMode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,10 +59,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.PrimaryTeal
 import com.example.ui.theme.SafeMint
+import com.example.ui.theme.tr
+import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.MediAssistViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,6 +81,7 @@ fun WaterReminderScreen(
     val targetMl by viewModel.waterTargetMl.collectAsState()
     val reminderIntervalHours by viewModel.reminderIntervalHours.collectAsState()
     val waterLogs by viewModel.todayWaterLogs.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
 
     val progress = (totalWaterMl.toFloat() / targetMl.toFloat()).coerceIn(0f, 1f)
     val animatedProgress by animateFloatAsState(targetValue = progress, label = "waterProgress")
@@ -98,28 +110,65 @@ fun WaterReminderScreen(
                             }
                         }
                         Spacer(modifier = Modifier.width(10.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
-                                text = "Water Reminder (પાણી રિમાઇન્ડર)",
+                                text = tr("Water Reminder", "પાણી રિમાઇન્ડર", "पानी रिमाइंडर"),
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Daily Hydration & Headache Prevention",
+                                text = tr(
+                                    "Daily Hydration & Headache Care",
+                                    "રોજિંદા પાણી અને માથાના દુખાવાની સંભાળ",
+                                    "दैनिक जल स्तर और सिरदर्द देखभाल"
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 },
                 actions = {
+                    com.example.ui.components.LanguageSelector(
+                        viewModel = viewModel,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    IconButton(
+                        onClick = { viewModel.toggleThemeMode() },
+                        modifier = Modifier.testTag("water_theme_toggle_button")
+                    ) {
+                        val (themeIcon, themeName) = when (themeMode) {
+                            ThemeMode.DARK -> Icons.Default.DarkMode to stringResource(R.string.theme_dark)
+                            ThemeMode.LIGHT -> Icons.Default.LightMode to stringResource(R.string.theme_light)
+                            ThemeMode.SYSTEM -> Icons.Default.BrightnessAuto to stringResource(R.string.theme_system)
+                        }
+                        Icon(
+                            imageVector = themeIcon,
+                            contentDescription = themeName,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    IconButton(
+                        onClick = { viewModel.setScreen(AppScreen.STEP_COUNTER) },
+                        modifier = Modifier.testTag("water_open_step_counter_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.DirectionsRun,
+                            contentDescription = stringResource(R.string.step_counter_title),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(
                         onClick = { viewModel.triggerWaterReminderNotification() },
                         modifier = Modifier.testTag("test_water_notification_button")
                     ) {
                         Icon(
                             imageVector = Icons.Default.NotificationsActive,
-                            contentDescription = "Test Notification",
+                            contentDescription = tr("Test Notification", "ટેસ્ટ નોટિફિકેશન", "टेस्ट नोटिफिकेशन"),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -138,6 +187,56 @@ fun WaterReminderScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Shortcut to Step Counter & Fitness
+            item {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.setScreen(AppScreen.STEP_COUNTER) }
+                        .testTag("water_to_step_counter_banner")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.DirectionsRun,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.step_counter_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = tr(
+                                        "Count steps & calories via hardware sensor",
+                                        "હાર્ડવેર સેન્સર વડે પગલાં અને કેલરી ગણો",
+                                        "हार्डवेयर सेंसर से कदम और कैलोरी गिनें"
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            }
+                        }
+                        Text(
+                            text = tr("Open 🏃", "ખોલો 🏃", "खोलें 🏃"),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
             // Main Progress Hero Card
             item {
                 Card(
@@ -160,7 +259,7 @@ fun WaterReminderScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "આજનું પાણી (Today's Intake)",
+                                    text = tr("Today's Intake", "આજનું પાણી", "आज का पानी"),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -189,7 +288,11 @@ fun WaterReminderScreen(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "$glassesCount / $targetGlasses ગ્લાસ",
+                                        text = tr(
+                                            "$glassesCount / $targetGlasses Glasses",
+                                            "$glassesCount / $targetGlasses ગ્લાસ",
+                                            "$glassesCount / $targetGlasses गिलास"
+                                        ),
                                         color = MaterialTheme.colorScheme.onPrimary,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp
@@ -218,7 +321,11 @@ fun WaterReminderScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "${(progress * 100).toInt()}% પૂર્ણ (Completed)",
+                                text = tr(
+                                    "${(progress * 100).toInt()}% Completed",
+                                    "${(progress * 100).toInt()}% પૂર્ણ",
+                                    "${(progress * 100).toInt()}% पूर्ण"
+                                ),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
@@ -233,7 +340,7 @@ fun WaterReminderScreen(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "લક્ષ્ય પૂરું થયું! (Goal Achieved)",
+                                        text = tr("Goal Achieved!", "લક્ષ્ય પૂરું થયું!", "लक्ष्य पूरा हुआ!"),
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
                                         color = SafeMint
@@ -241,7 +348,11 @@ fun WaterReminderScreen(
                                 }
                             } else {
                                 Text(
-                                    text = "બાકી: ${targetMl - totalWaterMl} ml",
+                                    text = tr(
+                                        "Remaining: ${targetMl - totalWaterMl} ml",
+                                        "બાકી: ${targetMl - totalWaterMl} ml",
+                                        "शेष: ${targetMl - totalWaterMl} ml"
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -255,7 +366,7 @@ fun WaterReminderScreen(
             item {
                 Column {
                     Text(
-                        text = "ઝડપથી પાણી ઉમેરો (Quick Log Water)",
+                        text = tr("Quick Log Water", "ઝડપથી પાણી ઉમેરો", "त्वरित पानी जोड़ें"),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -276,7 +387,7 @@ fun WaterReminderScreen(
                                 Icon(Icons.Default.LocalDrink, contentDescription = null, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text("+250 ml", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                Text("1 ગ્લાસ", fontSize = 10.sp)
+                                Text(tr("1 Glass", "૧ ગ્લાસ", "1 गिलास"), fontSize = 10.sp)
                             }
                         }
 
@@ -291,7 +402,7 @@ fun WaterReminderScreen(
                                 Icon(Icons.Default.WaterDrop, contentDescription = null, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text("+500 ml", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                Text("બોટલ", fontSize = 10.sp)
+                                Text(tr("Bottle", "બોટલ", "बोतल"), fontSize = 10.sp)
                             }
                         }
 
@@ -306,7 +417,7 @@ fun WaterReminderScreen(
                                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text("+150 ml", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                Text("નાનો ગ્લાસ", fontSize = 10.sp)
+                                Text(tr("Small Glass", "નાનો ગ્લાસ", "छोटा गिलास"), fontSize = 10.sp)
                             }
                         }
                     }
@@ -337,7 +448,7 @@ fun WaterReminderScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "રિમાઇન્ડર સમય (Reminder Interval)",
+                                    text = tr("Reminder Interval", "રિમાઇન્ડર સમય", "रिमाइंडर अंतराल"),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -350,13 +461,21 @@ fun WaterReminderScreen(
                                     .testTag("send_test_alert_button"),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
-                                Text("Test Alert", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    tr("Test Alert", "ટેસ્ટ એલર્ટ", "टेस्ट अलर्ट"),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "દર કેટલા કલાકે પાણી પીવાની યાદ અપાવવી?",
+                            text = tr(
+                                "How often should we remind you to drink water?",
+                                "દર કેટલા કલાકે પાણી પીવાની યાદ અપાવવી?",
+                                "कितने घंटे के अंतराल पर पानी पीने की याद दिलाएं?"
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -370,7 +489,7 @@ fun WaterReminderScreen(
                                 FilterChip(
                                     selected = reminderIntervalHours == hours,
                                     onClick = { viewModel.setReminderInterval(hours) },
-                                    label = { Text("દર $hours કલાકે") },
+                                    label = { Text(tr("Every ${hours}h", "દર $hours કલાકે", "हर $hours घंटे")) },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -390,17 +509,31 @@ fun WaterReminderScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "💡 પાણી પીવાથી બિમારીનો હલ (Health Benefits):",
+                            text = tr(
+                                "💡 Hydration Health Benefits:",
+                                "💡 પાણી પીવાના આરોગ્ય ફાયદા:",
+                                "💡 पानी पीने के स्वास्थ्य लाभ:"
+                            ),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "• માથાનો દુખાવો રોકે છે: શરીરમાં 1-2% પાણી ઓછું થવાથી માથું દુખવા લાગે છે.\n" +
-                                   "• થાક અને નબળાઈ દૂર કરે છે અને મગજને તાજગી આપે છે.\n" +
-                                   "• પાચન ક્રિયા સુધારે છે અને એસિડિટી ઘટાડે છે.\n" +
-                                   "• કિડની સ્ટોન અને પેશાબની બળતરાથી રક્ષણ આપે છે.",
+                            text = tr(
+                                "• Prevents Headaches: Even 1–2% dehydration can trigger headaches.\n" +
+                                    "• Boosts Energy: Reduces fatigue and keeps your mind alert.\n" +
+                                    "• Improves Digestion: Helps reduce acidity and supports gut health.\n" +
+                                    "• Kidney Protection: Helps prevent kidney stones and urinary discomfort.",
+                                "• માથાનો દુખાવો રોકે છે: શરીરમાં ૧-૨% પાણી ઓછું થવાથી માથું દુખવા લાગે છે.\n" +
+                                    "• થાક અને નબળાઈ દૂર કરે છે અને મગજને તાજગી આપે છે.\n" +
+                                    "• પાચન ક્રિયા સુધારે છે અને એસિડિટી ઘટાડે છે.\n" +
+                                    "• કિડની સ્ટોન અને પેશાબની બળતરાથી રક્ષણ આપે છે.",
+                                "• सिरदर्द से बचाव: शरीर में 1-2% पानी की कमी से भी सिरदर्द शुरू हो सकता है।\n" +
+                                    "• थकान व कमज़ोरी दूर कर दिमाग को ताज़गी देता है।\n" +
+                                    "• पाचन क्रिया सुधारता है और एसिडिटी कम करता है।\n" +
+                                    "• किडनी स्टोन और यूरिन की जलन से सुरक्षा देता है।"
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             lineHeight = 20.sp,
                             color = MaterialTheme.colorScheme.onSurface
@@ -417,7 +550,7 @@ fun WaterReminderScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "આજના રેકોર્ડ (Today's Logs)",
+                        text = tr("Today's Logs", "આજના રેકોર્ડ", "आज के रिकॉर्ड"),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
@@ -428,7 +561,7 @@ fun WaterReminderScreen(
                             modifier = Modifier.height(28.dp),
                             shape = RoundedCornerShape(6.dp)
                         ) {
-                            Text("Clear Today", fontSize = 11.sp)
+                            Text(tr("Clear Today", "આજનું સાફ કરો", "आज का साफ़ करें"), fontSize = 11.sp)
                         }
                     }
                 }
@@ -437,7 +570,11 @@ fun WaterReminderScreen(
             if (waterLogs.isEmpty()) {
                 item {
                     Text(
-                        text = "આજે હજી કોઈ પાણી નોંધાયેલ નથી. ઉપરના બટન દબાવીને પાણી ઉમેરો.",
+                        text = tr(
+                            "No water logged today yet. Tap the quick buttons above to add.",
+                            "આજે હજી કોઈ પાણી નોંધાયેલ નથી. ઉપરના બટન દબાવીને પાણી ઉમેરો.",
+                            "आज अभी तक कोई पानी दर्ज नहीं है। ऊपर दिए बटन से जोड़ें।"
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -466,7 +603,11 @@ fun WaterReminderScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
                                     Text(
-                                        text = "+${log.amountMl} ml પાણી",
+                                        text = tr(
+                                            "+${log.amountMl} ml water",
+                                            "+${log.amountMl} ml પાણી",
+                                            "+${log.amountMl} ml पानी"
+                                        ),
                                         fontWeight = FontWeight.Bold,
                                         style = MaterialTheme.typography.bodyMedium
                                     )
@@ -484,7 +625,7 @@ fun WaterReminderScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete",
+                                    contentDescription = tr("Delete", "કાઢી નાખો", "हटाएं"),
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(16.dp)
                                 )

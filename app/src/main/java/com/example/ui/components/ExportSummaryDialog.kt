@@ -25,7 +25,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -52,14 +54,20 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.theme.LocalAppLanguage
 import com.example.ui.theme.PrimaryTeal
+import com.example.ui.theme.tr
+import com.example.ui.theme.trLang
 
 @Composable
 fun ExportSummaryDialog(
     summaryText: String,
+    onDownloadPdf: () -> Unit,
+    onSharePdf: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val currentLanguage = LocalAppLanguage.current
     var isCopied by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -88,31 +96,116 @@ fun ExportSummaryDialog(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = "Export for Doctor",
+                            text = tr("Export for Doctor", "ડોક્ટર માટે રિપોર્ટ એક્સપોર્ટ", "डॉक्टर के लिए रिपोर्ट एक्सपोर्ट"),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Clinical Symptom Summary",
+                            text = tr(
+                                "Clinical PDF Report & Text Summary",
+                                "ક્લિનિકલ PDF રિપોર્ટ અને ટેક્સ્ટ સારાંશ",
+                                "क्लिनिकल PDF रिपोर्ट और टेक्स्ट सारांश"
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
                 IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = tr("Close", "બંધ કરો", "बंद करें"),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         },
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                // PDF Action Banner Card
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = "PDF Report",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = tr(
+                                    "Official Doctor PDF Report",
+                                    "ડોક્ટર માટે સત્તાવાર PDF રિપોર્ટ",
+                                    "डॉक्टर के लिए आधिकारिक PDF रिपोर्ट"
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = tr(
+                                "Formatted with clinic headers, patient history, symptom monitor table, and medical disclaimer.",
+                                "દર્દીનો ઇતિહાસ, લક્ષણોનું ટેબલ અને મેડિકલ સૂચના સાથે તૈયાર PDF રિપોર્ટ.",
+                                "मरीज़ का इतिहास, लक्षण तालिका और मेडिकल अस्वीकरण के साथ तैयार PDF रिपोर्ट।"
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = onDownloadPdf,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("download_pdf_button")
+                            ) {
+                                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(tr("Save PDF", "PDF સાચવો", "PDF सहेजें"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Button(
+                                onClick = onSharePdf,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondary
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("share_pdf_button")
+                            ) {
+                                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(tr("Share PDF", "PDF શેર કરો", "PDF शेयर करें"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
                 Text(
-                    text = "A formatted text summary of your saved symptoms and medical history has been generated from your local Room database. You can copy or share it directly with your doctor.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = tr(
+                        "Text Summary Preview:",
+                        "ટેક્સ્ટ સારાંશ પૂર્વાવલોકન:",
+                        "टेक्स्ट सारांश पूर्वावलोकन:"
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 // Scrollable Clinical Preview Box
@@ -121,7 +214,7 @@ fun ExportSummaryDialog(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 280.dp)
+                        .heightIn(max = 200.dp)
                 ) {
                     SelectionContainer {
                         Text(
@@ -147,13 +240,22 @@ fun ExportSummaryDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Copy to Clipboard Button
-                Button(
+                OutlinedButton(
                     onClick = {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText("Patient Health Summary", summaryText)
                         clipboard.setPrimaryClip(clip)
                         isCopied = true
-                        Toast.makeText(context, "Summary copied to clipboard! Ready to share with your doctor.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            trLang(
+                                currentLanguage,
+                                "Text summary copied to clipboard!",
+                                "ટેક્સ્ટ સારાંશ ક્લિપબોર્ડમાં કોપી થયો!",
+                                "टेक्स्ट सारांश क्लिपबोर्ड पर कॉपी हो गया!"
+                            ),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -165,10 +267,14 @@ fun ExportSummaryDialog(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (isCopied) "Copied!" else "Copy Text", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        if (isCopied) tr("Copied!", "કોપી થયું!", "कॉपी हो गया!") else tr("Copy Text", "ટેક્સ્ટ કોપી કરો", "टेक्स्ट कॉपी करें"),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
 
-                // Native Android Share Sheet Button
+                // Native Android Share Sheet Button for text
                 OutlinedButton(
                     onClick = {
                         val sendIntent = Intent().apply {
@@ -177,7 +283,15 @@ fun ExportSummaryDialog(
                             putExtra(Intent.EXTRA_SUBJECT, "Patient Health Summary - Medical Review")
                             type = "text/plain"
                         }
-                        val shareIntent = Intent.createChooser(sendIntent, "Share Summary with Doctor via")
+                        val shareIntent = Intent.createChooser(
+                            sendIntent,
+                            trLang(
+                                currentLanguage,
+                                "Share Summary with Doctor via",
+                                "ડોક્ટર સાથે સારાંશ શેર કરો",
+                                "डॉक्टर के साथ सारांश शेयर करें"
+                            )
+                        )
                         context.startActivity(shareIntent)
                     },
                     modifier = Modifier
@@ -190,7 +304,7 @@ fun ExportSummaryDialog(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Share", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(tr("Share Text", "ટેક્સ્ટ શેર કરો", "टेक्स्ट शेयर करें"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         },

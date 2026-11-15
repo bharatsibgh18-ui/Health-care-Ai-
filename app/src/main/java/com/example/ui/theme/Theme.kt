@@ -11,6 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * Supported Theme Modes for Manual & System Theme Switching
+ */
+enum class ThemeMode {
+    SYSTEM,
+    LIGHT,
+    DARK
+}
+
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryTealDark,
     onPrimary = OnPrimaryTealDark,
@@ -63,10 +72,17 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MediAssistTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     dynamicColor: Boolean = false, // Set false to maintain clinical teal & safety palette
     content: @Composable () -> Unit
 ) {
+    val isSystemDark = isSystemInDarkTheme()
+    val darkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemDark
+        ThemeMode.DARK -> true
+        ThemeMode.LIGHT -> false
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

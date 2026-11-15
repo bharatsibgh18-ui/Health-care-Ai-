@@ -48,6 +48,7 @@ import com.example.data.local.SymptomLogEntity
 import com.example.ui.theme.EmergencyRed
 import com.example.ui.theme.PrimaryTeal
 import com.example.ui.theme.SafeMint
+import com.example.ui.theme.tr
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -88,13 +89,17 @@ fun HeadacheHistoryListView(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "No Headache History Yet",
+                text = tr("No Headache History Yet", "હજુ સુધી માથાના દુખાવાની કોઈ નોંધ નથી", "अभी तक सिरदर्द का कोई रिकॉर्ड नहीं है"),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Saved headache records from your Room database will appear here. Track severity, duration, and triggers for easier self-monitoring.",
+                text = tr(
+                    "Saved headache records will appear here. Track severity, duration, and triggers for easier self-monitoring.",
+                    "સાચવેલા માથાના દુખાવાના રેકોર્ડ અહીં દેખાશે. સરળ નિરીક્ષણ માટે તીવ્રતા, સમયગાળો અને કારણો નોંધો.",
+                    "सहेजे गए सिरदर्द के रिकॉर्ड यहां दिखाई देंगे। आसान निगरानी के लिए तीव्रता, अवधि और कारण ट्रैक करें।"
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
@@ -108,7 +113,7 @@ fun HeadacheHistoryListView(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Log First Headache Entry")
+                Text(tr("Log First Headache Entry", "પ્રથમ માથાનો દુખાવો નોંધો", "पहला सिरदर्द दर्ज करें"))
             }
         }
     } else {
@@ -150,7 +155,11 @@ fun HeadacheHistoryListView(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Headache Self-Monitoring Summary",
+                                    text = tr(
+                                        "Headache Self-Monitoring Summary",
+                                        "માથાના દુખાવાના નિરીક્ષણનો સારાંશ",
+                                        "सिरदर्द स्व-निगरानी सारांश"
+                                    ),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -166,7 +175,7 @@ fun HeadacheHistoryListView(
                                 ) {
                                     Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(12.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Export", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text(tr("Export", "એક્સપોર્ટ", "एक्सपोर्ट"), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -178,23 +187,23 @@ fun HeadacheHistoryListView(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             MonitoringMetricItem(
-                                label = "Total Logs",
+                                label = tr("Total Logs", "કુલ નોંધ", "कुल लॉग"),
                                 value = "$totalCount",
-                                subLabel = "Recorded"
+                                subLabel = tr("Recorded", "નોંધાયેલ", "दर्ज")
                             )
                             MonitoringMetricItem(
-                                label = "Avg Severity",
+                                label = tr("Avg Severity", "સરેરાશ તીવ્રતા", "औसत तीव्रता"),
                                 value = "$formattedAvg / 10",
                                 subLabel = when {
-                                    avgSeverity <= 3 -> "Mild"
-                                    avgSeverity <= 6 -> "Moderate"
-                                    else -> "High"
+                                    avgSeverity <= 3 -> tr("Mild", "હળવો", "हल्का")
+                                    avgSeverity <= 6 -> tr("Moderate", "મધ્યમ", "मध्यम")
+                                    else -> tr("High", "તીવ્ર", "अधिक")
                                 }
                             )
                             MonitoringMetricItem(
-                                label = "Active Status",
+                                label = tr("Active Status", "સક્રિય સ્થિતિ", "सक्रिय स्थिति"),
                                 value = "$activeCount",
-                                subLabel = if (activeCount > 0) "Ongoing" else "All Resolved"
+                                subLabel = if (activeCount > 0) tr("Ongoing", "ચાલુ છે", "जारी है") else tr("All Resolved", "બધું સારું છે", "सभी ठीक हैं")
                             )
                         }
                     }
@@ -211,14 +220,18 @@ fun HeadacheHistoryListView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Saved Headache Logs ($totalCount)",
+                        text = tr(
+                            "Saved Headache Logs ($totalCount)",
+                            "સાચવેલા માથાના દુખાવાની નોંધ ($totalCount)",
+                            "सहेजे गए सिरदर्द लॉग ($totalCount)"
+                        ),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                     TextButton(onClick = onAddHeadacheClick) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("+ Add New", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(tr("+ Add New", "+ નવું ઉમેરો", "+ नया जोड़ें"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -255,10 +268,10 @@ fun HeadacheListItemCard(
     }
 
     val severityLabel = when {
-        log.severity <= 3 -> "Mild (हल्का)"
-        log.severity <= 6 -> "Moderate (मध्यम)"
-        log.severity <= 8 -> "Severe (तीव्र)"
-        else -> "Very Severe"
+        log.severity <= 3 -> tr("Mild", "હળવું", "हल्का")
+        log.severity <= 6 -> tr("Moderate", "મધ્યમ", "मध्यम")
+        log.severity <= 8 -> tr("Severe", "તીવ્ર", "तीव्र")
+        else -> tr("Very Severe", "ખૂબ તીવ્ર", "अत्यधिक तीव्र")
     }
 
     Card(
@@ -305,7 +318,11 @@ fun HeadacheListItemCard(
                         }
                     ) {
                         Text(
-                            text = log.status,
+                            text = when (log.status) {
+                                "Resolved" -> tr("Resolved", "સારું થઈ ગયું", "ठीक हो गया")
+                                "Improving" -> tr("Improving", "સુધારો છે", "सुधार हो रहा है")
+                                else -> tr("Ongoing", "ચાલુ છે", "जारी है")
+                            },
                             color = when (log.status) {
                                 "Resolved" -> SafeMint
                                 "Improving" -> MaterialTheme.colorScheme.primary
@@ -325,7 +342,7 @@ fun HeadacheListItemCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = tr("Delete", "કાઢી નાખો", "हटाएं"),
                             tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(16.dp)
                         )
@@ -366,7 +383,7 @@ fun HeadacheListItemCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Severity: ${log.severity}/10",
+                                text = tr("Severity: ${log.severity}/10", "તીવ્રતા: ${log.severity}/10", "तीव्रता: ${log.severity}/10"),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp,
                                 color = severityColor
@@ -406,7 +423,7 @@ fun HeadacheListItemCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Duration",
+                                text = tr("Duration", "સમયગાળો", "अवधि"),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.primary
@@ -436,7 +453,11 @@ fun HeadacheListItemCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Notes / Triggers: ${log.notesOrTriggers}",
+                        text = tr(
+                            "Notes / Triggers: ${log.notesOrTriggers}",
+                            "નોંધ / કારણ: ${log.notesOrTriggers}",
+                            "नोट्स / कारण: ${log.notesOrTriggers}"
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
@@ -460,7 +481,11 @@ fun HeadacheListItemCard(
                                 modifier = Modifier.height(28.dp)
                             ) {
                                 Text(
-                                    statusChoice,
+                                    when (statusChoice) {
+                                        "Resolved" -> tr("Resolved", "સારું", "ठीक")
+                                        "Improving" -> tr("Improving", "સુધારો", "सुधार")
+                                        else -> tr("Ongoing", "ચાલુ", "जारी")
+                                    },
                                     fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -479,7 +504,11 @@ fun HeadacheListItemCard(
                         modifier = Modifier.size(12.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Discuss with AI", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        tr("Discuss with AI", "AI ને પૂછો", "AI से पूछें"),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

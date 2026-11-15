@@ -18,7 +18,14 @@ data class GeminiContent(
 
 @JsonClass(generateAdapter = true)
 data class GeminiPart(
-    @param:Json(name = "text") val text: String? = null
+    @param:Json(name = "text") val text: String? = null,
+    @param:Json(name = "inlineData") val inlineData: GeminiBlob? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class GeminiBlob(
+    @param:Json(name = "mimeType") val mimeType: String,
+    @param:Json(name = "data") val data: String
 )
 
 @JsonClass(generateAdapter = true)

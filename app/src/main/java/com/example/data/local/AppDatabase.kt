@@ -11,9 +11,14 @@ import androidx.room.RoomDatabase
         SymptomLogEntity::class,
         ChatMessageEntity::class,
         UserProfileEntity::class,
-        WaterLogEntity::class
+        WaterLogEntity::class,
+        MedicineEntity::class,
+        ScannedReportEntity::class,
+        StepRecordEntity::class,
+        VitalLogEntity::class,
+        FamilyMemberEntity::class
     ],
-    version = 3,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

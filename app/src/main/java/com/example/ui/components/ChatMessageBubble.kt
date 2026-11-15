@@ -46,6 +46,7 @@ import com.example.ui.theme.EmergencyRed
 import com.example.ui.theme.EmergencyRedContainer
 import com.example.ui.theme.OnEmergencyRed
 import com.example.ui.theme.PrimaryTeal
+import com.example.ui.theme.tr
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -131,13 +132,65 @@ fun ChatMessageBubble(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "EMERGENCY PROTOCOL ACTIVE",
+                                text = tr(
+                                    "EMERGENCY PROTOCOL ACTIVE",
+                                    "ઇમરજન્સી પ્રોટોકોલ સક્રિય",
+                                    "आपातकालीन प्रोटोकॉल सक्रिय"
+                                ),
                                 color = OnEmergencyRed,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
+                    }
+
+                    // Attached image preview if message has an image
+                    if (!message.imageUri.isNullOrBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                        ) {
+                            Column {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.MedicalServices,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = tr(
+                                            "🩺 Symptom Photo",
+                                            "🩺 ક્લિનિકલ ફોટો",
+                                            "🩺 लक्षण फ़ोटो"
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                coil.compose.AsyncImage(
+                                    model = message.imageUri,
+                                    contentDescription = "Attached symptom image",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(190.dp)
+                                        .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                )
+                            }
+                        }
                     }
 
                     // Message text formatting
@@ -158,7 +211,11 @@ fun ChatMessageBubble(
                                 onClick = { onSpeakClick(message) },
                                 label = {
                                     Text(
-                                        if (isSpeakingThisMessage) "⏹️ અવાજ બંધ કરો (Stop)" else "🔊 બોલીને સમજાવો (Explain Aloud)",
+                                        if (isSpeakingThisMessage) {
+                                            tr("⏹️ Stop", "⏹️ અવાજ બંધ કરો", "⏹️ आवाज़ बंद करें")
+                                        } else {
+                                            tr("🔊 Explain Aloud", "🔊 બોલીને સમજાવો", "🔊 बोलकर समझाएं")
+                                        },
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )

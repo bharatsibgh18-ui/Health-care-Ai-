@@ -5,6 +5,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.local.AppDatabase
 import com.example.data.local.ChatMessageEntity
+import com.example.data.local.ScannedReportEntity
+import com.example.data.local.StepRecordEntity
 import com.example.data.local.SymptomLogEntity
 import com.example.data.local.TriageSessionEntity
 import com.example.data.local.UserProfileEntity
@@ -188,4 +190,168 @@ class ExampleRobolectricTest {
         val text = result.getOrNull() ?: ""
         assertTrue(text.isNotBlank())
     }
+
+    @Test
+    fun `verify AppScreen enum contains APP_INFO`() {
+        val screens = com.example.ui.viewmodel.AppScreen.values()
+        assertTrue(screens.contains(com.example.ui.viewmodel.AppScreen.APP_INFO))
+        assertEquals("APP_INFO", com.example.ui.viewmodel.AppScreen.APP_INFO.name)
+    }
+
+    @Test
+    fun `verify theme mode toggles in view model`() {
+        val app = ApplicationProvider.getApplicationContext<android.app.Application>()
+        val viewModel = com.example.ui.viewmodel.MediAssistViewModel(app)
+
+        assertEquals(com.example.ui.theme.ThemeMode.SYSTEM, viewModel.themeMode.value)
+        viewModel.toggleThemeMode()
+        assertEquals(com.example.ui.theme.ThemeMode.DARK, viewModel.themeMode.value)
+        viewModel.toggleThemeMode()
+        assertEquals(com.example.ui.theme.ThemeMode.LIGHT, viewModel.themeMode.value)
+        viewModel.toggleThemeMode()
+        assertEquals(com.example.ui.theme.ThemeMode.SYSTEM, viewModel.themeMode.value)
+    }
+
+    @Test
+    fun `verify localized navigation strings exist`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        assertEquals("Triage", context.getString(R.string.nav_triage))
+        assertEquals("Water", context.getString(R.string.nav_water))
+        assertEquals("Emergency", context.getString(R.string.nav_emergency))
+        assertEquals("Health Log", context.getString(R.string.nav_history))
+        assertEquals("Profile", context.getString(R.string.nav_profile))
+    }
+
+    @Test
+    fun `send medical image query and verify photo analysis response`() = runBlocking {
+        val query = "આ ફોટામાં શું થયું છે અને કઈ દવા કરવી?"
+        val sampleBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        val result = repository.sendTriageQuery(query, emptyList(), null, imageBase64 = sampleBase64, imageMimeType = "image/png")
+        assertTrue(result.isSuccess)
+        val text = result.getOrNull() ?: ""
+        assertTrue(text.isNotBlank())
+        assertTrue(text.contains("ફોટાનું ક્લિનિકલ નિરીક્ષણ") || text.contains("Visual") || text.contains("દવા") || text.contains("કારણો"))
+    }
+
+    @Test
+    fun `verify gujarati localized emergency strings`() {
+        val baseContext = ApplicationProvider.getApplicationContext<Context>()
+        val config = android.content.res.Configuration(baseContext.resources.configuration)
+        config.setLocale(java.util.Locale.forLanguageTag("gu"))
+        val guContext = baseContext.createConfigurationContext(config)
+
+        assertEquals("ઇમરજન્સી પ્રોટોકોલ", guContext.getString(R.string.emergency_protocol_title))
+        assertEquals("તાત્કાલિક ઇમરજન્સી સેવા", guContext.getString(R.string.emergency_dispatch_title))
+        assertEquals("🚨 જીવલેણ ઇમરજન્સી લક્ષણો (રેડ ફ્લેગ)", guContext.getString(R.string.emergency_red_flags_header))
+        assertEquals("છાતીમાં અસહ્ય દુખાવો", guContext.getString(R.string.emergency_sign_chest_title))
+        assertEquals("🧠 F.A.S.T. લકવા (સ્ટ્રોક) તપાસ માર્ગદર્શિકા", guContext.getString(R.string.emergency_fast_header))
+        assertEquals("🩹 તાત્કાલિક પ્રાથમિક સારવારની સૂચનાઓ", guContext.getString(R.string.emergency_first_aid_header))
+    }
+
+    @Test
+    fun `adjust and update medicine reminder time in room database`() = runBlocking {
+        val med = com.example.data.local.MedicineEntity(
+            name = "Paracetamol",
+            dosage = "500mg",
+            timeOfDay = "08:00 AM",
+            instruction = "After Food",
+            isActive = true
+        )
+        val id = repository.saveMedicine(med)
+        val savedMed = med.copy(id = id)
+
+        // Adjust time to 09:30 PM and update
+        val updatedMed = savedMed.copy(
+            timeOfDay = "09:30 PM",
+            instruction = "At Bedtime"
+        )
+        repository.updateMedicine(updatedMed)
+
+        // Retrieve and verify adjusted time
+        val medicines = repository.allMedicines.first()
+        val updated = medicines.first { it.id == id }
+        assertEquals("09:30 PM", updated.timeOfDay)
+        assertEquals("At Bedtime", updated.instruction)
+    }
+
+    @Test
+    fun `verify MainActivity launches successfully without crashing`() {
+        val controller = org.robolectric.Robolectric.buildActivity(MainActivity::class.java)
+        controller.setup()
+        val activity = controller.get()
+        org.junit.Assert.assertNotNull(activity)
+        controller.pause().stop().destroy()
+    }
+
+    @Test
+    fun `verify front page ChatTriageScreen loads default state`() = runBlocking {
+        val app = ApplicationProvider.getApplicationContext<android.app.Application>()
+        val viewModel = com.example.ui.viewmodel.MediAssistViewModel(app)
+        assertEquals(com.example.ui.viewmodel.AppScreen.TRIAGE_CHAT, viewModel.currentScreen.value)
+        assertEquals(false, viewModel.showSymptomContextSheet.value)
+        assertEquals("", viewModel.inputText.value)
+    }
+
+    @Test
+    fun `insert and retrieve scanned report in room database`() = runBlocking {
+        val report = ScannedReportEntity(
+            title = "Complete Blood Count (CBC) Lab",
+            extractedText = "Hemoglobin: 10.5 g/dL (Normal: 12.0-15.5)\nWBC: 7,800 /mcL\nPlatelets: 210,000 /mcL",
+            aiExplanation = "Mild anemia noted from slightly low hemoglobin levels. Consult your physician.",
+            reportType = "Lab Report"
+        )
+        val id = repository.saveScannedReport(report)
+        assertTrue(id > 0)
+
+        val list = repository.allScannedReports.first()
+        assertEquals(1, list.size)
+        assertEquals("Complete Blood Count (CBC) Lab", list[0].title)
+        assertEquals("Lab Report", list[0].reportType)
+        assertTrue(list[0].extractedText.contains("Hemoglobin"))
+    }
+
+    @Test
+    fun `explain medical report or prescription fallback generates structured explanation`() = runBlocking {
+        val ocrSample = "Rx\nTab Amoxicillin 500mg 1 tablet TID x 5 days\nTab Paracetamol 650mg SOS for fever\nAdv: Drink plenty of fluids"
+        val result = repository.explainMedicalReportOrPrescription(
+            extractedText = ocrSample,
+            reportType = "Prescription",
+            language = "English"
+        )
+        assertTrue(result.isSuccess)
+        val explanation = result.getOrNull() ?: ""
+        assertTrue(explanation.isNotBlank())
+        assertTrue(explanation.contains("Prescription", ignoreCase = true) || explanation.contains("Medication", ignoreCase = true))
+    }
+
+    @Test
+    fun `save and update daily steps in room database`() = runBlocking {
+        val testDate = "2026-11-06"
+        val id = repository.saveOrUpdateSteps(date = testDate, steps = 3500, targetSteps = 8000)
+        assertTrue(id > 0)
+
+        val record = repository.getStepRecordForDate(testDate).first()
+        org.junit.Assert.assertNotNull(record)
+        assertEquals(3500, record?.steps)
+        assertEquals(8000, record?.targetSteps)
+        assertTrue((record?.caloriesBurned ?: 0.0) > 0.0)
+        assertTrue((record?.distanceMeters ?: 0.0) > 0.0)
+
+        // Add 500 steps
+        repository.addSteps(date = testDate, increment = 500)
+        val updatedRecord = repository.getStepRecordForDate(testDate).first()
+        assertEquals(4000, updatedRecord?.steps)
+
+        // Update goal to 10,000
+        repository.updateStepGoal(date = testDate, targetSteps = 10000)
+        val finalRecord = repository.getStepRecordForDate(testDate).first()
+        assertEquals(10000, finalRecord?.targetSteps)
+    }
+
+    @Test
+    fun `verify AppScreen enum contains STEP_COUNTER`() {
+        val screens = com.example.ui.viewmodel.AppScreen.values()
+        assertTrue(screens.contains(com.example.ui.viewmodel.AppScreen.STEP_COUNTER))
+    }
 }
+

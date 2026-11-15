@@ -91,4 +91,84 @@ interface TriageDao {
 
     @Query("DELETE FROM water_logs WHERE dateString = :date")
     suspend fun clearWaterLogsForDate(date: String)
+
+    // Medicine Reminders
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMedicine(medicine: MedicineEntity): Long
+
+    @Update
+    suspend fun updateMedicine(medicine: MedicineEntity)
+
+    @Delete
+    suspend fun deleteMedicine(medicine: MedicineEntity)
+
+    @Query("SELECT * FROM medicines ORDER BY createdAt DESC")
+    fun getAllMedicines(): Flow<List<MedicineEntity>>
+
+    @Query("SELECT * FROM medicines WHERE isActive = 1 ORDER BY createdAt DESC")
+    fun getActiveMedicines(): Flow<List<MedicineEntity>>
+
+    @Query("SELECT * FROM medicines WHERE id = :id LIMIT 1")
+    suspend fun getMedicineById(id: Long): MedicineEntity?
+
+    // Scanned Medical Reports & Prescriptions (OCR)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertScannedReport(report: ScannedReportEntity): Long
+
+    @Query("SELECT * FROM scanned_reports ORDER BY timestamp DESC")
+    fun getAllScannedReports(): Flow<List<ScannedReportEntity>>
+
+    @Query("SELECT * FROM scanned_reports WHERE id = :id LIMIT 1")
+    suspend fun getScannedReportById(id: Long): ScannedReportEntity?
+
+    @Delete
+    suspend fun deleteScannedReport(report: ScannedReportEntity)
+
+    @Query("DELETE FROM scanned_reports")
+    suspend fun clearAllScannedReports()
+
+    // Step Counter & Fitness Tracking
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateStepRecord(record: StepRecordEntity): Long
+
+    @Query("SELECT * FROM step_records WHERE date = :date LIMIT 1")
+    fun getStepRecordForDate(date: String): Flow<StepRecordEntity?>
+
+    @Query("SELECT * FROM step_records WHERE date = :date LIMIT 1")
+    suspend fun getStepRecordDirect(date: String): StepRecordEntity?
+
+    @Query("SELECT * FROM step_records ORDER BY date DESC LIMIT :limit")
+    fun getRecentStepRecords(limit: Int = 7): Flow<List<StepRecordEntity>>
+
+    @Query("SELECT * FROM step_records ORDER BY date DESC")
+    fun getAllStepRecords(): Flow<List<StepRecordEntity>>
+
+    @Query("DELETE FROM step_records")
+    suspend fun clearAllStepRecords()
+
+    // Smart Health Vitals Tracker
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertVitalLog(log: VitalLogEntity): Long
+
+    @Delete
+    suspend fun deleteVitalLog(log: VitalLogEntity)
+
+    @Query("SELECT * FROM vital_logs ORDER BY timestamp DESC")
+    fun getAllVitalLogs(): Flow<List<VitalLogEntity>>
+
+    @Query("SELECT * FROM vital_logs WHERE vitalType = :type ORDER BY timestamp DESC")
+    fun getVitalLogsByType(type: String): Flow<List<VitalLogEntity>>
+
+    // Family Profile & Caregiver Support
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFamilyMember(member: FamilyMemberEntity): Long
+
+    @Update
+    suspend fun updateFamilyMember(member: FamilyMemberEntity)
+
+    @Delete
+    suspend fun deleteFamilyMember(member: FamilyMemberEntity)
+
+    @Query("SELECT * FROM family_members ORDER BY id ASC")
+    fun getAllFamilyMembers(): Flow<List<FamilyMemberEntity>>
 }

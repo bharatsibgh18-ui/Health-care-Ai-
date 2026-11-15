@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.EmergencyRed
 import com.example.ui.theme.PrimaryTeal
+import com.example.ui.theme.tr
 import com.example.ui.viewmodel.SymptomDetails
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -58,9 +59,31 @@ fun SymptomContextSheet(
     var selectedLocation by remember { mutableStateOf("General") }
     val associatedSymptoms = remember { mutableStateListOf<String>() }
 
-    val durationOptions = listOf("Few Hours", "1-2 Days", "3-7 Days", "1-2 Weeks", ">1 Month")
-    val locationOptions = listOf("Head/Neck", "Chest", "Throat", "Abdomen", "Joints/Limbs", "Skin", "General")
-    val symptomOptions = listOf("Fever/Chills", "Nausea/Vomiting", "Dizziness", "Cough", "Rash", "Shortness of Breath", "Fatigue")
+    val durationOptions = listOf(
+        "Few Hours" to tr("Few Hours", "થોડા કલાકો", "कुछ घंटे"),
+        "1-2 Days" to tr("1-2 Days", "૧-૨ દિવસ", "1-2 दिन"),
+        "3-7 Days" to tr("3-7 Days", "૩-૭ દિવસ", "3-7 दिन"),
+        "1-2 Weeks" to tr("1-2 Weeks", "૧-૨ અઠવાડિયા", "1-2 सप्ताह"),
+        ">1 Month" to tr(">1 Month", "૧ મહિનાથી વધુ", "1 महीने से अधिक")
+    )
+    val locationOptions = listOf(
+        "Head/Neck" to tr("Head/Neck", "માથું / ગળું", "सिर / गर्दन"),
+        "Chest" to tr("Chest", "છાતી", "छाती"),
+        "Throat" to tr("Throat", "ગળું", "गला"),
+        "Abdomen" to tr("Abdomen", "પેટ", "पेट"),
+        "Joints/Limbs" to tr("Joints/Limbs", "સાંધા / હાથ-પગ", "जोड़ / हाथ-पैर"),
+        "Skin" to tr("Skin", "ચામડી", "त्वचा"),
+        "General" to tr("General", "સામાન્ય / આખું શરીર", "सामान्य / पूरा शरीर")
+    )
+    val symptomOptions = listOf(
+        "Fever/Chills" to tr("Fever/Chills", "તાવ / ઠંડી", "बुखार / ठंड"),
+        "Nausea/Vomiting" to tr("Nausea/Vomiting", "ઉબકા / ઉલટી", "मतली / उल्टी"),
+        "Dizziness" to tr("Dizziness", "ચક્કર આવવા", "चक्कर आना"),
+        "Cough" to tr("Cough", "ઉધરસ", "खांसी"),
+        "Rash" to tr("Rash", "ચામડી પર ચકામા", "त्वचा पर चकत्ते"),
+        "Shortness of Breath" to tr("Shortness of Breath", "શ્વાસ ચઢવો", "सांस फूलना"),
+        "Fatigue" to tr("Fatigue", "થાક લાગવો", "थकान")
+    )
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -87,18 +110,26 @@ fun SymptomContextSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Clinical Context Questionnaire",
+                        text = tr(
+                            "Clinical Context Questionnaire",
+                            "લક્ષણોની વિગતવાર પ્રશ્નાવલી",
+                            "लक्षण विवरण प्रश्नावली"
+                        ),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close")
+                    Icon(imageVector = Icons.Default.Close, contentDescription = tr("Close", "બંધ કરો", "बंद करें"))
                 }
             }
 
             Text(
-                text = "Providing details helps MediAssist ask targeted clarifying questions and guide care accurately.",
+                text = tr(
+                    "Providing details helps Health Care AI ask targeted clarifying questions and guide care accurately.",
+                    "વિગતો આપવાથી AI તમારા લક્ષણો વધુ સારી રીતે સમજીને યોગ્ય માર્ગદર્શન આપી શકશે.",
+                    "विवरण देने से AI आपके लक्षणों को बेहतर समझकर सही मार्गदर्शन दे सकेगा।"
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -106,17 +137,37 @@ fun SymptomContextSheet(
 
             // Severity Slider
             Text(
-                text = "Severity (1 - 10 Scale): ${severity.toInt()} / 10",
+                text = tr(
+                    "Severity (1 - 10 Scale): ${severity.toInt()} / 10",
+                    "તીવ્રતા (૧ થી ૧૦): ${severity.toInt()} / 10",
+                    "तीव्रता (1 से 10): ${severity.toInt()} / 10"
+                ),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = if (severity >= 8) EmergencyRed else MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = when {
-                    severity <= 3 -> "Mild: Barely interferes with normal activities"
-                    severity <= 6 -> "Moderate: Noticeable discomfort, partly limits activities"
-                    severity <= 8 -> "Severe: Strongly interferes with concentration or rest"
-                    else -> "Very Severe / Unbearable: Seek emergency medical care immediately"
+                    severity <= 3 -> tr(
+                        "Mild: Barely interferes with normal activities",
+                        "હળવું: રોજિંદા કામમાં બહુ તકલીફ નથી",
+                        "हल्का: दैनिक कार्यों में बहुत कम परेशानी"
+                    )
+                    severity <= 6 -> tr(
+                        "Moderate: Noticeable discomfort, partly limits activities",
+                        "મધ્યમ: અગવડતા અનુભવાય છે, કામમાં થોડી અસર",
+                        "मध्यम: स्पष्ट असुविधा, काम में थोड़ी बाधा"
+                    )
+                    severity <= 8 -> tr(
+                        "Severe: Strongly interferes with concentration or rest",
+                        "તીવ્ર: આરામ કે કામ કરવામાં ભારે તકલીફ",
+                        "तीव्र: आराम या काम करने में काफी कठिनाई"
+                    )
+                    else -> tr(
+                        "Very Severe / Unbearable: Seek emergency medical care immediately",
+                        "ખૂબ જ ગંભીર / અસહ્ય: તાત્કાલિક ડોક્ટર અથવા ઇમરજન્સી મદદ લો",
+                        "अत्यधिक गंभीर / असहनीय: तुरंत आपातकालीन चिकित्सा सहायता लें"
+                    )
                 },
                 style = MaterialTheme.typography.labelMedium,
                 color = if (severity >= 8) EmergencyRed else MaterialTheme.colorScheme.onSurfaceVariant
@@ -138,7 +189,7 @@ fun SymptomContextSheet(
 
             // Duration
             Text(
-                text = "Onset & Duration:",
+                text = tr("Onset & Duration:", "ક્યારથી તકલીફ છે (સમયગાળો):", "कब से है (अवधि):"),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -146,12 +197,12 @@ fun SymptomContextSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(vertical = 6.dp)
             ) {
-                durationOptions.forEach { duration ->
+                durationOptions.forEach { (key, label) ->
                     FilterChip(
-                        selected = selectedDuration == duration,
-                        onClick = { selectedDuration = duration },
-                        label = { Text(duration) },
-                        leadingIcon = if (selectedDuration == duration) {
+                        selected = selectedDuration == key,
+                        onClick = { selectedDuration = key },
+                        label = { Text(label) },
+                        leadingIcon = if (selectedDuration == key) {
                             { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                         } else null
                     )
@@ -162,7 +213,7 @@ fun SymptomContextSheet(
 
             // Location
             Text(
-                text = "Primary Location of Discomfort:",
+                text = tr("Primary Location of Discomfort:", "કઈ જગ્યાએ તકલીફ છે:", "तकलीफ का मुख्य स्थान:"),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -170,12 +221,12 @@ fun SymptomContextSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(vertical = 6.dp)
             ) {
-                locationOptions.forEach { loc ->
+                locationOptions.forEach { (key, label) ->
                     FilterChip(
-                        selected = selectedLocation == loc,
-                        onClick = { selectedLocation = loc },
-                        label = { Text(loc) },
-                        leadingIcon = if (selectedLocation == loc) {
+                        selected = selectedLocation == key,
+                        onClick = { selectedLocation = key },
+                        label = { Text(label) },
+                        leadingIcon = if (selectedLocation == key) {
                             { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                         } else null
                     )
@@ -186,7 +237,7 @@ fun SymptomContextSheet(
 
             // Associated Symptoms
             Text(
-                text = "Associated Symptoms:",
+                text = tr("Associated Symptoms:", "અન્ય સાથેના લક્ષણો:", "अन्य जुड़े लक्षण:"),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -194,15 +245,15 @@ fun SymptomContextSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.padding(vertical = 6.dp)
             ) {
-                symptomOptions.forEach { sym ->
-                    val isSelected = associatedSymptoms.contains(sym)
+                symptomOptions.forEach { (key, label) ->
+                    val isSelected = associatedSymptoms.contains(key)
                     FilterChip(
                         selected = isSelected,
                         onClick = {
-                            if (isSelected) associatedSymptoms.remove(sym)
-                            else associatedSymptoms.add(sym)
+                            if (isSelected) associatedSymptoms.remove(key)
+                            else associatedSymptoms.add(key)
                         },
-                        label = { Text(sym) },
+                        label = { Text(label) },
                         leadingIcon = if (isSelected) {
                             { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                         } else null
@@ -226,7 +277,10 @@ fun SymptomContextSheet(
                     .fillMaxWidth()
                     .testTag("apply_symptom_context_button")
             ) {
-                Text("Attach Clinical Context", fontWeight = FontWeight.Bold)
+                Text(
+                    tr("Attach Clinical Context", "લક્ષણની વિગતો જોડો", "लक्षण विवरण जोड़ें"),
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

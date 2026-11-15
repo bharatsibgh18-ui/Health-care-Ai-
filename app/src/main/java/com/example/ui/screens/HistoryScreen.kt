@@ -28,13 +28,20 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.ui.res.stringResource
+import com.example.R
+import com.example.ui.theme.ThemeMode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -70,16 +77,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.local.ScannedReportEntity
 import com.example.data.local.SymptomLogEntity
 import com.example.data.local.TriageSessionEntity
 import com.example.ui.components.ExportSummaryDialog
 import com.example.ui.components.HeadacheHistoryListView
 import com.example.ui.theme.EmergencyRed
 import com.example.ui.theme.EmergencyRedContainer
+import com.example.ui.theme.LocalAppLanguage
 import com.example.ui.theme.PrimaryTeal
 import com.example.ui.theme.SafeMint
+import com.example.ui.theme.tr
+import com.example.ui.theme.trLang
 import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.MediAssistViewModel
 import java.text.SimpleDateFormat
@@ -95,17 +107,52 @@ fun HistoryScreen(
     val sessions by viewModel.sessions.collectAsState()
     val symptomLogs by viewModel.symptomLogs.collectAsState()
     val headacheLogs by viewModel.headacheLogs.collectAsState()
+    val scannedReports by viewModel.scannedReports.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Headache Monitor, 1: All Symptoms, 2: Triage Sessions
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Headaches, 1: All Logs, 2: Triage, 3: Reports
     var showClearDialog by remember { mutableStateOf(false) }
     var showAddSymptomDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var dialogInitialTitle by remember { mutableStateOf("") }
     var dialogInitialLocation by remember { mutableStateOf("Head") }
+    var selectedReportDetail by remember { mutableStateOf<ScannedReportEntity?>(null) }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val appLanguage = LocalAppLanguage.current
 
     if (showExportDialog) {
         ExportSummaryDialog(
             summaryText = viewModel.generateDoctorSummaryText(),
+            onDownloadPdf = {
+                val savedPath = viewModel.exportDoctorReportPdf(context)
+                if (savedPath != null) {
+                    android.widget.Toast.makeText(
+                        context,
+                        trLang(
+                            appLanguage,
+                            "Doctor report saved to $savedPath",
+                            "ડૉક્ટર રિપોર્ટ સેવ થયો: $savedPath",
+                            "डॉक्टर रिपोर्ट सहेजी गई: $savedPath"
+                        ),
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    android.widget.Toast.makeText(
+                        context,
+                        trLang(
+                            appLanguage,
+                            "Failed to save PDF",
+                            "PDF સેવ કરવામાં નિષ્ફળ",
+                            "PDF सहेजने में विफल"
+                        ),
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            },
+            onSharePdf = {
+                viewModel.shareDoctorReportPdf(context)
+            },
             onDismiss = { showExportDialog = false }
         )
     }
@@ -113,8 +160,18 @@ fun HistoryScreen(
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = { Text("Clear All Records?") },
-            text = { Text("This will permanently remove all past symptoms, headache logs, and triage history from the Room database on this device.") },
+            title = {
+                Text(tr("Clear All Records?", "બધા રેકોર્ડ કાઢી નાખવા?", "सभी रिकॉर्ड हटाएं?"))
+            },
+            text = {
+                Text(
+                    tr(
+                        "This will permanently remove all past symptoms, headache logs, and triage history from the local database on this device.",
+                        "આનાથી તમારા ફોનમાં સાચવેલા બધા જૂના લક્ષણો, માથાના દુખાવાના લોગ અને તપાસનો ઇતિહાસ કાયમ માટે દૂર થઈ જશે.",
+                        "इससे इस डिवाइस में सहेजे गए सभी पुराने लक्षण, सिरदर्द लॉग और जांच इतिहास स्थायी रूप से हट जाएंगे।"
+                    )
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = {
@@ -123,12 +180,12 @@ fun HistoryScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed)
                 ) {
-                    Text("Clear All")
+                    Text(tr("Clear All", "બધું સાફ કરો", "सब हटाएं"))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showClearDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -142,6 +199,62 @@ fun HistoryScreen(
             onSave = { title, severity, location, duration, notes, status ->
                 viewModel.logNewSymptom(title, severity, location, duration, notes, status)
                 showAddSymptomDialog = false
+            }
+        )
+    }
+
+    selectedReportDetail?.let { report ->
+        AlertDialog(
+            onDismissRequest = { selectedReportDetail = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.DocumentScanner, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(report.title, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        Text(
+                            text = report.reportType,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+
+                    Text(
+                        text = report.aiExplanation,
+                        style = MaterialTheme.typography.bodySmall,
+                        lineHeight = 20.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = tr("Raw OCR Text:", "સ્કેન કરેલ મૂળ લખાણ (OCR):", "स्कैन किया गया मूल पाठ (OCR):"),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = report.extractedText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { selectedReportDetail = null }) {
+                    Text(stringResource(R.string.action_close))
+                }
             }
         )
     }
@@ -166,21 +279,48 @@ fun HistoryScreen(
                             }
                         }
                         Spacer(modifier = Modifier.width(10.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
-                                text = "Health History & Records",
+                                text = tr("Health History", "આરોગ્ય ઇતિહાસ", "स्वास्थ्य इतिहास"),
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Room Local Database Persistence",
+                                text = tr(
+                                    "Saved Health Records",
+                                    "સાચવેલા આરોગ્ય રેકોર્ડ",
+                                    "सहेजे गए स्वास्थ्य रिकॉर्ड"
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 },
                 actions = {
+                    com.example.ui.components.LanguageSelector(
+                        viewModel = viewModel,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    IconButton(
+                        onClick = { viewModel.toggleThemeMode() },
+                        modifier = Modifier.testTag("history_theme_toggle_button")
+                    ) {
+                        val (themeIcon, themeName) = when (themeMode) {
+                            ThemeMode.DARK -> Icons.Default.DarkMode to stringResource(R.string.theme_dark)
+                            ThemeMode.LIGHT -> Icons.Default.LightMode to stringResource(R.string.theme_light)
+                            ThemeMode.SYSTEM -> Icons.Default.BrightnessAuto to stringResource(R.string.theme_system)
+                        }
+                        Icon(
+                            imageVector = themeIcon,
+                            contentDescription = themeName,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     if (sessions.isNotEmpty() || symptomLogs.isNotEmpty()) {
                         IconButton(
                             onClick = { showExportDialog = true },
@@ -188,7 +328,7 @@ fun HistoryScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
-                                contentDescription = "Export for Doctor",
+                                contentDescription = tr("Export for Doctor", "ડૉક્ટર માટે રિપોર્ટ", "डॉक्टर के लिए निर्यात"),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -198,7 +338,7 @@ fun HistoryScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DeleteSweep,
-                                contentDescription = "Clear History",
+                                contentDescription = tr("Clear History", "ઇતિહાસ સાફ કરો", "इतिहास हटाएं"),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -233,7 +373,10 @@ fun HistoryScreen(
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            if (selectedTab == 0) "Log Headache" else "Log Symptom",
+                            if (selectedTab == 0)
+                                tr("Log Headache", "માથાનો દુખાવો ઉમેરો", "सिरदर्द जोड़ें")
+                            else
+                                tr("Log Symptom", "લક્ષણ ઉમેરો", "लक्षण जोड़ें"),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -252,23 +395,66 @@ fun HistoryScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Headaches (${headacheLogs.size})", maxLines = 1) },
+                    text = {
+                        Text(
+                            tr(
+                                "Headaches (${headacheLogs.size})",
+                                "માથાનો દુખાવો (${headacheLogs.size})",
+                                "सिरदर्द (${headacheLogs.size})"
+                            ),
+                            maxLines = 1
+                        )
+                    },
                     icon = { Icon(Icons.Default.Psychology, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     modifier = Modifier.testTag("tab_headaches")
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("All Logs (${symptomLogs.size})", maxLines = 1) },
+                    text = {
+                        Text(
+                            tr(
+                                "All Logs (${symptomLogs.size})",
+                                "બધા લોગ (${symptomLogs.size})",
+                                "सभी लॉग (${symptomLogs.size})"
+                            ),
+                            maxLines = 1
+                        )
+                    },
                     icon = { Icon(Icons.Default.Bookmark, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     modifier = Modifier.testTag("tab_symptom_diary")
                 )
                 Tab(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    text = { Text("Triage (${sessions.size})", maxLines = 1) },
+                    text = {
+                        Text(
+                            tr(
+                                "Triage (${sessions.size})",
+                                "તપાસ (${sessions.size})",
+                                "जांच (${sessions.size})"
+                            ),
+                            maxLines = 1
+                        )
+                    },
                     icon = { Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(18.dp)) },
                     modifier = Modifier.testTag("tab_triage_sessions")
+                )
+                Tab(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    text = {
+                        Text(
+                            tr(
+                                "Reports (${scannedReports.size})",
+                                "રિપોર્ટ (${scannedReports.size})",
+                                "रिपोर्ट (${scannedReports.size})"
+                            ),
+                            maxLines = 1
+                        )
+                    },
+                    icon = { Icon(Icons.Default.DocumentScanner, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    modifier = Modifier.testTag("tab_scanned_reports")
                 )
             }
 
@@ -294,13 +480,17 @@ fun HistoryScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = "AI Memory",
+                                contentDescription = tr("AI Memory", "AI મેમરી", "AI मेमोरी"),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Room Health Memory Active",
+                                text = tr(
+                                    "Smart Health Memory Active",
+                                    "સ્માર્ટ આરોગ્ય મેમરી ચાલુ છે",
+                                    "स्मार्ट स्वास्थ्य मेमोरी सक्रिय है"
+                                ),
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -315,13 +505,21 @@ fun HistoryScreen(
                         ) {
                             Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(13.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Export for Doctor", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                tr("Export for Doctor", "ડૉક્ટર રિપોર્ટ", "डॉक्टर रिपोर्ट"),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "MediAssist AI uses your Room records for clinical personalization. Tap 'Export for Doctor' to copy a formatted summary to share during clinic appointments.",
+                        text = tr(
+                            "Health Care AI uses your saved records to personalize advice. Tap 'Export for Doctor' to download or share a summary for clinic visits.",
+                            "એપ તમારા સાચવેલા રેકોર્ડના આધારે સચોટ સલાહ આપે છે. ક્લિનિકમાં ડૉક્ટરને બતાવવા 'ડૉક્ટર રિપોર્ટ' બટન દબાવો.",
+                            "ऐप आपके सहेजे गए रिकॉर्ड के आधार पर सही सलाह देता है। डॉक्टर को दिखाने के लिए 'डॉक्टर रिपोर्ट' बटन दबाएं।"
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -330,36 +528,59 @@ fun HistoryScreen(
 
             when (selectedTab) {
                 0 -> {
-                    // Headache Monitor Tab: Simple List View for Self-Monitoring
-                    HeadacheHistoryListView(
-                        headacheLogs = headacheLogs,
-                        onAddHeadacheClick = {
-                            dialogInitialTitle = "Headache (सिरदर्द)"
-                            dialogInitialLocation = "Head"
-                            showAddSymptomDialog = true
-                        },
-                        onStatusChange = { item, newStatus ->
-                            viewModel.updateSymptomStatus(item, newStatus)
-                        },
-                        onDelete = { item ->
-                            viewModel.deleteSymptomLog(item)
-                        },
-                        onDiscussWithAi = { item ->
-                            viewModel.sendMessage(
-                                overrideText = "I want to evaluate my recurring headache from my Room health history: ${item.symptomTitle} (Severity: ${item.severity}/10, Location: ${item.bodyLocation}, Duration: ${item.duration})."
+                    // Headache Monitor Tab: Visual Line Chart at top + List View for Self-Monitoring
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        if (headacheLogs.isNotEmpty()) {
+                            com.example.ui.components.SymptomSeverityLineChart(
+                                symptomLogs = headacheLogs,
+                                title = tr(
+                                    "Headache Severity Trend (1-10 Scale)",
+                                    "માથાના દુખાવાની તીવ્રતા (૧-૧૦)",
+                                    "सिरदर्द की तीव्रता (1-10)"
+                                ),
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
                             )
-                            viewModel.setScreen(AppScreen.TRIAGE_CHAT)
-                        },
-                        onExportClick = { showExportDialog = true }
-                    )
+                        }
+
+                        HeadacheHistoryListView(
+                            headacheLogs = headacheLogs,
+                            onAddHeadacheClick = {
+                                dialogInitialTitle = "Headache (सिरदर्द)"
+                                dialogInitialLocation = "Head"
+                                showAddSymptomDialog = true
+                            },
+                            onStatusChange = { item, newStatus ->
+                                viewModel.updateSymptomStatus(item, newStatus)
+                            },
+                            onDelete = { item ->
+                                viewModel.deleteSymptomLog(item)
+                            },
+                            onDiscussWithAi = { item ->
+                                viewModel.sendMessage(
+                                    overrideText = trLang(
+                                        appLanguage,
+                                        "I want to evaluate my recurring headache from my health history: ${item.symptomTitle} (Severity: ${item.severity}/10, Location: ${item.bodyLocation}, Duration: ${item.duration}).",
+                                        "મારા આરોગ્ય ઇતિહાસમાં નોંધાયેલા વારંવાર થતા માથાના દુખાવા વિશે સમજાવો: ${item.symptomTitle} (તીવ્રતા: ${item.severity}/10, સ્થાન: ${item.bodyLocation}, સમય: ${item.duration}).",
+                                        "मेरे स्वास्थ्य इतिहास में दर्ज बार-बार होने वाले सिरदर्द का मूल्यांकन करें: ${item.symptomTitle} (तीव्रता: ${item.severity}/10, स्थान: ${item.bodyLocation}, अवधि: ${item.duration})।"
+                                    )
+                                )
+                                viewModel.setScreen(AppScreen.TRIAGE_CHAT)
+                            },
+                            onExportClick = { showExportDialog = true }
+                        )
+                    }
                 }
                 1 -> {
                     // All Symptoms Tab
                     if (symptomLogs.isEmpty()) {
                         EmptyHistoryView(
-                            title = "No Symptoms Logged Yet",
-                            description = "Log your symptoms (e.g. headaches, stomach discomfort, aches) or chat with MediAssist to automatically record them for clinical tracking.",
-                            buttonText = "Log First Symptom",
+                            title = tr("No Symptoms Logged Yet", "હજુ સુધી કોઈ લક્ષણ નોંધાયેલ નથી", "अभी तक कोई लक्षण दर्ज नहीं है"),
+                            description = tr(
+                                "Log your symptoms (e.g. headaches, stomach discomfort, aches) or chat with Health Care AI to automatically record them.",
+                                "તમારા લક્ષણો (જેમ કે માથાનો દુખાવો, પેટમાં દુખાવો) નોંધો અથવા AI સાથે વાત કરો જેથી રેકોર્ડ આપોઆપ સચવાય.",
+                                "अपने लक्षण (जैसे सिरदर्द, पेट दर्द) दर्ज करें या AI से बात करें ताकि वे अपने आप सहेजे जाएं।"
+                            ),
+                            buttonText = tr("Log First Symptom", "પ્રથમ લક્ષણ નોંધો", "पहला लक्षण दर्ज करें"),
                             onButtonClick = {
                                 dialogInitialTitle = ""
                                 dialogInitialLocation = "General"
@@ -373,6 +594,19 @@ fun HistoryScreen(
                                 .padding(horizontal = 14.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
+                            // Graphical Progress Chart for all symptoms
+                            item {
+                                com.example.ui.components.SymptomSeverityLineChart(
+                                    symptomLogs = symptomLogs,
+                                    title = tr(
+                                        "Overall Symptom Severity Trend",
+                                        "લક્ષણોની તીવ્રતાનો ગ્રાફ",
+                                        "लक्षणों की तीव्रता का ग्राफ"
+                                    ),
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
                             items(symptomLogs, key = { it.id }) { log ->
                                 SymptomLogCard(
                                     log = log,
@@ -382,7 +616,12 @@ fun HistoryScreen(
                                     onDelete = { viewModel.deleteSymptomLog(log) },
                                     onDiscuss = {
                                         viewModel.sendMessage(
-                                            overrideText = "I want to follow up on my reported symptom: ${log.symptomTitle} (Severity: ${log.severity}/10, Location: ${log.bodyLocation})."
+                                            overrideText = trLang(
+                                                appLanguage,
+                                                "I want to follow up on my reported symptom: ${log.symptomTitle} (Severity: ${log.severity}/10, Location: ${log.bodyLocation}).",
+                                                "મારા નોંધાયેલા લક્ષણ વિશે વધુ સલાહ આપો: ${log.symptomTitle} (તીવ્રતા: ${log.severity}/10, સ્થાન: ${log.bodyLocation}).",
+                                                "मेरे दर्ज किए गए लक्षण पर आगे की सलाह दें: ${log.symptomTitle} (तीव्रता: ${log.severity}/10, स्थान: ${log.bodyLocation})।"
+                                            )
                                         )
                                         viewModel.setScreen(AppScreen.TRIAGE_CHAT)
                                     }
@@ -396,9 +635,13 @@ fun HistoryScreen(
                     // Triage Sessions Tab
                     if (sessions.isEmpty()) {
                         EmptyHistoryView(
-                            title = "No Triage Consultations Yet",
-                            description = "Start a consultation with MediAssist to evaluate symptoms and view clinical recommendations here.",
-                            buttonText = "Start Triage Assessment",
+                            title = tr("No Triage Consultations Yet", "હજુ સુધી કોઈ તપાસ ઇતિહાસ નથી", "अभी तक कोई जांच इतिहास नहीं है"),
+                            description = tr(
+                                "Start a consultation with Health Care AI to evaluate symptoms and view recommendations here.",
+                                "લક્ષણોની તપાસ કરવા અને અહીં સલાહ જોવા માટે AI સાથે વાતચીત શરૂ કરો.",
+                                "लक्षणों की जांच करने और यहां सलाह देखने के लिए AI के साथ परामर्श शुरू करें।"
+                            ),
+                            buttonText = tr("Start Health Assessment", "તપાસ શરૂ કરો", "जांच शुरू करें"),
                             onButtonClick = { viewModel.setScreen(AppScreen.TRIAGE_CHAT) }
                         )
                     } else {
@@ -412,6 +655,57 @@ fun HistoryScreen(
                                 TriageSessionItemCard(
                                     session = session,
                                     onDelete = { viewModel.deleteSession(session) }
+                                )
+                            }
+                            item { Spacer(modifier = Modifier.height(72.dp)) }
+                        }
+                    }
+                }
+                3 -> {
+                    // Scanned Medical Reports & Prescriptions Tab
+                    if (scannedReports.isEmpty()) {
+                        EmptyHistoryView(
+                            title = tr("No Scanned Reports Yet", "હજુ સુધી કોઈ સ્કેન કરેલ રિપોર્ટ નથી", "अभी तक कोई स्कैन की गई रिपोर्ट नहीं है"),
+                            description = tr(
+                                "Upload PDF lab reports or scan prescriptions & medicine strips to get simple AI explanations.",
+                                "PDF લેબ રિપોર્ટ અપલોડ કરો અથવા પ્રિસ્ક્રિપ્શન અને દવાના પત્તા સ્કેન કરીને AI પાસેથી સરળ સમજૂતી મેળવો.",
+                                "PDF लैब रिपोर्ट अपलोड करें या पर्चा और दवाई के पत्ते स्कैन करके सरल AI व्याख्या प्राप्त करें।"
+                            ),
+                            buttonText = tr("Open Report Scanner", "રિપોર્ટ સ્કેનર ખોલો", "रिपोर्ट स्कैनर खोलें"),
+                            onButtonClick = { viewModel.setScreen(AppScreen.REPORT_SCANNER) }
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 14.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            item {
+                                OutlinedButton(
+                                    onClick = { viewModel.setScreen(AppScreen.REPORT_SCANNER) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Icon(Icons.Default.DocumentScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        tr(
+                                            "Scan New Report or Prescription",
+                                            "નવો રિપોર્ટ કે પ્રિસ્ક્રિપ્શન સ્કેન કરો",
+                                            "नई रिपोर्ट या पर्चा स्कैन करें"
+                                        ),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            items(scannedReports, key = { it.id }) { report ->
+                                ScannedReportCard(
+                                    report = report,
+                                    onClick = { selectedReportDetail = report },
+                                    onDelete = { viewModel.deleteScannedReport(report) }
                                 )
                             }
                             item { Spacer(modifier = Modifier.height(72.dp)) }
@@ -452,6 +746,11 @@ fun SymptomLogCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    val statusDisplay = when (log.status) {
+                        "Resolved" -> tr("Resolved", "સારું થઈ ગયું", "ठीक हो गया")
+                        "Improving" -> tr("Improving", "સુધારો છે", "सुधार हो रहा है")
+                        else -> tr("Ongoing", "ચાલુ છે", "जारी है")
+                    }
                     Surface(
                         shape = RoundedCornerShape(8.dp),
                         color = when (log.status) {
@@ -461,7 +760,7 @@ fun SymptomLogCard(
                         }
                     ) {
                         Text(
-                            text = log.status,
+                            text = statusDisplay,
                             color = when (log.status) {
                                 "Resolved" -> SafeMint
                                 "Improving" -> MaterialTheme.colorScheme.primary
@@ -479,7 +778,7 @@ fun SymptomLogCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = tr("Delete", "કાઢી નાખો", "हटाएं"),
                             tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(16.dp)
                         )
@@ -510,7 +809,11 @@ fun SymptomLogCard(
                     }
                 ) {
                     Text(
-                        text = "Severity: ${log.severity}/10",
+                        text = tr(
+                            "Severity: ${log.severity}/10",
+                            "તીવ્રતા: ${log.severity}/10",
+                            "तीव्रता: ${log.severity}/10"
+                        ),
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -545,7 +848,11 @@ fun SymptomLogCard(
             if (log.notesOrTriggers.isNotBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Notes / Triggers: ${log.notesOrTriggers}",
+                    text = tr(
+                        "Notes / Triggers: ${log.notesOrTriggers}",
+                        "નોંધ / કારણો: ${log.notesOrTriggers}",
+                        "नोट्स / कारण: ${log.notesOrTriggers}"
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -561,12 +868,17 @@ fun SymptomLogCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     listOf("Ongoing", "Improving", "Resolved").forEach { statusOption ->
                         if (statusOption != log.status) {
+                            val optionLabel = when (statusOption) {
+                                "Resolved" -> tr("Resolved", "સારું થયું", "ठीक हुआ")
+                                "Improving" -> tr("Improving", "સુધારો", "सुधार")
+                                else -> tr("Ongoing", "ચાલુ", "जारी")
+                            }
                             TextButton(
                                 onClick = { onStatusChange(statusOption) },
                                 modifier = Modifier.height(28.dp)
                             ) {
                                 Text(
-                                    "Mark $statusOption",
+                                    optionLabel,
                                     fontSize = 11.sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -585,7 +897,11 @@ fun SymptomLogCard(
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Ask AI", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        tr("Ask AI", "AI ને પૂછો", "AI से पूछें"),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -607,8 +923,8 @@ fun AddSymptomLogDialog(
     var notes by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("Ongoing") }
 
-    val locationOptions = listOf("Head", "Throat", "Chest", "Stomach", "Joints/Limbs", "Skin", "General")
-    val durationOptions = listOf("Hours", "1-2 Days", "3-7 Days", "1-2 Weeks", "Chronic")
+    val locationOptions = listOf("Head", "Throat", "Chest", "Stomach")
+    val durationOptions = listOf("Hours", "1-2 Days", "3-7 Days")
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -616,7 +932,7 @@ fun AddSymptomLogDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.AutoMirrored.Filled.EventNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Log Health Symptom")
+                Text(tr("Log Health Symptom", "આરોગ્ય લક્ષણ નોંધો", "स्वास्थ्य लक्षण दर्ज करें"))
             }
         },
         text = {
@@ -629,12 +945,24 @@ fun AddSymptomLogDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Symptom Name (e.g. Headache, Sore throat)") },
+                    label = {
+                        Text(
+                            tr(
+                                "Symptom Name (e.g. Headache, Sore throat)",
+                                "લક્ષણનું નામ (દા.ત. માથાનો દુખાવો, ગળામાં દુખાવો)",
+                                "लक्षण का नाम (जैसे सिरदर्द, गले में दर्द)"
+                            )
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth().testTag("dialog_symptom_title_field")
                 )
 
                 Text(
-                    text = "Severity (1 - 10): ${severity.toInt()} / 10",
+                    text = tr(
+                        "Severity (1 - 10): ${severity.toInt()} / 10",
+                        "તીવ્રતા (૧ - ૧૦): ${severity.toInt()} / 10",
+                        "तीव्रता (1 - 10): ${severity.toInt()} / 10"
+                    ),
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
                     color = if (severity >= 8) EmergencyRed else MaterialTheme.colorScheme.onSurface
@@ -650,30 +978,51 @@ fun AddSymptomLogDialog(
                     )
                 )
 
-                Text("Body Location:", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(
+                    tr("Body Location:", "શરીરનો ભાગ:", "शरीर का स्थान:"),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    locationOptions.take(4).forEach { loc ->
+                    locationOptions.forEach { loc ->
+                        val locLabel = when (loc) {
+                            "Head" -> tr("Head", "માથું", "सिर")
+                            "Throat" -> tr("Throat", "ગળું", "गला")
+                            "Chest" -> tr("Chest", "છાતી", "छाती")
+                            "Stomach" -> tr("Stomach", "પેટ", "पेट")
+                            else -> loc
+                        }
                         FilterChip(
                             selected = location == loc,
                             onClick = { location = loc },
-                            label = { Text(loc, fontSize = 11.sp) }
+                            label = { Text(locLabel, fontSize = 11.sp) }
                         )
                     }
                 }
 
-                Text("Duration:", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Text(
+                    tr("Duration:", "સમયગાળો:", "अवधि:"),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    durationOptions.take(3).forEach { dur ->
+                    durationOptions.forEach { dur ->
+                        val durLabel = when (dur) {
+                            "Hours" -> tr("Hours", "કલાકો", "कुछ घंटे")
+                            "1-2 Days" -> tr("1-2 Days", "૧-૨ દિવસ", "1-2 दिन")
+                            "3-7 Days" -> tr("3-7 Days", "૩-૭ દિવસ", "3-7 दिन")
+                            else -> dur
+                        }
                         FilterChip(
                             selected = duration == dur,
                             onClick = { duration = dur },
-                            label = { Text(dur, fontSize = 11.sp) }
+                            label = { Text(durLabel, fontSize = 11.sp) }
                         )
                     }
                 }
@@ -681,8 +1030,24 @@ fun AddSymptomLogDialog(
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Notes / Triggers (optional)") },
-                    placeholder = { Text("e.g. Occurred after screen time or stress") },
+                    label = {
+                        Text(
+                            tr(
+                                "Notes / Triggers (optional)",
+                                "નોંધ / કારણો (વૈકલ્પિક)",
+                                "नोट्स / कारण (वैकल्पिक)"
+                            )
+                        )
+                    },
+                    placeholder = {
+                        Text(
+                            tr(
+                                "e.g. Occurred after screen time or stress",
+                                "દા.ત. મોબાઇલ વધુ વાપરવાથી કે તણાવથી થયું",
+                                "जैसे स्क्रीन देखने या तनाव के बाद हुआ"
+                            )
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -697,12 +1062,12 @@ fun AddSymptomLogDialog(
                 enabled = title.isNotBlank(),
                 modifier = Modifier.testTag("save_dialog_symptom_button")
             ) {
-                Text("Save to Room DB")
+                Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     )
@@ -790,7 +1155,7 @@ fun TriageSessionItemCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = tr("Delete", "કાઢી નાખો", "हटाएं"),
                         tint = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.size(16.dp)
                     )
@@ -820,7 +1185,11 @@ fun TriageSessionItemCard(
                     }
                 ) {
                     Text(
-                        text = "Severity: ${session.severity}/10",
+                        text = tr(
+                            "Severity: ${session.severity}/10",
+                            "તીવ્રતા: ${session.severity}/10",
+                            "तीव्रता: ${session.severity}/10"
+                        ),
                         color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -864,7 +1233,11 @@ fun TriageSessionItemCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Emergency red flags noted in triage",
+                        text = tr(
+                            "Emergency red flags noted in triage",
+                            "તપાસમાં ગંભીર ઇમરજન્સી ચિહ્નો નોંધાયા છે",
+                            "जांच में गंभीर आपातकालीन संकेत पाए गए हैं"
+                        ),
                         color = EmergencyRed,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold

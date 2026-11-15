@@ -1,6 +1,8 @@
 package com.example.ui.viewmodel
 
 import android.app.Application
+import android.content.Context
+import android.content.res.Configuration
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import androidx.lifecycle.AndroidViewModel
@@ -22,13 +24,22 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.ui.theme.ThemeMode
+import com.example.ui.theme.trLang
 
 enum class AppScreen {
     TRIAGE_CHAT,
     WATER_REMINDER,
+    MEDICINE_REMINDER,
     EMERGENCY_GUIDE,
     HISTORY,
-    PROFILE
+    PROFILE,
+    APP_INFO,
+    REPORT_SCANNER,
+    STEP_COUNTER,
+    VITALS_TRACKER,
+    FAMILY_CARE,
+    SMART_HUB
 }
 
 data class SymptomDetails(
@@ -53,29 +64,46 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         val database = AppDatabase.getDatabase(application)
         repository = TriageRepository(database.triageDao())
 
-        textToSpeech = TextToSpeech(application) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                textToSpeech?.setSpeechRate(0.95f)
-                textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-                    override fun onStart(utteranceId: String?) {
-                        _isSpeaking.value = true
+        viewModelScope.launch {
+            kotlinx.coroutines.yield()
+            initTextToSpeech(application)
+        }
+    }
+
+    private fun initTextToSpeech(application: Application) {
+        if (textToSpeech != null) return
+        try {
+            textToSpeech = TextToSpeech(application) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    try {
+                        textToSpeech?.setSpeechRate(0.95f)
+                        textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                            override fun onStart(utteranceId: String?) {
+                                _isSpeaking.value = true
+                            }
+                            override fun onDone(utteranceId: String?) {
+                                _isSpeaking.value = false
+                                _speakingMessageId.value = null
+                            }
+                            @Deprecated("Deprecated in Java")
+                            override fun onError(utteranceId: String?) {
+                                _isSpeaking.value = false
+                                _speakingMessageId.value = null
+                            }
+                            override fun onError(utteranceId: String?, errorCode: Int) {
+                                _isSpeaking.value = false
+                                _speakingMessageId.value = null
+                            }
+                        })
+                        _isTtsReady.value = true
+                    } catch (_: Exception) {
+                        _isTtsReady.value = false
                     }
-                    override fun onDone(utteranceId: String?) {
-                        _isSpeaking.value = false
-                        _speakingMessageId.value = null
-                    }
-                    @Deprecated("Deprecated in Java")
-                    override fun onError(utteranceId: String?) {
-                        _isSpeaking.value = false
-                        _speakingMessageId.value = null
-                    }
-                    override fun onError(utteranceId: String?, errorCode: Int) {
-                        _isSpeaking.value = false
-                        _speakingMessageId.value = null
-                    }
-                })
-                _isTtsReady.value = true
+                }
             }
+        } catch (_: Exception) {
+            textToSpeech = null
+            _isTtsReady.value = false
         }
     }
 
@@ -97,6 +125,12 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         initialValue = emptyList()
     )
 
+    val medicines: StateFlow<List<com.example.data.local.MedicineEntity>> = repository.allMedicines.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     val messages: StateFlow<List<ChatMessageEntity>> = repository.allMessages.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -107,6 +141,18 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
+    )
+
+    val vitalLogs: StateFlow<List<com.example.data.local.VitalLogEntity>> = repository.allVitalLogs.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    val familyMembers: StateFlow<List<com.example.data.local.FamilyMemberEntity>> = repository.allFamilyMembers.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
     )
 
     private val _currentScreen = MutableStateFlow(AppScreen.TRIAGE_CHAT)
@@ -130,6 +176,291 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
     private val _selectedLanguage = MutableStateFlow("English")
     val selectedLanguage: StateFlow<String> = _selectedLanguage.asStateFlow()
 
+    private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+    val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
+    fun setThemeMode(mode: ThemeMode) {
+        _themeMode.value = mode
+    }
+
+    fun toggleThemeMode() {
+        _themeMode.value = when (_themeMode.value) {
+            ThemeMode.SYSTEM -> ThemeMode.DARK
+            ThemeMode.DARK -> ThemeMode.LIGHT
+            ThemeMode.LIGHT -> ThemeMode.SYSTEM
+        }
+    }
+
+    private val _selectedImageUri = MutableStateFlow<String?>(null)
+    val selectedImageUri: StateFlow<String?> = _selectedImageUri.asStateFlow()
+
+    private val _selectedImageBase64 = MutableStateFlow<String?>(null)
+    val selectedImageBase64: StateFlow<String?> = _selectedImageBase64.asStateFlow()
+
+    private val _selectedImageMimeType = MutableStateFlow<String?>("image/jpeg")
+    val selectedImageMimeType: StateFlow<String?> = _selectedImageMimeType.asStateFlow()
+
+    // Scanned Medical Reports & Prescriptions (OCR)
+    val scannedReports: StateFlow<List<com.example.data.local.ScannedReportEntity>> =
+        repository.allScannedReports.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    private val _isOcrScanning = MutableStateFlow(false)
+    val isOcrScanning: StateFlow<Boolean> = _isOcrScanning.asStateFlow()
+
+    private val _ocrExtractedText = MutableStateFlow<String?>(null)
+    val ocrExtractedText: StateFlow<String?> = _ocrExtractedText.asStateFlow()
+
+    private val _ocrAiExplanation = MutableStateFlow<String?>(null)
+    val ocrAiExplanation: StateFlow<String?> = _ocrAiExplanation.asStateFlow()
+
+    private val _ocrSelectedImageUri = MutableStateFlow<String?>(null)
+    val ocrSelectedImageUri: StateFlow<String?> = _ocrSelectedImageUri.asStateFlow()
+
+    private val _ocrErrorMessage = MutableStateFlow<String?>(null)
+    val ocrErrorMessage: StateFlow<String?> = _ocrErrorMessage.asStateFlow()
+
+    // Step Counter & Fitness Tracking State
+    val todayDateString: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+    val todayStepRecord: StateFlow<com.example.data.local.StepRecordEntity?> =
+        repository.getStepRecordForDate(todayDateString).stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    val weeklyStepRecords: StateFlow<List<com.example.data.local.StepRecordEntity>> =
+        repository.recentStepRecords.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    private val _isStepTrackingActive = MutableStateFlow(true)
+    val isStepTrackingActive: StateFlow<Boolean> = _isStepTrackingActive.asStateFlow()
+
+    private val _sensorHardwareDescription = MutableStateFlow("")
+    val sensorHardwareDescription: StateFlow<String> = _sensorHardwareDescription.asStateFlow()
+
+    private val _isSensorAvailable = MutableStateFlow(false)
+    val isSensorAvailable: StateFlow<Boolean> = _isSensorAvailable.asStateFlow()
+
+    private var stepSensorTracker: com.example.utils.StepSensorTracker? = null
+
+    init {
+        try {
+            val tracker = com.example.utils.StepSensorTracker(application) { stepDelta ->
+                onSensorStepDetected(stepDelta)
+            }
+            stepSensorTracker = tracker
+            _isSensorAvailable.value = tracker.isSensorAvailable
+            _sensorHardwareDescription.value = tracker.sensorTypeDescription
+            val hasActivityPermission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                androidx.core.content.ContextCompat.checkSelfPermission(
+                    application,
+                    android.Manifest.permission.ACTIVITY_RECOGNITION
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+            if (hasActivityPermission && _isStepTrackingActive.value) {
+                tracker.startTracking()
+            } else if (!hasActivityPermission) {
+                _isStepTrackingActive.value = false
+            }
+        } catch (_: Exception) {
+            _sensorHardwareDescription.value = "Sensor Standby / Manual Mode"
+        }
+    }
+
+    // Nearby Hospitals & Medical Places (Maps)
+    private val _nearbyMedicalPlaces = MutableStateFlow<List<com.example.data.model.NearbyMedicalPlace>>(emptyList())
+    val nearbyMedicalPlaces: StateFlow<List<com.example.data.model.NearbyMedicalPlace>> = _nearbyMedicalPlaces.asStateFlow()
+
+    private val _isLocatingHospitals = MutableStateFlow(false)
+    val isLocatingHospitals: StateFlow<Boolean> = _isLocatingHospitals.asStateFlow()
+
+    private val _userCurrentGpsLocation = MutableStateFlow<Pair<Double, Double>?>(null)
+    val userCurrentGpsLocation: StateFlow<Pair<Double, Double>?> = _userCurrentGpsLocation.asStateFlow()
+
+    private val _nearbyPlacesFilter = MutableStateFlow("All")
+    val nearbyPlacesFilter: StateFlow<String> = _nearbyPlacesFilter.asStateFlow()
+
+    fun setNearbyPlacesFilter(filter: String) {
+        _nearbyPlacesFilter.value = filter
+    }
+
+    fun locateNearbyHospitals(context: android.content.Context) {
+        _isLocatingHospitals.value = true
+        viewModelScope.launch {
+            try {
+                val coords = com.example.utils.EmergencySosLocationHelper.getCurrentLocation(context)
+                val lat = coords?.first ?: 22.3039 // Default fallback regional GPS
+                val lon = coords?.second ?: 70.8022
+                _userCurrentGpsLocation.value = Pair(lat, lon)
+                val places = com.example.utils.NearbyHospitalsService.fetchRealNearbyFacilities(lat, lon)
+                _nearbyMedicalPlaces.value = places
+            } catch (_: Exception) {
+                // Fallback to sample regional hospitals if GPS retrieval errors
+                val lat = 22.3039
+                val lon = 70.8022
+                _userCurrentGpsLocation.value = Pair(lat, lon)
+                _nearbyMedicalPlaces.value = com.example.utils.NearbyHospitalsService.getNearbyFacilities(lat, lon)
+            } finally {
+                _isLocatingHospitals.value = false
+            }
+        }
+    }
+
+    fun scanAndExplainReport(
+        context: android.content.Context,
+        bitmap: android.graphics.Bitmap? = null,
+        uri: android.net.Uri? = null,
+        reportType: String = "Medical Document"
+    ) {
+        _isOcrScanning.value = true
+        _ocrErrorMessage.value = null
+        _ocrExtractedText.value = null
+        _ocrAiExplanation.value = null
+        if (uri != null) {
+            _ocrSelectedImageUri.value = uri.toString()
+        }
+
+        viewModelScope.launch {
+            val fileName = if (uri != null) {
+                com.example.utils.MedicalReportOcrScanner.getFileName(context, uri)
+            } else {
+                null
+            }
+            val isPdf = uri != null && com.example.utils.MedicalReportOcrScanner.isPdfUri(context, uri)
+
+            val ocrResult = if (bitmap != null) {
+                com.example.utils.MedicalReportOcrScanner.extractTextFromBitmap(bitmap)
+            } else if (uri != null) {
+                com.example.utils.MedicalReportOcrScanner.extractTextFromUri(context, uri)
+            } else {
+                Result.failure(Exception("No image or PDF provided"))
+            }
+
+            if (ocrResult.isFailure) {
+                _isOcrScanning.value = false
+                _ocrErrorMessage.value = ocrResult.exceptionOrNull()?.message ?: "Failed to read text from report."
+                return@launch
+            }
+
+            val text = ocrResult.getOrNull() ?: ""
+            _ocrExtractedText.value = text
+
+            val effectiveType = if (isPdf && reportType.isBlank()) "Lab & Blood Report (PDF)" else reportType
+            val explainResult = repository.explainMedicalReportOrPrescription(
+                extractedText = text,
+                reportType = effectiveType,
+                language = _selectedLanguage.value
+            )
+
+            val explanation = explainResult.getOrNull() ?: ""
+            _ocrAiExplanation.value = explanation
+            _isOcrScanning.value = false
+
+            val savedTitle = when {
+                !fileName.isNullOrBlank() && effectiveType.isNotBlank() -> "$effectiveType • $fileName"
+                !fileName.isNullOrBlank() -> fileName
+                effectiveType.isNotBlank() -> effectiveType
+                else -> "Scanned Medical Report"
+            }
+
+            // Automatically persist to Room Database
+            repository.saveScannedReport(
+                com.example.data.local.ScannedReportEntity(
+                    title = savedTitle,
+                    extractedText = text,
+                    aiExplanation = explanation,
+                    imageUri = _ocrSelectedImageUri.value,
+                    reportType = if (isPdf) "Lab Report (PDF)" else effectiveType
+                )
+            )
+        }
+    }
+
+    fun analyzePdfReportInChat(
+        context: android.content.Context,
+        pdfUri: android.net.Uri
+    ) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            val fileName = com.example.utils.MedicalReportOcrScanner.getFileName(context, pdfUri) ?: "Lab_Report.pdf"
+            val ocrResult = com.example.utils.MedicalReportOcrScanner.extractTextFromPdfUri(context, pdfUri)
+            val lang = _selectedLanguage.value
+
+            if (ocrResult.isFailure) {
+                val errMsg = ocrResult.exceptionOrNull()?.message ?: "Could not read PDF lab report."
+                repository.saveMessage(
+                    ChatMessageEntity(
+                        sender = "AI",
+                        text = trLang(
+                            lang,
+                            "⚠️ Unable to read PDF report ($fileName): $errMsg",
+                            "⚠️ PDF રિપોર્ટ ($fileName) વાંચી શકાયો નહીં: $errMsg",
+                            "⚠️ PDF रिपोर्ट ($fileName) पढ़ी नहीं जा सकी: $errMsg"
+                        )
+                    )
+                )
+                _isLoading.value = false
+                return@launch
+            }
+
+            val extractedText = ocrResult.getOrNull() ?: ""
+
+            // Persist to Scanned Reports vault as well
+            val explainResult = repository.explainMedicalReportOrPrescription(
+                extractedText = extractedText,
+                reportType = "Lab & Blood Report (PDF)",
+                language = lang
+            )
+            val explanationText = explainResult.getOrNull()
+            if (!explanationText.isNullOrBlank()) {
+                repository.saveScannedReport(
+                    com.example.data.local.ScannedReportEntity(
+                        title = "Lab PDF • $fileName",
+                        extractedText = extractedText,
+                        aiExplanation = explanationText,
+                        imageUri = pdfUri.toString(),
+                        reportType = "Lab Report (PDF)"
+                    )
+                )
+            }
+
+            // Show user's PDF upload in chat and trigger full AI analysis response
+            val promptForChat = trLang(
+                lang,
+                "📄 Uploaded Lab Report PDF: $fileName\n\nExtracted Lab Values:\n${extractedText.take(3000)}\n\nPlease explain these lab report results clearly, highlight any abnormal values, and suggest next steps.",
+                "📄 PDF લેબ રિપોર્ટ અપલોડ કર્યો છે: $fileName\n\nરિપોર્ટની વિગત:\n${extractedText.take(3000)}\n\nકૃપા કરીને આ લેબ રિપોર્ટના બધા આંકડા (નોર્મલ કે વધઘટ) સરળ ગુજરાતી ભાષામાં સમજાવો અને આગળ શું કરવું તે જણાવો.",
+                "📄 PDF लैब रिपोर्ट अपलोड की गई है: $fileName\n\nरिपोर्ट का विवरण:\n${extractedText.take(3000)}\n\nकृपया इस लैब रिपोर्ट के सभी परिणाम (सामान्य या असामान्य मान) सरल हिंदी में समझाएं और आगे के सुझाव दें।"
+            )
+
+            _isLoading.value = false
+            sendMessage(promptForChat)
+        }
+    }
+
+    fun clearOcrScan() {
+        _ocrExtractedText.value = null
+        _ocrAiExplanation.value = null
+        _ocrSelectedImageUri.value = null
+        _ocrErrorMessage.value = null
+        _isOcrScanning.value = false
+    }
+
+    fun deleteScannedReport(report: com.example.data.local.ScannedReportEntity) {
+        viewModelScope.launch {
+            repository.deleteScannedReport(report)
+        }
+    }
+
     fun setScreen(screen: AppScreen) {
         _currentScreen.value = screen
     }
@@ -140,6 +471,40 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
 
     fun setSelectedLanguage(lang: String) {
         _selectedLanguage.value = lang
+        applyAppLocale(lang)
+    }
+
+    fun refreshAppLanguage() {
+        val currentLang = _selectedLanguage.value
+        applyAppLocale(currentLang)
+    }
+
+    private fun applyAppLocale(lang: String) {
+        try {
+            val locale = when (lang) {
+                "Gujarati" -> Locale.forLanguageTag("gu")
+                "Hindi" -> Locale.forLanguageTag("hi")
+                else -> Locale.ENGLISH
+            }
+            Locale.setDefault(locale)
+            val app = getApplication<Application>()
+            val config = Configuration(app.resources.configuration)
+            config.setLocale(locale)
+            @Suppress("DEPRECATION")
+            app.resources.updateConfiguration(config, app.resources.displayMetrics)
+        } catch (_: Exception) {}
+    }
+
+    fun setSelectedImage(uriString: String?, base64Data: String?, mimeType: String? = "image/jpeg") {
+        _selectedImageUri.value = uriString
+        _selectedImageBase64.value = base64Data
+        _selectedImageMimeType.value = mimeType ?: "image/jpeg"
+    }
+
+    fun clearSelectedImage() {
+        _selectedImageUri.value = null
+        _selectedImageBase64.value = null
+        _selectedImageMimeType.value = null
     }
 
     fun toggleSymptomContextSheet(show: Boolean) {
@@ -159,18 +524,35 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         symptomDetails: SymptomDetails? = null
     ) {
         val messageText = overrideText ?: _inputText.value.trim()
-        if (messageText.isBlank()) return
+        val currentImageUri = _selectedImageUri.value
+        val currentImageBase64 = _selectedImageBase64.value
+        val currentImageMime = _selectedImageMimeType.value ?: "image/jpeg"
 
-        val formattedMessage = if (symptomDetails != null) {
-            """
-                $messageText
-                [Clinical Context Attached: Severity: ${symptomDetails.severity}/10, Duration: ${symptomDetails.duration}, Location: ${symptomDetails.location}, Associated: ${if (symptomDetails.associatedSymptoms.isNotBlank()) symptomDetails.associatedSymptoms else "None"}]
-            """.trimIndent()
+        // Allow sending if text is present OR an image is attached
+        if (messageText.isBlank() && currentImageBase64.isNullOrBlank()) return
+
+        val lang = _selectedLanguage.value
+        val userPrompt = if (messageText.isBlank() && !currentImageBase64.isNullOrBlank()) {
+            trLang(
+                lang,
+                "Please visually evaluate and clinically analyze this attached medical/symptom image.",
+                "કૃપા કરીને આ જોડેલા મેડિકલ/લક્ષણના ફોટાનું ધ્યાનપૂર્વક વિશ્લેષણ કરો.",
+                "कृपया इस संलग्न मेडिकल/लक्षण फ़ोटो का ध्यानपूर्वक विश्लेषण करें।"
+            )
         } else {
             messageText
         }
 
-        val isEmergency = repository.isEmergencyText(messageText)
+        val formattedMessage = if (symptomDetails != null) {
+            """
+                $userPrompt
+                [Clinical Context Attached: Severity: ${symptomDetails.severity}/10, Duration: ${symptomDetails.duration}, Location: ${symptomDetails.location}, Associated: ${if (symptomDetails.associatedSymptoms.isNotBlank()) symptomDetails.associatedSymptoms else "None"}]
+            """.trimIndent()
+        } else {
+            userPrompt
+        }
+
+        val isEmergency = repository.isEmergencyText(userPrompt)
         if (isEmergency) {
             _emergencyAlertTriggered.value = true
         }
@@ -178,10 +560,13 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         val userMessageEntity = ChatMessageEntity(
             sender = "USER",
             text = formattedMessage,
-            isEmergencyAlert = isEmergency
+            isEmergencyAlert = isEmergency,
+            imageUri = currentImageUri,
+            imageMimeType = if (currentImageUri != null) currentImageMime else null
         )
 
         _inputText.value = ""
+        clearSelectedImage()
         _isLoading.value = true
 
         viewModelScope.launch {
@@ -193,7 +578,9 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
             val result = repository.sendTriageQuery(
                 userMessage = formattedMessage,
                 recentHistory = currentHistory,
-                userProfile = currentProf
+                userProfile = currentProf,
+                imageBase64 = currentImageBase64,
+                imageMimeType = currentImageMime
             )
 
             result.onSuccess { responseText ->
@@ -238,7 +625,12 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
             }.onFailure { err ->
                 val fallbackMessage = ChatMessageEntity(
                     sender = "AI",
-                    text = "⚠️ An error occurred while contacting triage: ${err.message}. Please consult a local healthcare professional or call emergency services if symptoms are severe.",
+                    text = trLang(
+                        _selectedLanguage.value,
+                        "⚠️ An error occurred while contacting triage: ${err.message}. Please consult a local healthcare professional or call emergency services if symptoms are severe.",
+                        "⚠️ તપાસ કરતી વખતે ભૂલ આવી: ${err.message}. જો લક્ષણો ગંભીર હોય તો કૃપા કરીને નજીકના ડોક્ટરનો સંપર્ક કરો અથવા ઇમરજન્સી સેવા (108/112) પર કૉલ કરો.",
+                        "⚠️ जांच के दौरान त्रुटि हुई: ${err.message}. यदि लक्षण गंभीर हों तो कृपया नजदीकी डॉक्टर से संपर्क करें या आपातकालीन सेवा (108/112) पर कॉल करें।"
+                    ),
                     isEmergencyAlert = false
                 )
                 repository.saveMessage(fallbackMessage)
@@ -313,34 +705,49 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
 
     fun speakText(text: String, messageId: Long? = null) {
         stopSpeaking()
+        initTextToSpeech(getApplication())
 
         val cleaned = cleanTextForSpeech(text)
         if (cleaned.isBlank()) return
 
+        val tts = textToSpeech
+        if (tts == null || !_isTtsReady.value) {
+            _speakingMessageId.value = null
+            _isSpeaking.value = false
+            return
+        }
+
         val locale = detectLocaleForText(cleaned)
         try {
-            val avail = textToSpeech?.isLanguageAvailable(locale)
-            if (avail != null && avail >= TextToSpeech.LANG_AVAILABLE) {
-                textToSpeech?.language = locale
+            val avail = tts.isLanguageAvailable(locale)
+            if (avail >= TextToSpeech.LANG_AVAILABLE) {
+                tts.language = locale
             } else {
                 val hiLocale = Locale.forLanguageTag("hi-IN")
-                val hiAvail = textToSpeech?.isLanguageAvailable(hiLocale)
-                if (hiAvail != null && hiAvail >= TextToSpeech.LANG_AVAILABLE) {
-                    textToSpeech?.language = hiLocale
+                val hiAvail = tts.isLanguageAvailable(hiLocale)
+                if (hiAvail >= TextToSpeech.LANG_AVAILABLE) {
+                    tts.language = hiLocale
                 } else {
-                    textToSpeech?.language = Locale.getDefault()
+                    tts.language = Locale.getDefault()
                 }
             }
         } catch (_: Exception) {
-            textToSpeech?.language = Locale.getDefault()
+            try {
+                tts.language = Locale.getDefault()
+            } catch (_: Exception) {}
         }
 
         _speakingMessageId.value = messageId
         val utteranceId = "msg_${messageId ?: System.currentTimeMillis()}"
-        val result = textToSpeech?.speak(cleaned, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
-        if (result == TextToSpeech.SUCCESS) {
-            _isSpeaking.value = true
-        } else {
+        try {
+            val result = tts.speak(cleaned, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+            if (result == TextToSpeech.SUCCESS) {
+                _isSpeaking.value = true
+            } else {
+                _speakingMessageId.value = null
+                _isSpeaking.value = false
+            }
+        } catch (_: Exception) {
             _speakingMessageId.value = null
             _isSpeaking.value = false
         }
@@ -355,7 +762,11 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         val hasGujarati = text.any { it in '\u0A80'..'\u0AFF' }
         if (hasGujarati) {
             val guLocale = Locale.forLanguageTag("gu-IN")
-            val available = textToSpeech?.isLanguageAvailable(guLocale)
+            val available = try {
+                textToSpeech?.isLanguageAvailable(guLocale)
+            } catch (_: Exception) {
+                null
+            }
             if (available != null && available >= TextToSpeech.LANG_AVAILABLE) {
                 return guLocale
             }
@@ -386,7 +797,9 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun stopSpeaking() {
-        textToSpeech?.stop()
+        try {
+            textToSpeech?.stop()
+        } catch (_: Exception) {}
         _isSpeaking.value = false
         _speakingMessageId.value = null
     }
@@ -394,8 +807,6 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
     // -------------------------------------------------------------
     // WATER REMINDER & HYDRATION TRACKING (પાણી રિમાઇન્ડર)
     // -------------------------------------------------------------
-    val todayDateString: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
     val todayWaterLogs: StateFlow<List<WaterLogEntity>> = repository.getWaterLogsForDate(todayDateString).stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -446,10 +857,37 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun triggerWaterReminderNotification() {
+        val lang = _selectedLanguage.value
         WaterReminderNotificationHelper.showWaterReminderNotification(
             getApplication(),
-            title = "💧 Time to Drink Water! (પાણી પીવાનો સમય થયો છે)",
-            message = "Stay hydrated! Drinking water boosts energy, improves digestion, and prevents headaches. Take a glass of water now!"
+            title = trLang(
+                lang,
+                "💧 Time to Drink Water!",
+                "💧 પાણી પીવાનો સમય થયો છે!",
+                "💧 पानी पीने का समय हो गया है!"
+            ),
+            message = trLang(
+                lang,
+                "Stay hydrated! Drinking water boosts energy, improves digestion, and prevents headaches. Take a glass of water now!",
+                "હાઇડ્રેટેડ રહો! પાણી પીવાથી ઊર્જા વધે છે, પાચન સુધરે છે અને માથાનો દુખાવો અટકે છે. અત્યારે એક ગ્લાસ પાણી પીઓ!",
+                "हाइड्रेटेड रहें! पानी पीने से ऊर्जा बढ़ती है, पाचन सुधरता है और सिरदर्द से बचाव होता है। अभी एक गिलास पानी पिएं!"
+            )
+        )
+    }
+
+    fun triggerMedicineTestNotification() {
+        val app = getApplication<Application>()
+        val lang = _selectedLanguage.value
+        val firstMed = medicines.value.firstOrNull()
+        val name = firstMed?.name ?: "Paracetamol 500mg"
+        val dosage = firstMed?.dosage ?: trLang(lang, "1 Tablet", "૧ ગોળી", "1 गोली")
+        val instruction = firstMed?.instruction ?: trLang(lang, "After food", "જમ્યા પછી", "खाने के बाद")
+        com.example.utils.MedicineReminderWorker.showImmediateNotification(
+            context = app,
+            medId = firstMed?.id ?: 999L,
+            medName = name,
+            dosage = dosage,
+            instruction = instruction
         )
     }
 
@@ -573,9 +1011,310 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         return sb.toString()
     }
 
+    fun exportDoctorReportPdf(context: Context): String? {
+        val pdf = com.example.utils.DoctorReportPdfGenerator.createDoctorReportPdf(
+            context = context,
+            profile = userProfile.value,
+            symptomLogs = symptomLogs.value,
+            triageSessions = sessions.value
+        )
+        return com.example.utils.DoctorReportPdfGenerator.savePdfToDownloads(context, pdf)
+    }
+
+    fun shareDoctorReportPdf(context: Context) {
+        val pdf = com.example.utils.DoctorReportPdfGenerator.createDoctorReportPdf(
+            context = context,
+            profile = userProfile.value,
+            symptomLogs = symptomLogs.value,
+            triageSessions = sessions.value
+        )
+        com.example.utils.DoctorReportPdfGenerator.shareDoctorReportPdf(context, pdf)
+    }
+
+    private val _isBackingUp = MutableStateFlow(false)
+    val isBackingUp: StateFlow<Boolean> = _isBackingUp.asStateFlow()
+
+    private val firebaseBackupRepo by lazy {
+        com.example.data.firebase.FirebaseBackupRepository(getApplication())
+    }
+
+    fun backupToCloud(onComplete: (Boolean, String) -> Unit) {
+        _isBackingUp.value = true
+        val lang = _selectedLanguage.value
+        viewModelScope.launch {
+            val prof = userProfile.value
+            val logs = symptomLogs.value
+            val steps = weeklyStepRecords.value
+            val result = firebaseBackupRepo.backupHealthDataToFirestore(prof, logs, steps)
+            _isBackingUp.value = false
+            result.onSuccess { count ->
+                onComplete(
+                    true,
+                    trLang(
+                        lang,
+                        "Successfully backed up profile, symptoms, and fitness records ($count items) to Firebase Firestore!",
+                        "પ્રોફાઇલ, લક્ષણો અને ફિટનેસ રેકોર્ડ ($count વિગતો) સફળતાપૂર્વક Firebase Firestore માં બેકઅપ થઈ ગયા છે!",
+                        "प्रोफ़ाइल, लक्षण और फ़िटनेस रिकॉर्ड ($count आइटम) सफलतापूर्वक Firebase Firestore में बैकअप हो गए हैं!"
+                    )
+                )
+            }.onFailure { err ->
+                onComplete(
+                    false,
+                    trLang(
+                        lang,
+                        "Backup failed: ${err.localizedMessage ?: "Unknown error"}",
+                        "બેકઅપ નિષ્ફળ ગયું: ${err.localizedMessage ?: "અજ્ઞાત ભૂલ"}",
+                        "बैकअप विफल रहा: ${err.localizedMessage ?: "अज्ञात त्रुटि"}"
+                    )
+                )
+            }
+        }
+    }
+
+    fun triggerEmergencySosWithLocation(context: Context, onResult: (Boolean, String) -> Unit) {
+        _emergencyAlertTriggered.value = true
+        val lang = _selectedLanguage.value
+        viewModelScope.launch {
+            val prof = userProfile.value
+            val contactPhone = prof?.emergencyContactPhone?.ifBlank { "112" } ?: "112"
+            val patientName = prof?.fullName ?: trLang(lang, "Patient", "દર્દી", "मरीज़")
+
+            // 1. Fetch live GPS coordinates
+            val coords = com.example.utils.EmergencySosLocationHelper.getCurrentLocation(context)
+            val mapsLink = coords?.let { (lat, lon) ->
+                com.example.utils.EmergencySosLocationHelper.buildGoogleMapsLink(lat, lon)
+            }
+
+            // 2. Dispatch SMS
+            val sent = com.example.utils.EmergencySosLocationHelper.sendSosSms(
+                context = context,
+                phoneNumber = contactPhone,
+                patientName = patientName,
+                mapsLink = mapsLink
+            )
+
+            if (sent) {
+                onResult(
+                    true,
+                    trLang(
+                        lang,
+                        "🚨 SOS SMS with GPS location sent to $contactPhone!",
+                        "🚨 GPS લોકેશન સાથે SOS SMS $contactPhone પર મોકલી દેવાયો છે!",
+                        "🚨 GPS लोकेशन के साथ SOS SMS $contactPhone पर भेज दिया गया है!"
+                    )
+                )
+            } else {
+                onResult(
+                    false,
+                    trLang(
+                        lang,
+                        "SOS SMS initiated for $contactPhone",
+                        "$contactPhone માટે SOS SMS શરૂ કરવામાં આવ્યો છે",
+                        "$contactPhone के लिए SOS SMS शुरू किया गया है"
+                    )
+                )
+            }
+        }
+    }
+
+    fun addMedicine(
+        name: String,
+        dosage: String,
+        timeOfDay: String,
+        instruction: String
+    ) {
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            val medEntity = com.example.data.local.MedicineEntity(
+                name = name.trim(),
+                dosage = dosage.trim().ifBlank { "1 Tablet" },
+                timeOfDay = timeOfDay,
+                instruction = instruction,
+                isActive = true
+            )
+            val insertedId = repository.saveMedicine(medEntity)
+            com.example.utils.MedicineReminderWorker.scheduleDailyMedicineReminder(
+                context = app,
+                medId = insertedId,
+                medName = medEntity.name,
+                dosage = medEntity.dosage,
+                instruction = medEntity.instruction
+            )
+        }
+    }
+
+    fun toggleMedicineActive(medicine: com.example.data.local.MedicineEntity) {
+        val app = getApplication<Application>()
+        val updated = medicine.copy(isActive = !medicine.isActive)
+        viewModelScope.launch {
+            repository.updateMedicine(updated)
+            if (updated.isActive) {
+                com.example.utils.MedicineReminderWorker.scheduleDailyMedicineReminder(
+                    context = app,
+                    medId = updated.id,
+                    medName = updated.name,
+                    dosage = updated.dosage,
+                    instruction = updated.instruction
+                )
+            } else {
+                com.example.utils.MedicineReminderWorker.cancelMedicineReminder(app, updated.id)
+            }
+        }
+    }
+
+    fun updateMedicineTimeAndDetails(
+        medicine: com.example.data.local.MedicineEntity,
+        newTime: String,
+        newName: String? = null,
+        newDosage: String? = null,
+        newInstruction: String? = null
+    ) {
+        val app = getApplication<Application>()
+        val updated = medicine.copy(
+            name = (newName ?: medicine.name).trim(),
+            dosage = (newDosage ?: medicine.dosage).trim(),
+            timeOfDay = newTime.trim(),
+            instruction = (newInstruction ?: medicine.instruction).trim()
+        )
+        viewModelScope.launch {
+            repository.updateMedicine(updated)
+            if (updated.isActive) {
+                com.example.utils.MedicineReminderWorker.scheduleDailyMedicineReminder(
+                    context = app,
+                    medId = updated.id,
+                    medName = updated.name,
+                    dosage = updated.dosage,
+                    instruction = updated.instruction
+                )
+            } else {
+                com.example.utils.MedicineReminderWorker.cancelMedicineReminder(app, updated.id)
+            }
+        }
+    }
+
+    fun deleteMedicine(medicine: com.example.data.local.MedicineEntity) {
+        val app = getApplication<Application>()
+        viewModelScope.launch {
+            repository.deleteMedicine(medicine)
+            com.example.utils.MedicineReminderWorker.cancelMedicineReminder(app, medicine.id)
+        }
+    }
+
+    // Step Counter & Fitness Actions
+    fun onSensorStepDetected(delta: Int) {
+        viewModelScope.launch {
+            repository.addSteps(todayDateString, delta)
+        }
+    }
+
+    fun addManualSteps(amount: Int) {
+        viewModelScope.launch {
+            repository.addSteps(todayDateString, amount)
+        }
+    }
+
+    fun setDailyStepGoal(newGoal: Int) {
+        viewModelScope.launch {
+            repository.updateStepGoal(todayDateString, newGoal)
+        }
+    }
+
+    fun resetDailySteps() {
+        viewModelScope.launch {
+            repository.resetSteps(todayDateString)
+        }
+    }
+
+    fun toggleStepTracking() {
+        val nextState = !_isStepTrackingActive.value
+        _isStepTrackingActive.value = nextState
+        if (nextState) {
+            stepSensorTracker?.startTracking()
+        } else {
+            stepSensorTracker?.stopTracking()
+        }
+    }
+
+    // Smart Health Vitals Management
+    fun recordVitalLog(
+        type: String,
+        primaryValue: Double,
+        secondaryValue: Double = 0.0,
+        unit: String,
+        status: String,
+        notes: String = "",
+        familyMemberName: String = "Self"
+    ) {
+        viewModelScope.launch {
+            val log = com.example.data.local.VitalLogEntity(
+                vitalType = type,
+                primaryValue = primaryValue,
+                secondaryValue = secondaryValue,
+                unit = unit,
+                status = status,
+                notes = notes,
+                familyMemberName = familyMemberName
+            )
+            repository.saveVitalLog(log)
+        }
+    }
+
+    fun deleteVitalLog(log: com.example.data.local.VitalLogEntity) {
+        viewModelScope.launch {
+            repository.deleteVitalLog(log)
+        }
+    }
+
+    // Family Profile & Caregiver Alert System
+    fun addFamilyMember(
+        name: String,
+        relationship: String,
+        age: Int,
+        bloodGroup: String,
+        phone: String,
+        conditions: String = "None"
+    ) {
+        viewModelScope.launch {
+            val member = com.example.data.local.FamilyMemberEntity(
+                name = name.trim(),
+                relationship = relationship,
+                age = age,
+                bloodGroup = bloodGroup,
+                phone = phone.trim(),
+                caregiverAlertEnabled = true,
+                chronicConditions = conditions.trim()
+            )
+            repository.saveFamilyMember(member)
+        }
+    }
+
+    fun deleteFamilyMember(member: com.example.data.local.FamilyMemberEntity) {
+        viewModelScope.launch {
+            repository.deleteFamilyMember(member)
+        }
+    }
+
+    fun triggerCaregiverEmergencyAlert(
+        context: android.content.Context,
+        elderName: String,
+        medName: String,
+        caregiverPhone: String
+    ) {
+        val message = "🚨 Caregiver Alert from Health Care AI: $elderName has missed scheduled medication: $medName. Please check in with them immediately."
+        com.example.utils.EmergencySosLocationHelper.sendSosSms(
+            context = context,
+            phoneNumber = caregiverPhone,
+            patientName = elderName,
+            mapsLink = null
+        )
+    }
+
     override fun onCleared() {
         super.onCleared()
-        textToSpeech?.stop()
-        textToSpeech?.shutdown()
+        try {
+            textToSpeech?.stop()
+            textToSpeech?.shutdown()
+        } catch (_: Exception) {}
+        stepSensorTracker?.stopTracking()
     }
 }
