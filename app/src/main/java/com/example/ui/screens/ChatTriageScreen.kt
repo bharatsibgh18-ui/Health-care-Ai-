@@ -41,7 +41,7 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.FamilyRestroom
-import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Medication
@@ -69,7 +69,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -131,41 +130,8 @@ fun ChatTriageScreen(
 
     var attachedContext by remember { mutableStateOf<SymptomDetails?>(null) }
     var moreMenuExpanded by remember { mutableStateOf(false) }
-    var showApkExportDialog by remember { mutableStateOf(false) }
     var isListening by remember { mutableStateOf(false) }
     val apkScope = rememberCoroutineScope()
-    val saveApkLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        contract = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/vnd.android.package-archive")
-    ) { destUri ->
-        if (destUri != null) {
-            apkScope.launch {
-                val res = com.example.utils.ApkShareHelper.copyApkToUri(context, destUri)
-                res.onSuccess {
-                    android.widget.Toast.makeText(
-                        context,
-                        trLang(
-                            selectedLanguage,
-                            "HealthCareAI.apk saved successfully!",
-                            "HealthCareAI.apk સફળતાપૂર્વક સેવ થઈ ગઈ!",
-                            "HealthCareAI.apk सफलतापूर्वक सहेजी गई!"
-                        ),
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
-                }.onFailure {
-                    android.widget.Toast.makeText(
-                        context,
-                        trLang(
-                            selectedLanguage,
-                            "Could not save APK on this device",
-                            "APK સેવ કરવામાં ભૂલ આવી",
-                            "इस डिवाइस पर APK सहेजने में त्रुटि"
-                        ),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
 
     // SpeechRecognizer setup
     var speechRecognizer by remember { mutableStateOf<android.speech.SpeechRecognizer?>(null) }
@@ -955,114 +921,6 @@ fun ChatTriageScreen(
         )
     }
 
-    if (showApkExportDialog) {
-        AlertDialog(
-            onDismissRequest = { showApkExportDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.FileDownload,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            title = {
-                Text(
-                    text = tr(
-                        "Download or Share App (.apk)",
-                        "Health Care AI (.apk) ડાઉનલોડ / શેર કરો",
-                        "ऐप (.apk) डाउनलोड / शेयर करें"
-                    ),
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = tr(
-                            "One-tap save HealthCareAI.apk directly to your phone's Downloads folder, choose a custom folder, or share via WhatsApp/Drive.",
-                            "એક ક્લિકમાં સીધી ફોનના Downloads ફોલ્ડરમાં HealthCareAI.apk સેવ કરો, ફોલ્ડર પસંદ કરો અથવા WhatsApp/Drive પર મોકલો.",
-                            "एक टैप में सीधे फ़ोन के Downloads फ़ोल्डर में HealthCareAI.apk डाउनलोड करें, फ़ोल्डर चुनें या WhatsApp/Drive पर शेयर करें।"
-                        ),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Button(
-                        onClick = {
-                            showApkExportDialog = false
-                            apkScope.launch {
-                                val res = com.example.utils.ApkShareHelper.saveApkToDownloads(context)
-                                res.onSuccess { savedPath ->
-                                    android.widget.Toast.makeText(
-                                        context,
-                                        trLang(
-                                            selectedLanguage,
-                                            "Saved to $savedPath",
-                                            "ફોનમાં $savedPath માં સેવ થઈ ગઈ!",
-                                            "फ़ोन में $savedPath में सहेजा गया!"
-                                        ),
-                                        android.widget.Toast.LENGTH_LONG
-                                    ).show()
-                                }.onFailure {
-                                    saveApkLauncher.launch("HealthCareAI.apk")
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().testTag("dialog_quick_download_apk_button")
-                    ) {
-                        Icon(Icons.Default.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            tr(
-                                "1-Tap Download to Downloads",
-                                "સીધી Downloads માં APK ડાઉનલોડ કરો",
-                                "सीधे Downloads में APK डाउनलोड करें"
-                            )
-                        )
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            showApkExportDialog = false
-                            saveApkLauncher.launch("HealthCareAI.apk")
-                        },
-                        modifier = Modifier.fillMaxWidth().testTag("dialog_save_apk_button")
-                    ) {
-                        Icon(Icons.Default.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            tr(
-                                "Choose Folder & Save (.apk)",
-                                "ફોલ્ડર પસંદ કરીને .apk સેવ કરો",
-                                "फ़ोल्डर चुनकर .apk सहेजें"
-                            )
-                        )
-                    }
-                    TextButton(
-                        onClick = {
-                            showApkExportDialog = false
-                            apkScope.launch {
-                                com.example.utils.ApkShareHelper.shareInstalledApk(context, selectedLanguage)
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().testTag("dialog_share_apk_button")
-                    ) {
-                        Text(
-                            tr(
-                                "Share HealthCareAI.apk via Apps",
-                                "WhatsApp / Drive પર APK શેર કરો",
-                                "WhatsApp / Drive पर APK शेयर करें"
-                            )
-                        )
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showApkExportDialog = false }) {
-                    Text(stringResource(R.string.action_close))
-                }
-            }
-        )
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -1268,18 +1126,20 @@ fun ChatTriageScreen(
                                 text = {
                                     Text(
                                         tr(
-                                            "Save / Share App (.apk)",
-                                            "એપ (.apk) સેવ / શેર કરો",
-                                            "ऐप (.apk) सहेजें / शेयर करें"
+                                            "Share App (.apk)",
+                                            "એપ શેર કરો (.apk)",
+                                            "ऐप शेयर करें (.apk)"
                                         )
                                     )
                                 },
-                                leadingIcon = { Icon(Icons.Default.FileDownload, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                                 onClick = {
                                     moreMenuExpanded = false
-                                    showApkExportDialog = true
+                                    apkScope.launch {
+                                        com.example.utils.ApkShareHelper.shareInstalledApk(context, selectedLanguage)
+                                    }
                                 },
-                                modifier = Modifier.testTag("menu_export_apk_button")
+                                modifier = Modifier.testTag("menu_share_apk_button")
                             )
                             DropdownMenuItem(
                                 text = { Text(tr("App Info", "એપ માહિતી", "ऐप जानकारी")) },
@@ -1391,8 +1251,10 @@ fun ChatTriageScreen(
                         onOpenScreen = { screen ->
                             viewModel.setScreen(screen)
                         },
-                        onOpenApkExport = {
-                            showApkExportDialog = true
+                        onShareApp = {
+                            apkScope.launch {
+                                com.example.utils.ApkShareHelper.shareInstalledApk(context, selectedLanguage)
+                            }
                         }
                     )
                 } else {
@@ -1783,7 +1645,7 @@ fun WelcomeTriageView(
     onSelectSymptom: (String) -> Unit,
     onOpenQuestionnaire: () -> Unit,
     onOpenScreen: (AppScreen) -> Unit = {},
-    onOpenApkExport: () -> Unit = {}
+    onShareApp: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -1875,10 +1737,10 @@ fun WelcomeTriageView(
                 modifier = Modifier.testTag("home_quick_family")
             )
             SuggestionChip(
-                onClick = onOpenApkExport,
-                label = { Text(trLang(selectedLanguage, "Download APK", "APK ડાઉનલોડ", "APK डाउनलोड")) },
-                icon = { Icon(Icons.Default.FileDownload, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                modifier = Modifier.testTag("home_quick_download_apk")
+                onClick = onShareApp,
+                label = { Text(trLang(selectedLanguage, "Share App", "એપ શેર કરો", "ऐप शेयर करें")) },
+                icon = { Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_share_apk")
             )
         }
 
