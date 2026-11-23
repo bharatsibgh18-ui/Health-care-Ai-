@@ -230,4 +230,6 @@
     <string name="startup_permissions_dialog_title">Welcome to Health Care AI</string>
     <string name="startup_permissions_dialog_desc">To provide live hospital distance, step counting, prescription scanning, voice input, and timely medicine reminders, please allow the required permissions.</string>
     <string name="btn_grant_all_permissions">Grant All Permissions</string>
+    <string name="widget_health_summary_label">Health Care AI Daily Summary</string>
+    <string name="widget_health_summary_desc">Live Health Score, daily steps, hydration, medicine streak, and 1-tap SOS &amp; AI Doctor.</string>
 </resources>

@@ -1,5 +1,11 @@
 package com.example.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,11 +63,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.example.ui.theme.PrimaryTeal
 import com.example.ui.theme.SafeMint
 import com.example.ui.theme.tr
@@ -82,6 +90,18 @@ fun WaterReminderScreen(
     val reminderIntervalHours by viewModel.reminderIntervalHours.collectAsState()
     val waterLogs by viewModel.todayWaterLogs.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
+    val context = LocalContext.current
+
+    val waterNotifLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val msg = if (granted) {
+            "Water notifications enabled outside the app!"
+        } else {
+            "Enable notification permission to receive water reminders outside the app."
+        }
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+    }
 
     val progress = (totalWaterMl.toFloat() / targetMl.toFloat()).coerceIn(0f, 1f)
     val animatedProgress by animateFloatAsState(targetValue = progress, label = "waterProgress")
@@ -163,7 +183,15 @@ fun WaterReminderScreen(
                         )
                     }
                     IconButton(
-                        onClick = { viewModel.triggerWaterReminderNotification() },
+                        onClick = {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                            ) {
+                                waterNotifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                viewModel.triggerWaterReminderNotification()
+                            }
+                        },
                         modifier = Modifier.testTag("test_water_notification_button")
                     ) {
                         Icon(
@@ -455,7 +483,15 @@ fun WaterReminderScreen(
                             }
 
                             OutlinedButton(
-                                onClick = { viewModel.triggerWaterReminderNotification() },
+                                onClick = {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        waterNotifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    } else {
+                                        viewModel.triggerWaterReminderNotification()
+                                    }
+                                },
                                 modifier = Modifier
                                     .height(32.dp)
                                     .testTag("send_test_alert_button"),
@@ -488,12 +524,31 @@ fun WaterReminderScreen(
                             listOf(1, 2, 3, 4).forEach { hours ->
                                 FilterChip(
                                     selected = reminderIntervalHours == hours,
-                                    onClick = { viewModel.setReminderInterval(hours) },
+                                    onClick = {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                                            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                                        ) {
+                                            waterNotifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                        }
+                                        viewModel.setReminderInterval(hours)
+                                    },
                                     label = { Text(tr("Every ${hours}h", "દર $hours કલાકે", "हर $hours घंटे")) },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = tr(
+                                "Outside-app system notifications & alarms active every ${reminderIntervalHours}h.",
+                                "એપની બહાર પણ દર $reminderIntervalHours કલાકે નોટિફિકેશન અને એલાર્મ સક્રિય છે.",
+                                "ऐप के बाहर भी हर $reminderIntervalHours घंटे नोटिफिकेशन व अलार्म सक्रिय हैं।"
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.testTag("water_outside_status_label")
+                        )
                     }
                 }
             }

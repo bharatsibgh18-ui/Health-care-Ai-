@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">健康医疗 AI</string>
+    <string name="app_subtitle">虚拟医疗分诊助手</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">问诊</string>
+    <string name="nav_water">饮水</string>
+    <string name="nav_water_reminder">饮水提醒</string>
+    <string name="nav_medicine">用药</string>
+    <string name="nav_medicine_reminder">用药提醒</string>
+    <string name="nav_emergency">急救</string>
+    <string name="nav_history">健康日志</string>
+    <string name="nav_profile">个人档案</string>
+    <string name="nav_app_info">应用信息</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">跟随系统</string>
+    <string name="theme_dark">深色模式</string>
+    <string name="theme_light">浅色模式</string>
+    <string name="theme_toggle_desc">切换深色 / 浅色 / 系统主题</string>
+    <string name="theme_switched_system">已切换为系统主题</string>
+    <string name="theme_switched_dark">已切换为深色模式</string>
+    <string name="theme_switched_light">已切换为浅色模式</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">自动朗读已开启</string>
+    <string name="auto_speak_off">自动朗读已关闭</string>
+    <string name="emergency_sos">紧急 SOS</string>
+    <string name="language_selector">语言</string>
+    <string name="language_switched">语言已更改</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">欢迎使用健康医疗助手</string>
+    <string name="chat_input_placeholder">请描述您的症状或健康问题...</string>
+    <string name="btn_send">发送</string>
+    <string name="btn_voice_input">语音输入</string>
+    <string name="btn_attach_image">添加图片</string>
+    <string name="btn_add_symptoms">添加症状详情</string>
+    <string name="listening">正在聆听...</string>
+    <string name="analyzing">正在分析症状...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">急救指南</string>
+    <string name="emergency_alert_title">紧急危险警报</string>
+    <string name="emergency_alert_desc">检测到可能危及生命的症状，请立即寻求急救医疗帮助。</string>
+    <string name="emergency_dispatch_title">立即紧急呼叫</string>
+    <string name="emergency_dispatch_desc">如遇危急情况请勿延误，点击下方立即拨打急救电话。</string>
+    <string name="emergency_call_112">112 紧急救援</string>
+    <string name="emergency_call_108">108 救护车</string>
+    <string name="emergency_call_104">104 健康热线</string>
+    <string name="emergency_send_gps_sos">🚨 向联系人发送实时 GPS SOS 短信</string>
+    <string name="emergency_sending_gps_sos">正在获取 GPS 并发送 SOS...</string>
+    <string name="emergency_call_contact_format">呼叫 %1$s (%2$s)</string>
+    <string name="emergency_red_flags_header">🚨 危及生命的危险信号</string>
+    <string name="emergency_red_flags_sub">如出现以下任何症状请立即前往急诊：</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">剧烈胸痛</string>
+    <string name="emergency_sign_chest_desc">压榨性疼痛并放射至手臂、肩膀、颈部或下颌。</string>
+    <string name="emergency_sign_breath_title">突发呼吸困难</string>
+    <string name="emergency_sign_breath_desc">喘不过气或无法完整说出一句话。</string>
+    <string name="emergency_sign_stroke_title">中风征兆 (FAST)</string>
+    <string name="emergency_sign_stroke_desc">面部歪斜、手臂无力或言语含糊不清。</string>
+    <string name="emergency_sign_headache_title">突发剧烈头痛</string>
+    <string name="emergency_sign_headache_desc">数秒内达到难以忍受程度的头痛。</string>
+    <string name="emergency_sign_bleeding_title">严重出血或咳血</string>
+    <string name="emergency_sign_bleeding_desc">无法控制的出血。</string>
+    <string name="emergency_sign_allergy_title">严重过敏反应</string>
+    <string name="emergency_sign_allergy_desc">嘴唇或舌头肿胀、喘息、荨麻疹或头晕。</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. 中风快速评估</string>
+    <string name="emergency_fast_f_title">F - 面部 (Face)</string>
+    <string name="emergency_fast_f_desc">请对方微笑，观察一侧面部是否下垂。</string>
+    <string name="emergency_fast_a_title">A - 手臂 (Arms)</string>
+    <string name="emergency_fast_a_desc">请对方抬起双臂，观察一侧是否无力下垂。</string>
+    <string name="emergency_fast_s_title">S - 语言 (Speech)</string>
+    <string name="emergency_fast_s_desc">请对方重复简单句子，观察是否吐字不清。</string>
+    <string name="emergency_fast_t_title">T - 时间 (Time)</string>
+    <string name="emergency_fast_t_desc">时间就是生命！请立即拨打 112/108。</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 急救指导</string>
+    <string name="emergency_fa_heart_title">• 胸痛 / 疑似心脏病发作：</string>
+    <string name="emergency_fa_heart_desc">屈膝靠背坐直，松开紧身衣物并保持冷静等待救援。</string>
+    <string name="emergency_fa_allergy_title">• 严重过敏反应 (Anaphylaxis)：</string>
+    <string name="emergency_fa_allergy_desc">如有处方肾上腺素笔 (EpiPen)，立即注射于大腿外侧。</string>
+    <string name="emergency_fa_unconscious_title">• 昏迷但呼吸正常：</string>
+    <string name="emergency_fa_unconscious_desc">将其置于侧卧复原体位保持气道畅通并持续观察呼吸。</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">每日饮水记录</string>
+    <string name="water_goal">每日目标: 2,500 毫升</string>
+    <string name="water_log_cup">+250 ml (一杯)</string>
+    <string name="water_log_bottle">+500 ml (一瓶)</string>
+    <string name="water_reminder_interval">提醒间隔</string>
+    <string name="water_reminder_enable">开启饮水提醒</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">每日用药提醒</string>
+    <string name="medicine_reminder_subtitle">日常处方 • 自动提醒</string>
+    <string name="medicine_automated_alerts_title">自动用药提醒</string>
+    <string name="medicine_automated_alerts_desc">按时发送提醒通知，确保按时服药。</string>
+    <string name="medicine_empty_title">尚未添加药品</string>
+    <string name="medicine_empty_desc">添加每日药片与维生素，开启后台定时提醒。</string>
+    <string name="add_medicine">添加药品</string>
+    <string name="add_daily_medicine">添加每日药品</string>
+    <string name="add_medicine_dialog_title">添加用药提醒</string>
+    <string name="edit_medicine_dialog_title">修改用药时间与详情</string>
+    <string name="adjust_time_title">调整提醒时间</string>
+    <string name="adjust_time_btn">调整时间</string>
+    <string name="medicine_name">药品名称</string>
+    <string name="medicine_dosage">剂量 (如 500mg, 1片)</string>
+    <string name="medicine_time">预定时间</string>
+    <string name="medicine_time_preference">偏好时段:</string>
+    <string name="medicine_instruction">服药说明:</string>
+    <string name="medicine_saved">用药提醒已设置</string>
+    <string name="medicine_updated">用药时间已更新！</string>
+    <string name="medicine_deleted_format">已移除 %1$s</string>
+    <string name="medicine_schedule_btn">设置提醒</string>
+    <string name="medicine_update_btn">保存并更新</string>
+    <string name="medicine_preset_morning">早晨 (08:00 AM)</string>
+    <string name="medicine_preset_noon">中午 (01:00 PM)</string>
+    <string name="medicine_preset_evening">傍晚 (06:00 PM)</string>
+    <string name="medicine_preset_night">晚上 (09:00 PM)</string>
+    <string name="medicine_inst_after_food">饭后服用</string>
+    <string name="medicine_inst_before_food">饭前服用</string>
+    <string name="medicine_inst_with_water">温水送服</string>
+    <string name="medicine_inst_bedtime">睡前服用</string>
+    <string name="medicine_hour">小时</string>
+    <string name="medicine_minute">分钟</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">健康与症状记录</string>
+    <string name="symptom_severity_chart">症状严重程度趋势</string>
+    <string name="filter_all">全部症状</string>
+    <string name="filter_headache">头痛追踪</string>
+    <string name="btn_export_pdf">导出 PDF 报告</string>
+    <string name="btn_backup_cloud">云端备份 (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">患者医疗档案</string>
+    <string name="full_name">姓名</string>
+    <string name="age">年龄</string>
+    <string name="gender">性别</string>
+    <string name="blood_group">血型</string>
+    <string name="allergies">过敏史</string>
+    <string name="chronic_conditions">慢性病</string>
+    <string name="current_medications">当前用药</string>
+    <string name="emergency_contact_name">紧急联系人姓名</string>
+    <string name="emergency_contact_phone">紧急联系电话</string>
+    <string name="btn_save_profile">保存档案</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">保存</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_delete">删除</string>
+    <string name="action_close">关闭</string>
+    <string name="disclaimer_text">免责声明：本应用仅用于健康科普参考，不能替代专业医生的诊断与治疗。</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI 医疗报告扫描仪</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • AI 智能解读</string>
+    <string name="scan_camera_btn">相机扫描</string>
+    <string name="scan_gallery_btn">从相册上传</string>
+    <string name="scan_pdf_btn">上传 PDF 化验单</string>
+    <string name="scan_type_prescription">处方 / Rx</string>
+    <string name="scan_type_lab_report">化验与验血报告</string>
+    <string name="scan_type_discharge">出院小结</string>
+    <string name="scan_type_medicine_strip">药板</string>
+    <string name="ocr_processing_title">AI 正在分析文档…</string>
+    <string name="ocr_processing_desc">正在识别您的图片/PDF 并生成通俗易懂的解读。</string>
+    <string name="tab_ai_explanation">AI 通俗解读</string>
+    <string name="tab_raw_ocr">识别原文</string>
+    <string name="btn_copy_text">复制文本</string>
+    <string name="btn_ask_in_chat">在聊天中咨询</string>
+    <string name="btn_add_to_reminders">添加到提醒</string>
+    <string name="text_copied">已复制到剪贴板！</string>
+    <string name="saved_reports_header">已保存的扫描报告</string>
+    <string name="no_scanned_reports">暂无扫描报告。</string>
+    <string name="scan_report_fab">扫描报告</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">计步与健身</string>
+    <string name="step_counter_subtitle">硬件传感器 • 卡路里与活动</string>
+    <string name="steps_label">步数</string>
+    <string name="step_goal_label">每日目标</string>
+    <string name="calories_burned_label">卡路里</string>
+    <string name="distance_walked_label">距离</string>
+    <string name="active_time_label">活动时长</string>
+    <string name="sensor_active_label">传感器运行中</string>
+    <string name="sensor_paused_label">传感器已暂停</string>
+    <string name="add_steps_btn">快速记录</string>
+    <string name="reset_steps_btn">重置今日</string>
+    <string name="set_goal_dialog_title">设置每日步数目标</string>
+    <string name="weekly_movement_history">7天步数趋势</string>
+    <string name="activity_permission_rationale">需要身体活动权限以准确统计您的每日步数。</string>
+    <string name="activity_permission_btn">开启计步功能</string>
+    <string name="fitness_tips_header">心血管与健康建议</string>
+    <string name="nav_steps">步数</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">急救与 SOS</string>
+    <string name="tab_nearby_hospitals">附近医院与诊所</string>
+    <string name="nearby_map_header_title">附近医疗中心</string>
+    <string name="nearby_map_header_subtitle">实时 GPS 计算到附近医院、诊所和药房的距离。</string>
+    <string name="nearby_filter_all">全部</string>
+    <string name="nearby_filter_hospitals">医院</string>
+    <string name="nearby_filter_clinics">诊所</string>
+    <string name="nearby_filter_pharmacies">24小时药房</string>
+    <string name="btn_open_google_maps">在地图中搜索</string>
+    <string name="btn_navigate_facility">导航</string>
+    <string name="btn_call_facility">紧急呼叫</string>
+    <string name="nearby_gps_detecting">正在获取 GPS 定位…</string>
+    <string name="nearby_gps_refresh">刷新位置</string>
+    <string name="nearby_beds_available">可用床位 %d 张</string>
+    <string name="emergency_room_badge">24/7 急诊 / ICU</string>
+    <string name="locating_permission_notice">需要 GPS 权限以计算到最近医院的距离。</string>
+    <string name="grant_location_btn">开启 GPS 定位</string>
+    <string name="btn_refresh_language">刷新应用与语言</string>
+    <string name="toast_language_refreshed">应用与语言已成功刷新！</string>
+    <string name="btn_download_apk_label">下载 Health Care AI APK</string>
+    <string name="apk_download_banner_title">下载 Health Care AI APK</string>
+    <string name="apk_download_banner_desc">分享或安装包含 OCR、GPS 医院与计步器的最新版应用。</string>
+    <string name="btn_test_med_notification">测试用药通知</string>
+    <string name="toast_med_notification_sent">测试通知已发送！</string>
+    <string name="real_hospital_tracking_badge">实时 GPS 追踪已开启</string>
+    <string name="startup_permissions_dialog_title">欢迎使用 Health Care AI</string>
+    <string name="startup_permissions_dialog_desc">请授予所需权限以启用医院导航、计步、报告扫描、语音和用药提醒功能。</string>
+    <string name="btn_grant_all_permissions">授予全部权限</string>
+</resources>

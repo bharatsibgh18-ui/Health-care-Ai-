@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">হেলথ কেয়ার AI</string>
+    <string name="app_subtitle">ভার্চুয়াল মেডিকেল ট্রায়াজ</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">পরীক্ষা</string>
+    <string name="nav_water">পানি</string>
+    <string name="nav_water_reminder">পানি রিমাইন্ডার</string>
+    <string name="nav_medicine">ওষুধ</string>
+    <string name="nav_medicine_reminder">ওষুধ রিমাইন্ডার</string>
+    <string name="nav_emergency">জরুরি</string>
+    <string name="nav_history">স্বাস্থ্য লগ</string>
+    <string name="nav_profile">প্রোফাইল</string>
+    <string name="nav_app_info">অ্যাপ তথ্য</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">সিস্টেম ডিফল্ট</string>
+    <string name="theme_dark">ডার্ক মোড</string>
+    <string name="theme_light">লাইট মোড</string>
+    <string name="theme_toggle_desc">ডার্ক / লাইট / সিস্টেম থিম পরিবর্তন করুন</string>
+    <string name="theme_switched_system">সিস্টেম থিমে পরিবর্তন করা হয়েছে</string>
+    <string name="theme_switched_dark">ডার্ক মোডে পরিবর্তন করা হয়েছে</string>
+    <string name="theme_switched_light">লাইট মোডে পরিবর্তন করা হয়েছে</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">অটো-স্পিক চালু</string>
+    <string name="auto_speak_off">অটো-স্পিক বন্ধ</string>
+    <string name="emergency_sos">জরুরি SOS</string>
+    <string name="language_selector">ভাষা</string>
+    <string name="language_switched">ভাষা পরিবর্তিত হয়েছে</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">হেলথকেয়ার সহায়কে স্বাগতম</string>
+    <string name="chat_input_placeholder">লক্ষণ বা স্বাস্থ্য সমস্যার বিবরণ লিখুন...</string>
+    <string name="btn_send">পাঠান</string>
+    <string name="btn_voice_input">ভয়েস ইনপুট</string>
+    <string name="btn_attach_image">ছবি সংযুক্ত করুন</string>
+    <string name="btn_add_symptoms">লক্ষণের বিবরণ যোগ করুন</string>
+    <string name="listening">শুনছে...</string>
+    <string name="analyzing">লক্ষণ বিশ্লেষণ করা হচ্ছে...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">জরুরি প্রোটোকল</string>
+    <string name="emergency_alert_title">জরুরি বিপদের সতর্কতা</string>
+    <string name="emergency_alert_desc">প্রাণঘাতী লক্ষণ শনাক্ত হয়েছে। অবিলম্বে জরুরি চিকিৎসা সহায়তা নিন।</string>
+    <string name="emergency_dispatch_title">তাৎক্ষণিক জরুরি কল</string>
+    <string name="emergency_dispatch_desc">কেউ গুরুতর অবস্থায় থাকলে দেরি করবেন না। জরুরি কল করতে নিচে ট্যাপ করুন।</string>
+    <string name="emergency_call_112">112 জরুরি সেবা</string>
+    <string name="emergency_call_108">108 অ্যাম্বুলেন্স</string>
+    <string name="emergency_call_104">104 স্বাস্থ্য হেল্পলাইন</string>
+    <string name="emergency_send_gps_sos">🚨 জরুরি নম্বরে লাইভ GPS SOS SMS পাঠান</string>
+    <string name="emergency_sending_gps_sos">GPS খোঁজা হচ্ছে &amp; SOS পাঠানো হচ্ছে...</string>
+    <string name="emergency_call_contact_format">%1$s (%2$s)-এ কল করুন</string>
+    <string name="emergency_red_flags_header">🚨 প্রাণঘাতী বিপদ সংকেত</string>
+    <string name="emergency_red_flags_sub">নিচের যেকোনো লক্ষণ দেখা দিলে অবিলম্বে হাসপাতালে যান:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">তীব্র বুকে ব্যথা</string>
+    <string name="emergency_sign_chest_desc">বাহু, কাঁধ, ঘাড় বা চোয়ালে ছড়িয়ে পড়া চাপযুক্ত বুকের ব্যথা।</string>
+    <string name="emergency_sign_breath_title">হঠাৎ শ্বাসকষ্ট</string>
+    <string name="emergency_sign_breath_desc">হাঁপানি, শ্বাসরোধ বা পুরো বাক্য বলতে না পারা।</string>
+    <string name="emergency_sign_stroke_title">স্ট্রোকের লক্ষণ (FAST)</string>
+    <string name="emergency_sign_stroke_desc">মুখ বেঁকে যাওয়া, হাত দুর্বল হওয়া বা কথা জড়িয়ে যাওয়া।</string>
+    <string name="emergency_sign_headache_title">হঠাৎ তীব্র মাথাব্যথা</string>
+    <string name="emergency_sign_headache_desc">কয়েক সেকেন্ডে অসহ্য হয়ে ওঠা মাথাব্যথা।</string>
+    <string name="emergency_sign_bleeding_title">তীব্র রক্তপাত বা কাশিতে রক্ত</string>
+    <string name="emergency_sign_bleeding_desc">অনিয়ন্ত্রিত রক্তপাত বা রক্তকাশি।</string>
+    <string name="emergency_sign_allergy_title">তীব্র অ্যালার্জির লক্ষণ</string>
+    <string name="emergency_sign_allergy_desc">ঠোঁট বা জিহ্বা ফুলে যাওয়া, শ্বাসকষ্ট, ফুসকুড়ি বা মাথা ঘোরা।</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. স্ট্রোক মূল্যায়ন</string>
+    <string name="emergency_fast_f_title">F - মুখ (Face)</string>
+    <string name="emergency_fast_f_desc">হাসতে বলুন। মুখের একপাশ কি ঝুলে পড়েছে?</string>
+    <string name="emergency_fast_a_title">A - বাহু (Arms)</string>
+    <string name="emergency_fast_a_desc">দুই হাত তুলতে বলুন। একটি হাত কি নিচে নেমে যায়?</string>
+    <string name="emergency_fast_s_title">S - কথা (Speech)</string>
+    <string name="emergency_fast_s_desc">একটি সহজ বাক্য বলতে বলুন। কথা কি অস্পষ্ট?</string>
+    <string name="emergency_fast_t_title">T - সময় (Time)</string>
+    <string name="emergency_fast_t_desc">সময় অত্যন্ত মূল্যবান! কোনো লক্ষণ থাকলে সাথে সাথে 112/108 কল করুন।</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 প্রাথমিক চিকিৎসা নির্দেশিকা</string>
+    <string name="emergency_fa_heart_title">• বুকে ব্যথা / হার্ট অ্যাটাকের আশঙ্কা:</string>
+    <string name="emergency_fa_heart_desc">হাঁটু ভাঁজ করে পিঠে ঠেস দিয়ে বসুন। টাইট পোশাক ঢিলা করুন এবং শান্ত থাকুন।</string>
+    <string name="emergency_fa_allergy_title">• তীব্র অ্যালার্জি (Anaphylaxis):</string>
+    <string name="emergency_fa_allergy_desc">নির্ধারিত এপিনেফ্রিন ইনজেকশন (EpiPen) থাকলে অবিলম্বে উরুতে প্রয়োগ করুন।</string>
+    <string name="emergency_fa_unconscious_title">• অজ্ঞান কিন্তু স্বাভাবিক শ্বাসপ্রশ্বাস:</string>
+    <string name="emergency_fa_unconscious_desc">শ্বাসনালী খোলা রাখতে এক পাশে কাত করে শুইয়ে দিন এবং শ্বাস পর্যবেক্ষণ করুন।</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">দৈনিক পানি পান ট্র্যাকার</string>
+    <string name="water_goal">দৈনিক লক্ষ্য: 2,500 ml</string>
+    <string name="water_log_cup">+250 ml (গ্লাস)</string>
+    <string name="water_log_bottle">+500 ml (বোতল)</string>
+    <string name="water_reminder_interval">রিমাইন্ডার বিরতি</string>
+    <string name="water_reminder_enable">পানি রিমাইন্ডার চালু করুন</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">দৈনিক ওষুধের রিমাইন্ডার</string>
+    <string name="medicine_reminder_subtitle">দৈনিক প্রেসক্রিপশন • স্বয়ংক্রিয় অ্যালার্ট</string>
+    <string name="medicine_automated_alerts_title">স্বয়ংক্রিয় ওষুধ রিমাইন্ডার</string>
+    <string name="medicine_automated_alerts_desc">সময়মতো ওষুধ খাওয়ার জন্য সক্রিয় ওষুধগুলোর নিয়মিত নোটিফিকেশন আসবে।</string>
+    <string name="medicine_empty_title">কোনো ওষুধ যোগ করা হয়নি</string>
+    <string name="medicine_empty_desc">দৈনিক ট্যাবলেট, ভিটামিন ও প্রেসক্রিপশনের সময়সূচি সংরক্ষণ করুন।</string>
+    <string name="add_medicine">ওষুধ যোগ করুন</string>
+    <string name="add_daily_medicine">দৈনিক ওষুধ যোগ করুন</string>
+    <string name="add_medicine_dialog_title">ওষুধের রিমাইন্ডার যোগ করুন</string>
+    <string name="edit_medicine_dialog_title">ওষুধের সময় ও বিবরণ সম্পাদনা</string>
+    <string name="adjust_time_title">রিমাইন্ডারের সময় পরিবর্তন</string>
+    <string name="adjust_time_btn">সময় পরিবর্তন</string>
+    <string name="medicine_name">ওষুধের নাম</string>
+    <string name="medicine_dosage">মাত্রা (যেমন 500mg, 1 ট্যাবলেট)</string>
+    <string name="medicine_time">নির্ধারিত সময়</string>
+    <string name="medicine_time_preference">পছন্দের সময়:</string>
+    <string name="medicine_instruction">নির্দেশনা:</string>
+    <string name="medicine_saved">ওষুধের রিমাইন্ডার সেট হয়েছে</string>
+    <string name="medicine_updated">ওষুধের সময় আপডেট হয়েছে!</string>
+    <string name="medicine_deleted_format">%1$s সরানো হয়েছে</string>
+    <string name="medicine_schedule_btn">রিমাইন্ডার সেট করুন</string>
+    <string name="medicine_update_btn">সংরক্ষণ ও আপডেট করুন</string>
+    <string name="medicine_preset_morning">সকাল (08:00 AM)</string>
+    <string name="medicine_preset_noon">দুপুর (01:00 PM)</string>
+    <string name="medicine_preset_evening">সন্ধ্যা (06:00 PM)</string>
+    <string name="medicine_preset_night">রাত (09:00 PM)</string>
+    <string name="medicine_inst_after_food">খাওয়ার পরে</string>
+    <string name="medicine_inst_before_food">খাওয়ার আগে</string>
+    <string name="medicine_inst_with_water">পানির সাথে</string>
+    <string name="medicine_inst_bedtime">ঘুমানোর আগে</string>
+    <string name="medicine_hour">ঘণ্টা</string>
+    <string name="medicine_minute">মিনিট</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">স্বাস্থ্য ও লক্ষণ লগ</string>
+    <string name="symptom_severity_chart">সময়ের সাথে লক্ষণের তীব্রতা</string>
+    <string name="filter_all">সব লক্ষণ</string>
+    <string name="filter_headache">মাথাব্যথা ট্র্যাকার</string>
+    <string name="btn_export_pdf">PDF রিপোর্ট এক্সপোর্ট</string>
+    <string name="btn_backup_cloud">ক্লাউড ব্যাকআপ (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">রোগীর মেডিকেল প্রোফাইল</string>
+    <string name="full_name">পূর্ণ নাম</string>
+    <string name="age">বয়স</string>
+    <string name="gender">লিঙ্গ</string>
+    <string name="blood_group">রক্তের গ্রুপ</string>
+    <string name="allergies">অ্যালার্জি</string>
+    <string name="chronic_conditions">দীর্ঘস্থায়ী রোগ</string>
+    <string name="current_medications">বর্তমান ওষুধ</string>
+    <string name="emergency_contact_name">জরুরি যোগাযোগের নাম</string>
+    <string name="emergency_contact_phone">জরুরি যোগাযোগের ফোন</string>
+    <string name="btn_save_profile">প্রোফাইল সংরক্ষণ করুন</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">সংরক্ষণ</string>
+    <string name="action_cancel">বাতিল</string>
+    <string name="action_delete">মুছুন</string>
+    <string name="action_close">বন্ধ করুন</string>
+    <string name="disclaimer_text">দাবিত্যাগ: এটি একটি শিক্ষামূলক স্বাস্থ্য সহায়ক টুল, পেশাদার চিকিৎসকের বিকল্প নয়।</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI মেডিকেল রিপোর্ট স্ক্যানার</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • AI ব্যাখ্যা</string>
+    <string name="scan_camera_btn">ক্যামেরা দিয়ে স্ক্যান করুন</string>
+    <string name="scan_gallery_btn">গ্যালারি থেকে আপলোড</string>
+    <string name="scan_pdf_btn">PDF ল্যাব রিপোর্ট আপলোড</string>
+    <string name="scan_type_prescription">প্রেসক্রিপশন / Rx</string>
+    <string name="scan_type_lab_report">ল্যাব ও রক্ত পরীক্ষা</string>
+    <string name="scan_type_discharge">ডিসচার্জ সারাংশ</string>
+    <string name="scan_type_medicine_strip">ওষুধের পাতা</string>
+    <string name="ocr_processing_title">AI দিয়ে ডকুমেন্ট বিশ্লেষণ চলছে…</string>
+    <string name="ocr_processing_desc">আপনার ছবি/PDF পড়ে সহজ ভাষায় ব্যাখ্যা তৈরি করা হচ্ছে।</string>
+    <string name="tab_ai_explanation">AI সহজ ব্যাখ্যা</string>
+    <string name="tab_raw_ocr">স্ক্যানকৃত টেক্সট</string>
+    <string name="btn_copy_text">টেক্সট কপি করুন</string>
+    <string name="btn_ask_in_chat">চ্যাটে আলোচনা করুন</string>
+    <string name="btn_add_to_reminders">রিমাইন্ডারে যোগ করুন</string>
+    <string name="text_copied">ক্লিপবোর্ডে কপি হয়েছে!</string>
+    <string name="saved_reports_header">সংরক্ষিত স্ক্যান রিপোর্ট</string>
+    <string name="no_scanned_reports">এখনো কোনো রিপোর্ট স্ক্যান করা হয়নি।</string>
+    <string name="scan_report_fab">রিপোর্ট স্ক্যান</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">স্টেপ কাউন্টার ও ফিটনেস</string>
+    <string name="step_counter_subtitle">হার্ডওয়্যার সেন্সর • ক্যালোরি ট্র্যাকার</string>
+    <string name="steps_label">পদক্ষেপ</string>
+    <string name="step_goal_label">দৈনিক লক্ষ্য</string>
+    <string name="calories_burned_label">ক্যালোরি</string>
+    <string name="distance_walked_label">দূরত্ব</string>
+    <string name="active_time_label">সক্রিয় সময়</string>
+    <string name="sensor_active_label">সেন্সর সক্রিয়</string>
+    <string name="sensor_paused_label">সেন্সর বিরত</string>
+    <string name="add_steps_btn">দ্রুত যোগ</string>
+    <string name="reset_steps_btn">দিন রিসেট</string>
+    <string name="set_goal_dialog_title">দৈনিক পদক্ষেপের লক্ষ্য সেট করুন</string>
+    <string name="weekly_movement_history">৭-দিনের পদক্ষেপের ধারা</string>
+    <string name="activity_permission_rationale">দৈনিক হাঁটার পদক্ষেপ সঠিকভাবে গণনা করতে ফিজিক্যাল অ্যাক্টিভিটি অনুমতি প্রয়োজন।</string>
+    <string name="activity_permission_btn">স্টেপ ট্র্যাকিং চালু করুন</string>
+    <string name="fitness_tips_header">হৃদযন্ত্র ও সুস্থতা পরামর্শ</string>
+    <string name="nav_steps">পদক্ষেপ</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS ও প্রাথমিক চিকিৎসা</string>
+    <string name="tab_nearby_hospitals">নিকটবর্তী হাসপাতাল ও ক্লিনিক</string>
+    <string name="nearby_map_header_title">নিকটবর্তী চিকিৎসা কেন্দ্র</string>
+    <string name="nearby_map_header_subtitle">কাছাকাছি জরুরি বিভাগ, হাসপাতাল, ক্লিনিক ও ফার্মেসির রিয়েল-টাইম GPS দূরত্ব।</string>
+    <string name="nearby_filter_all">সব স্থান</string>
+    <string name="nearby_filter_hospitals">হাসপাতাল</string>
+    <string name="nearby_filter_clinics">ক্লিনিক</string>
+    <string name="nearby_filter_pharmacies">24/7 ফার্মেসি</string>
+    <string name="btn_open_google_maps">লাইভ ম্যাপে খুঁজুন</string>
+    <string name="btn_navigate_facility">দিকনির্দেশনা</string>
+    <string name="btn_call_facility">জরুরি কল</string>
+    <string name="nearby_gps_detecting">GPS অবস্থান শনাক্ত হচ্ছে…</string>
+    <string name="nearby_gps_refresh">অবস্থান রিফ্রেশ</string>
+    <string name="nearby_beds_available">%d টি শয্যা উপলব্ধ</string>
+    <string name="emergency_room_badge">24/7 ট্রমা / ICU</string>
+    <string name="locating_permission_notice">নিকটবর্তী হাসপাতালের দূরত্ব নির্ণয়ে GPS অবস্থান অনুমতি প্রয়োজন।</string>
+    <string name="grant_location_btn">GPS অবস্থান চালু করুন</string>
+    <string name="btn_refresh_language">অ্যাপ ও ভাষা রিফ্রেশ করুন</string>
+    <string name="toast_language_refreshed">অ্যাপ ও ভাষা সফলভাবে রিফ্রেশ হয়েছে!</string>
+    <string name="btn_download_apk_label">Health Care AI APK ডাউনলোড</string>
+    <string name="apk_download_banner_title">Health Care AI APK ডাউনলোড করুন</string>
+    <string name="apk_download_banner_desc">OCR, GPS হাসপাতাল ও স্টেপ কাউন্টারসহ আপডেট অ্যাপ ইনস্টল বা শেয়ার করুন।</string>
+    <string name="btn_test_med_notification">ওষুধ নোটিফিকেশন টেস্ট</string>
+    <string name="toast_med_notification_sent">ওষুধের টেস্ট নোটিফিকেশন পাঠানো হয়েছে!</string>
+    <string name="real_hospital_tracking_badge">রিয়েল-টাইম GPS ট্র্যাকিং সক্রিয়</string>
+    <string name="startup_permissions_dialog_title">Health Care AI-এ স্বাগতম</string>
+    <string name="startup_permissions_dialog_desc">হাসপাতালের দূরত্ব, স্টেপ কাউন্টিং, রিপোর্ট স্ক্যান, ভয়েস ইনপুট ও রিমাইন্ডারের জন্য অনুমতি দিন।</string>
+    <string name="btn_grant_all_permissions">সব অনুমতি দিন</string>
+</resources>

@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">ഹെൽത്ത് കെയർ AI</string>
+    <string name="app_subtitle">വെർച്വൽ മെഡിക്കൽ സഹായി</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">പരിശോധന</string>
+    <string name="nav_water">വെള്ളം</string>
+    <string name="nav_water_reminder">വെള്ളം ഓർമ്മപ്പെടുത്തൽ</string>
+    <string name="nav_medicine">മരുന്ന്</string>
+    <string name="nav_medicine_reminder">മരുന്ന് ഓർമ്മപ്പെടുത്തൽ</string>
+    <string name="nav_emergency">അടിയന്തരം</string>
+    <string name="nav_history">ആരോഗ്യ രേഖ</string>
+    <string name="nav_profile">പ്രൊഫൈൽ</string>
+    <string name="nav_app_info">ആപ്പ് വിവരം</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">സിസ്റ്റം ഡിഫോൾട്ട്</string>
+    <string name="theme_dark">ഡാർക്ക് മോഡ്</string>
+    <string name="theme_light">ലൈറ്റ് മോഡ്</string>
+    <string name="theme_toggle_desc">ഡാർക്ക് / ലൈറ്റ് / സിസ്റ്റം തീം മാറ്റുക</string>
+    <string name="theme_switched_system">സിസ്റ്റം തീമിലേക്ക് മാറ്റി</string>
+    <string name="theme_switched_dark">ഡാർക്ക് മോഡിലേക്ക് മാറ്റി</string>
+    <string name="theme_switched_light">ലൈറ്റ് മോഡിലേക്ക് മാറ്റി</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">ഓട്ടോ-സ്പീക്ക് ഓൺ</string>
+    <string name="auto_speak_off">ഓട്ടോ-സ്പീക്ക് ഓഫ്</string>
+    <string name="emergency_sos">അടിയന്തര SOS</string>
+    <string name="language_selector">ഭാഷ</string>
+    <string name="language_switched">ഭാഷ മാറ്റി</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">ഹെൽത്ത്കെയർ സഹായിയിലേക്ക് സ്വാഗതം</string>
+    <string name="chat_input_placeholder">ലക്ഷണങ്ങളോ ആരോഗ്യ പ്രശ്നങ്ങളോ വിവരിക്കുക...</string>
+    <string name="btn_send">അയയ്ക്കുക</string>
+    <string name="btn_voice_input">വോയിസ് ഇൻപുട്ട്</string>
+    <string name="btn_attach_image">ചിത്രം ചേർക്കുക</string>
+    <string name="btn_add_symptoms">ലക്ഷണ വിവരങ്ങൾ ചേർക്കുക</string>
+    <string name="listening">കേൾക്കുന്നു...</string>
+    <string name="analyzing">ലക്ഷണങ്ങൾ വിശകലനം ചെയ്യുന്നു...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">അടിയന്തര പ്രോട്ടോക്കോൾ</string>
+    <string name="emergency_alert_title">അടിയന്തര അപകട മുന്നറിയിപ്പ്</string>
+    <string name="emergency_alert_desc">ജീവന് ഭീഷണിയായ ലക്ഷണങ്ങൾ കണ്ടെത്തി. ഉടൻ അടിയന്തര വൈദ്യസഹായം തേടുക.</string>
+    <string name="emergency_dispatch_title">ഉടനടി അടിയന്തര കോൾ</string>
+    <string name="emergency_dispatch_desc">ഗുരുതരാവസ്ഥയിലാണെങ്കിൽ വൈകാതെ താഴെ ടാപ്പ് ചെയ്ത് വിളിക്കുക.</string>
+    <string name="emergency_call_112">112 അടിയന്തരം</string>
+    <string name="emergency_call_108">108 ആംബുലൻസ്</string>
+    <string name="emergency_call_104">104 ആരോഗ്യ ഹെൽപ്പ്‌ലൈൻ</string>
+    <string name="emergency_send_gps_sos">🚨 കോൺടാക്റ്റിലേക്ക് ലൈവ് GPS SOS SMS അയയ്ക്കുക</string>
+    <string name="emergency_sending_gps_sos">GPS കണ്ടെത്തി SOS അയയ്ക്കുന്നു...</string>
+    <string name="emergency_call_contact_format">%1$s (%2$s) വിളിക്കുക</string>
+    <string name="emergency_red_flags_header">🚨 ജീവന് ഭീഷണിയായ ലക്ഷണങ്ങൾ</string>
+    <string name="emergency_red_flags_sub">താഴെ പറയുന്ന ലക്ഷണങ്ങൾ കണ്ടാൽ ഉടൻ ആശുപത്രിയിൽ പോകുക:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">കഠിനമായ നെഞ്ചുവേദന</string>
+    <string name="emergency_sign_chest_desc">കൈ, തോളുകൾ, കഴുത്ത്, താടിയെല്ല് എന്നിവയിലേക്ക് പടരുന്ന വേദന.</string>
+    <string name="emergency_sign_breath_title">പെട്ടെന്നുള്ള ശ്വാസതടസ്സം</string>
+    <string name="emergency_sign_breath_desc">ശ്വാസം മുട്ടൽ അല്ലെങ്കിൽ ഒരു വാചകം മുഴുവൻ സംസാരിക്കാൻ കഴിയായ്ക.</string>
+    <string name="emergency_sign_stroke_title">പക്ഷാഘാത ലക്ഷണങ്ങൾ (FAST)</string>
+    <string name="emergency_sign_stroke_desc">മുഖം കോടൽ, കൈ തളർച്ച അല്ലെങ്കിൽ സംസാരം കുഴയൽ.</string>
+    <string name="emergency_sign_headache_title">പെട്ടെന്നുള്ള കഠിന തലവേദന</string>
+    <string name="emergency_sign_headache_desc">സെക്കൻഡുകൾക്കുള്ളിൽ അസഹ്യമാകുന്ന തലവേദന.</string>
+    <string name="emergency_sign_bleeding_title">കഠിനമായ രക്തസ്രാവം</string>
+    <string name="emergency_sign_bleeding_desc">നിയന്ത്രിക്കാനാകാത്ത രക്തസ്രാവം അല്ലെങ്കിൽ ചുമയിൽ രക്തം.</string>
+    <string name="emergency_sign_allergy_title">കഠിനമായ അലർജി ലക്ഷണങ്ങൾ</string>
+    <string name="emergency_sign_allergy_desc">ചുണ്ട്/നാവ് വീക്കം, ശ്വാസംമുട്ടൽ, തടിപ്പ് അല്ലെങ്കിൽ തലകറക്കം.</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. സ്ട്രോക്ക് പരിശോധന</string>
+    <string name="emergency_fast_f_title">F - മുഖം (Face)</string>
+    <string name="emergency_fast_f_desc">ചിരിക്കാൻ പറയുക. മുഖത്തിന്റെ ഒരു വശം താഴുന്നുണ്ടോ?</string>
+    <string name="emergency_fast_a_title">A - കൈകൾ (Arms)</string>
+    <string name="emergency_fast_a_desc">ഇരു കൈകളും ഉയർത്താൻ പറയുക. ഒരു കൈ താഴേക്ക് വീഴുന്നുണ്ടോ?</string>
+    <string name="emergency_fast_s_title">S - സംസാരം (Speech)</string>
+    <string name="emergency_fast_s_desc">ഒരു ലളിത വാചകം ആവർത്തിക്കാൻ പറയുക. സംസാരം വ്യക്തമല്ലേ?</string>
+    <string name="emergency_fast_t_title">T - സമയം (Time)</string>
+    <string name="emergency_fast_t_desc">ഓരോ നിമിഷവും പ്രധാനമാണ്! ഉടൻ 112/108 വിളിക്കുക.</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 പ്രഥമശുശ്രൂഷ നിർദ്ദേശങ്ങൾ</string>
+    <string name="emergency_fa_heart_title">• നെഞ്ചുവേദന / ഹൃദയാഘാത സംശയം:</string>
+    <string name="emergency_fa_heart_desc">മുട്ടുകൾ മടക്കി പുറം താങ്ങി നിവർന്നിരിക്കുക. ഇറുകിയ വസ്ത്രങ്ങൾ അയയ്ക്കുക.</string>
+    <string name="emergency_fa_allergy_title">• കഠിനമായ അലർജി (Anaphylaxis):</string>
+    <string name="emergency_fa_allergy_desc">നിർദ്ദേശിച്ച EpiPen ഉണ്ടെങ്കിൽ ഉടൻ തുടയിൽ കുത്തിവയ്ക്കുക.</string>
+    <string name="emergency_fa_unconscious_title">• ബോധരഹിതം എന്നാൽ സാധാരണ ശ്വാസം:</string>
+    <string name="emergency_fa_unconscious_desc">ശ്വാസനാളം തുറന്നിരിക്കാൻ ഒരു വശത്തേക്ക് ചരിച്ചു കിടത്തി ശ്വാസം നിരീക്ഷിക്കുക.</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">ദൈനംദിന വെള്ളം ട്രാക്കർ</string>
+    <string name="water_goal">ദൈനംദിന ലക്ഷ്യം: 2,500 ml</string>
+    <string name="water_log_cup">+250 ml (ഗ്ലാസ്)</string>
+    <string name="water_log_bottle">+500 ml (കുപ്പി)</string>
+    <string name="water_reminder_interval">ഓർമ്മപ്പെടുത്തൽ ഇടവേള</string>
+    <string name="water_reminder_enable">വെള്ളം അലേർട്ട് ഓണാക്കുക</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">ദൈനംദിന മരുന്ന് ഓർമ്മപ്പെടുത്തലുകൾ</string>
+    <string name="medicine_reminder_subtitle">ദൈനംദിന മരുന്നുകൾ • ഓട്ടോമാറ്റിക് അലേർട്ട്</string>
+    <string name="medicine_automated_alerts_title">ഓട്ടോമാറ്റിക് മരുന്ന് ഓർമ്മപ്പെടുത്തൽ</string>
+    <string name="medicine_automated_alerts_desc">കൃത്യസമയത്ത് മരുന്ന് കഴിക്കാൻ അറിയിപ്പുകൾ ലഭിക്കും.</string>
+    <string name="medicine_empty_title">മരുന്നുകളൊന്നും ചേർത്തിട്ടില്ല</string>
+    <string name="medicine_empty_desc">ദൈനംദിന ഗുളികകളും മരുന്നുകളും കൃത്യമായി രേഖപ്പെടുത്തുക.</string>
+    <string name="add_medicine">മരുന്ന് ചേർക്കുക</string>
+    <string name="add_daily_medicine">ദൈനംദിന മരുന്ന് ചേർക്കുക</string>
+    <string name="add_medicine_dialog_title">മരുന്ന് ഓർമ്മപ്പെടുത്തൽ ചേർക്കുക</string>
+    <string name="edit_medicine_dialog_title">മരുന്ന് സമയവും വിവരവും മാറ്റുക</string>
+    <string name="adjust_time_title">ഓർമ്മപ്പെടുത്തൽ സമയം മാറ്റുക</string>
+    <string name="adjust_time_btn">സമയം മാറ്റുക</string>
+    <string name="medicine_name">മരുന്നിന്റെ പേര്</string>
+    <string name="medicine_dosage">അളവ് (ഉദാ. 500mg, 1 ഗുളിക)</string>
+    <string name="medicine_time">നിശ്ചിത സമയം</string>
+    <string name="medicine_time_preference">ഇഷ്ടപ്പെട്ട സമയം:</string>
+    <string name="medicine_instruction">നിർദ്ദേശങ്ങൾ:</string>
+    <string name="medicine_saved">മരുന്ന് ഓർമ്മപ്പെടുത്തൽ സജ്ജമാക്കി</string>
+    <string name="medicine_updated">മരുന്ന് സമയം അപ്ഡേറ്റ് ചെയ്തു!</string>
+    <string name="medicine_deleted_format">%1$s നീക്കം ചെയ്തു</string>
+    <string name="medicine_schedule_btn">ഓർമ്മപ്പെടുത്തൽ സജ്ജമാക്കുക</string>
+    <string name="medicine_update_btn">സേവ് &amp; അപ്ഡേറ്റ്</string>
+    <string name="medicine_preset_morning">രാവിലെ (08:00 AM)</string>
+    <string name="medicine_preset_noon">ഉച്ചയ്ക്ക് (01:00 PM)</string>
+    <string name="medicine_preset_evening">വൈകുന്നേരം (06:00 PM)</string>
+    <string name="medicine_preset_night">രാത്രി (09:00 PM)</string>
+    <string name="medicine_inst_after_food">ഭക്ഷണത്തിന് ശേഷം</string>
+    <string name="medicine_inst_before_food">ഭക്ഷണത്തിന് മുമ്പ്</string>
+    <string name="medicine_inst_with_water">വെള്ളത്തോടൊപ്പം</string>
+    <string name="medicine_inst_bedtime">ഉറങ്ങുന്നതിന് മുമ്പ്</string>
+    <string name="medicine_hour">മണിക്കൂർ</string>
+    <string name="medicine_minute">മിനിറ്റ്</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">ആരോഗ്യ &amp; ലക്ഷണ രേഖ</string>
+    <string name="symptom_severity_chart">സമയത്തിനനുസരിച്ചുള്ള ലക്ഷണ തീവ്രത</string>
+    <string name="filter_all">എല്ലാ ലക്ഷണങ്ങളും</string>
+    <string name="filter_headache">തലവേദന ട്രാക്കർ</string>
+    <string name="btn_export_pdf">PDF റിപ്പോർട്ട് എക്സ്പോർട്ട്</string>
+    <string name="btn_backup_cloud">ക്ലൗഡ് ബാക്കപ്പ് (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">രോഗിയുടെ മെഡിക്കൽ പ്രൊഫൈൽ</string>
+    <string name="full_name">മുഴുവൻ പേര്</string>
+    <string name="age">വയസ്സ്</string>
+    <string name="gender">ലിംഗം</string>
+    <string name="blood_group">രക്തഗ്രൂപ്പ്</string>
+    <string name="allergies">അലർജികൾ</string>
+    <string name="chronic_conditions">ദീർഘകാല രോഗങ്ങൾ</string>
+    <string name="current_medications">നിലവിലെ മരുന്നുകൾ</string>
+    <string name="emergency_contact_name">അടിയന്തര ബന്ധപ്പെടൽ പേര്</string>
+    <string name="emergency_contact_phone">അടിയന്തര ഫോൺ നമ്പർ</string>
+    <string name="btn_save_profile">പ്രൊഫൈൽ സേവ് ചെയ്യുക</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">സേവ്</string>
+    <string name="action_cancel">റദ്ദാക്കുക</string>
+    <string name="action_delete">ഇല്ലാതാക്കുക</string>
+    <string name="action_close">അടയ്ക്കുക</string>
+    <string name="disclaimer_text">അറിയിപ്പ്: ഇത് വിദ്യാഭ്യാസ ആരോഗ്യ സഹായി മാത്രമാണ്; ഡോക്ടറുടെ ഉപദേശത്തിന് പകരമല്ല.</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI മെഡിക്കൽ റിപ്പോർട്ട് സ്കാനർ</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • AI വിശദീകരണം</string>
+    <string name="scan_camera_btn">ക്യാമറയിൽ സ്കാൻ ചെയ്യുക</string>
+    <string name="scan_gallery_btn">ഗാലറിയിൽ നിന്ന് അപ്‌ലോഡ്</string>
+    <string name="scan_pdf_btn">PDF ലാബ് റിപ്പോർട്ട് അപ്‌ലോഡ്</string>
+    <string name="scan_type_prescription">പ്രിസ്ക്രിപ്ഷൻ / Rx</string>
+    <string name="scan_type_lab_report">ലാബ് &amp; രക്ത പരിശോധന</string>
+    <string name="scan_type_discharge">ഡിസ്ചാർജ് സംഗ്രഹം</string>
+    <string name="scan_type_medicine_strip">മരുന്ന് സ്ട്രിപ്പ്</string>
+    <string name="ocr_processing_title">AI രേഖ വിശകലനം ചെയ്യുന്നു…</string>
+    <string name="ocr_processing_desc">നിങ്ങളുടെ ഫോട്ടോ/PDF വായിച്ച് ലളിതമായ ഭാഷയിൽ വിശദീകരിക്കുന്നു.</string>
+    <string name="tab_ai_explanation">AI ലളിത വിശദീകരണം</string>
+    <string name="tab_raw_ocr">സ്കാൻ ചെയ്ത ടെക്സ്റ്റ്</string>
+    <string name="btn_copy_text">ടെക്സ്റ്റ് പകർത്തുക</string>
+    <string name="btn_ask_in_chat">ചാറ്റിൽ ചോദിക്കുക</string>
+    <string name="btn_add_to_reminders">ഓർമ്മപ്പെടുത്തലിൽ ചേർക്കുക</string>
+    <string name="text_copied">ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി!</string>
+    <string name="saved_reports_header">സേവ് ചെയ്ത റിപ്പോർട്ടുകൾ</string>
+    <string name="no_scanned_reports">ഇതുവരെ റിപ്പോർട്ടുകളൊന്നും സ്കാൻ ചെയ്തിട്ടില്ല.</string>
+    <string name="scan_report_fab">റിപ്പോർട്ട് സ്കാൻ</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">സ്റ്റെപ്പ് കൗണ്ടർ &amp; ഫിറ്റ്നസ്</string>
+    <string name="step_counter_subtitle">ഹാർഡ്‌വെയർ സെൻസർ • കലോറി ട്രാക്കർ</string>
+    <string name="steps_label">ചുവടുകൾ</string>
+    <string name="step_goal_label">ദൈനംദിന ലക്ഷ്യം</string>
+    <string name="calories_burned_label">കലോറി</string>
+    <string name="distance_walked_label">ദൂരം</string>
+    <string name="active_time_label">സജീവ സമയം</string>
+    <string name="sensor_active_label">സെൻസർ സജീവം</string>
+    <string name="sensor_paused_label">സെൻസർ താൽക്കാലികം നിർത്തി</string>
+    <string name="add_steps_btn">വേഗ രേഖ</string>
+    <string name="reset_steps_btn">ദിവസം റീസെറ്റ്</string>
+    <string name="set_goal_dialog_title">ദൈനംദിന ചുവട് ലക്ഷ്യം സജ്ജമാക്കുക</string>
+    <string name="weekly_movement_history">7-ദിവസത്തെ ചുവട് പ്രവണത</string>
+    <string name="activity_permission_rationale">നിങ്ങളുടെ ദൈനംദിന നടത്തം കൃത്യമായി അളക്കാൻ ആക്റ്റിവിറ്റി അനുമതി ആവശ്യമാണ്.</string>
+    <string name="activity_permission_btn">സ്റ്റെപ്പ് ട്രാക്കിംഗ് ഓണാക്കുക</string>
+    <string name="fitness_tips_header">ഹൃദയ &amp; ആരോഗ്യ നിർദ്ദേശങ്ങൾ</string>
+    <string name="nav_steps">ചുവടുകൾ</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS &amp; പ്രഥമശുശ്രൂഷ</string>
+    <string name="tab_nearby_hospitals">സമീപ ആശുപത്രികൾ &amp; ക്ലിനിക്കുകൾ</string>
+    <string name="nearby_map_header_title">സമീപ വൈദ്യ കേന്ദ്രങ്ങൾ</string>
+    <string name="nearby_map_header_subtitle">സമീപ ആശുപത്രികൾ, ക്ലിനിക്കുകൾ, ഫാർമസികൾ എന്നിവയിലേക്കുള്ള തത്സമയ GPS ദൂരം.</string>
+    <string name="nearby_filter_all">എല്ലാം</string>
+    <string name="nearby_filter_hospitals">ആശുപത്രികൾ</string>
+    <string name="nearby_filter_clinics">ക്ലിനിക്കുകൾ</string>
+    <string name="nearby_filter_pharmacies">24/7 മെഡിക്കൽ</string>
+    <string name="btn_open_google_maps">മാപ്പിൽ തിരയുക</string>
+    <string name="btn_navigate_facility">വഴികാട്ടി</string>
+    <string name="btn_call_facility">അടിയന്തര കോൾ</string>
+    <string name="nearby_gps_detecting">GPS സ്ഥാനം കണ്ടെത്തുന്നു…</string>
+    <string name="nearby_gps_refresh">സ്ഥാനം പുതുക്കുക</string>
+    <string name="nearby_beds_available">%d കിടക്കകൾ ലഭ്യം</string>
+    <string name="emergency_room_badge">24/7 ട്രോമ / ICU</string>
+    <string name="locating_permission_notice">സമീപ ആശുപത്രി ദൂരം കണക്കാക്കാൻ GPS അനുമതി ആവശ്യമാണ്.</string>
+    <string name="grant_location_btn">GPS ലൊക്കേഷൻ ഓണാക്കുക</string>
+    <string name="btn_refresh_language">ആപ്പും ഭാഷയും പുതുക്കുക</string>
+    <string name="toast_language_refreshed">ആപ്പും ഭാഷയും വിജയകരമായി പുതുക്കി!</string>
+    <string name="btn_download_apk_label">Health Care AI APK ഡൗൺലോഡ്</string>
+    <string name="apk_download_banner_title">Health Care AI APK ഡൗൺലോഡ്</string>
+    <string name="apk_download_banner_desc">OCR, GPS ആശുപത്രികൾ &amp; സ്റ്റെപ്പ് കൗണ്ടർ ഉള്ള ആപ്പ് പങ്കിടുക അല്ലെങ്കിൽ ഇൻസ്റ്റാൾ ചെയ്യുക.</string>
+    <string name="btn_test_med_notification">മരുന്ന് അറിയിപ്പ് പരിശോധന</string>
+    <string name="toast_med_notification_sent">മരുന്ന് പരിശോധന അറിയിപ്പ് അയച്ചു!</string>
+    <string name="real_hospital_tracking_badge">തത്സമയ GPS ട്രാക്കിംഗ് സജീവം</string>
+    <string name="startup_permissions_dialog_title">Health Care AI-ലേക്ക് സ്വാഗതം</string>
+    <string name="startup_permissions_dialog_desc">ആശുപത്രി ദൂരം, ചുവട് എണ്ണൽ, സ്കാനിംഗ്, വോയിസ് ഇൻപുട്ട്, ഓർമ്മപ്പെടുത്തലുകൾ എന്നിവയ്ക്ക് അനുമതി നൽകുക.</string>
+    <string name="btn_grant_all_permissions">എല്ലാ അനുമതികളും നൽകുക</string>
+</resources>

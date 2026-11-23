@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">Health Care AI</string>
+    <string name="app_subtitle">Triagem Médica Virtual</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">Triagem</string>
+    <string name="nav_water">Água</string>
+    <string name="nav_water_reminder">Lembrete de Água</string>
+    <string name="nav_medicine">Remédios</string>
+    <string name="nav_medicine_reminder">Lembrete de Remédios</string>
+    <string name="nav_emergency">Emergência</string>
+    <string name="nav_history">Histórico</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="nav_app_info">Sobre o App</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">Padrão do Sistema</string>
+    <string name="theme_dark">Modo Escuro</string>
+    <string name="theme_light">Modo Claro</string>
+    <string name="theme_toggle_desc">Alternar tema Escuro / Claro / Sistema</string>
+    <string name="theme_switched_system">Alterado para o tema do sistema</string>
+    <string name="theme_switched_dark">Alterado para Modo Escuro</string>
+    <string name="theme_switched_light">Alterado para Modo Claro</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">Leitura automática ativa</string>
+    <string name="auto_speak_off">Leitura automática desativada</string>
+    <string name="emergency_sos">SOS Emergência</string>
+    <string name="language_selector">Idioma</string>
+    <string name="language_switched">Idioma alterado</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">Bem-vindo ao Assistente de Saúde</string>
+    <string name="chat_input_placeholder">Descreva sintomas ou dúvidas de saúde...</string>
+    <string name="btn_send">Enviar</string>
+    <string name="btn_voice_input">Entrada de voz</string>
+    <string name="btn_attach_image">Anexar imagem</string>
+    <string name="btn_add_symptoms">Adicionar detalhes</string>
+    <string name="listening">Ouvindo...</string>
+    <string name="analyzing">Analisando sintomas...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">Protocolo de Emergência</string>
+    <string name="emergency_alert_title">ALERTA VERMELHO DE EMERGÊNCIA</string>
+    <string name="emergency_alert_desc">Sintomas graves detectados. Procure atendimento médico de emergência imediatamente.</string>
+    <string name="emergency_dispatch_title">Chamada de Emergência Imediata</string>
+    <string name="emergency_dispatch_desc">Em caso de risco grave, não espere. Toque abaixo para ligar imediatamente.</string>
+    <string name="emergency_call_112">112 Emergência</string>
+    <string name="emergency_call_108">108 Ambulância</string>
+    <string name="emergency_call_104">104 Disque Saúde</string>
+    <string name="emergency_send_gps_sos">🚨 Enviar SMS SOS com GPS ao vivo</string>
+    <string name="emergency_sending_gps_sos">Obtendo GPS e enviando SOS...</string>
+    <string name="emergency_call_contact_format">Ligar para %1$s (%2$s)</string>
+    <string name="emergency_red_flags_header">🚨 Sinais de Risco de Vida</string>
+    <string name="emergency_red_flags_sub">Procure o pronto-socorro imediatamente se notar qualquer um destes sinais:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">Dor intensa no peito</string>
+    <string name="emergency_sign_chest_desc">Dor opressiva irradiando para braço, ombro, pescoço ou mandíbula.</string>
+    <string name="emergency_sign_breath_title">Falta de ar súbita</string>
+    <string name="emergency_sign_breath_desc">Sufocamento ou dificuldade para completar uma frase.</string>
+    <string name="emergency_sign_stroke_title">Sinais de AVC (FAST)</string>
+    <string name="emergency_sign_stroke_desc">Rosto caído, fraqueza em um braço ou fala arrastada.</string>
+    <string name="emergency_sign_headache_title">Dor de cabeça súbita intensa</string>
+    <string name="emergency_sign_headache_desc">Dor de cabeça extrema que atinge o pico em segundos.</string>
+    <string name="emergency_sign_bleeding_title">Sangramento intenso ou tosse com sangue</string>
+    <string name="emergency_sign_bleeding_desc">Hemorragia descontrolada.</string>
+    <string name="emergency_sign_allergy_title">Sinais de anafilaxia</string>
+    <string name="emergency_sign_allergy_desc">Inchaço nos lábios/língua, chiado, urticária ou tontura.</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 Avaliação de AVC F.A.S.T.</string>
+    <string name="emergency_fast_f_title">F - Rosto (Face)</string>
+    <string name="emergency_fast_f_desc">Peça para sorrir. Um lado do rosto cai?</string>
+    <string name="emergency_fast_a_title">A - Braços (Arms)</string>
+    <string name="emergency_fast_a_desc">Peça para levantar ambos os braços. Um deles abaixa?</string>
+    <string name="emergency_fast_s_title">S - Fala (Speech)</string>
+    <string name="emergency_fast_s_desc">Peça para repetir uma frase simples. A fala está arrastada?</string>
+    <string name="emergency_fast_t_title">T - Tempo (Time)</string>
+    <string name="emergency_fast_t_desc">Cada minuto conta! Ligue 112/108 imediatamente.</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 Primeiros Socorros</string>
+    <string name="emergency_fa_heart_title">• Dor no peito / Suspeita de infarto:</string>
+    <string name="emergency_fa_heart_desc">Sente-se com os joelhos dobrados e costas apoiadas. Afrouxe roupas apertadas.</string>
+    <string name="emergency_fa_allergy_title">• Alergia grave (Anafilaxia):</string>
+    <string name="emergency_fa_allergy_desc">Se tiver EpiPen prescrito, aplique imediatamente na coxa.</string>
+    <string name="emergency_fa_unconscious_title">• Inconsciente mas respirando:</string>
+    <string name="emergency_fa_unconscious_desc">Coloque em posição lateral de segurança e monitore a respiração.</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">Controle Diário de Água</string>
+    <string name="water_goal">Meta diária: 2.500 ml</string>
+    <string name="water_log_cup">+250 ml (Copo)</string>
+    <string name="water_log_bottle">+500 ml (Garrafa)</string>
+    <string name="water_reminder_interval">Intervalo do lembrete</string>
+    <string name="water_reminder_enable">Ativar alertas de água</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">Lembretes de Medicamentos</string>
+    <string name="medicine_reminder_subtitle">Receitas diárias • Alertas automáticos</string>
+    <string name="medicine_automated_alerts_title">Lembretes Automáticos</string>
+    <string name="medicine_automated_alerts_desc">Receba notificações pontuais para tomar suas doses no horário.</string>
+    <string name="medicine_empty_title">Nenhum medicamento adicionado</string>
+    <string name="medicine_empty_desc">Controle comprimidos e vitaminas diárias com lembretes automáticos.</string>
+    <string name="add_medicine">Adicionar remédio</string>
+    <string name="add_daily_medicine">Adicionar remédio diário</string>
+    <string name="add_medicine_dialog_title">Adicionar lembrete</string>
+    <string name="edit_medicine_dialog_title">Ajustar horário e detalhes</string>
+    <string name="adjust_time_title">Ajustar horário do lembrete</string>
+    <string name="adjust_time_btn">Ajustar horário</string>
+    <string name="medicine_name">Nome do medicamento</string>
+    <string name="medicine_dosage">Dosagem (ex. 500mg, 1 comprimido)</string>
+    <string name="medicine_time">Horário agendado</string>
+    <string name="medicine_time_preference">Período preferido:</string>
+    <string name="medicine_instruction">Instruções:</string>
+    <string name="medicine_saved">Lembrete agendado</string>
+    <string name="medicine_updated">Horário do medicamento atualizado!</string>
+    <string name="medicine_deleted_format">%1$s removido</string>
+    <string name="medicine_schedule_btn">Agendar lembrete</string>
+    <string name="medicine_update_btn">Salvar e atualizar</string>
+    <string name="medicine_preset_morning">Manhã (08:00 AM)</string>
+    <string name="medicine_preset_noon">Meio-dia (01:00 PM)</string>
+    <string name="medicine_preset_evening">Tarde (06:00 PM)</string>
+    <string name="medicine_preset_night">Noite (09:00 PM)</string>
+    <string name="medicine_inst_after_food">Após refeição</string>
+    <string name="medicine_inst_before_food">Antes da refeição</string>
+    <string name="medicine_inst_with_water">Com água</string>
+    <string name="medicine_inst_bedtime">Ao deitar</string>
+    <string name="medicine_hour">Hora</string>
+    <string name="medicine_minute">Minuto</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">Registro de Saúde e Sintomas</string>
+    <string name="symptom_severity_chart">Gravidade dos sintomas ao longo do tempo</string>
+    <string name="filter_all">Todos os sintomas</string>
+    <string name="filter_headache">Monitor de dor de cabeça</string>
+    <string name="btn_export_pdf">Exportar relatório PDF</string>
+    <string name="btn_backup_cloud">Backup na nuvem (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Perfil Médico do Paciente</string>
+    <string name="full_name">Nome completo</string>
+    <string name="age">Idade</string>
+    <string name="gender">Gênero</string>
+    <string name="blood_group">Tipo sanguíneo</string>
+    <string name="allergies">Alergias</string>
+    <string name="chronic_conditions">Condições crônicas</string>
+    <string name="current_medications">Medicamentos atuais</string>
+    <string name="emergency_contact_name">Nome do contato de emergência</string>
+    <string name="emergency_contact_phone">Telefone de emergência</string>
+    <string name="btn_save_profile">Salvar perfil</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">Salvar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_close">Fechar</string>
+    <string name="disclaimer_text">Aviso: Ferramenta educativa de saúde que não substitui diagnóstico médico profissional.</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">Scanner IA de Exames Médicos</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • Explicação IA</string>
+    <string name="scan_camera_btn">Escanear com câmera</string>
+    <string name="scan_gallery_btn">Enviar da galeria</string>
+    <string name="scan_pdf_btn">Enviar exame em PDF</string>
+    <string name="scan_type_prescription">Receita / Rx</string>
+    <string name="scan_type_lab_report">Exame de sangue / Lab</string>
+    <string name="scan_type_discharge">Resumo de alta</string>
+    <string name="scan_type_medicine_strip">Cartela de remédio</string>
+    <string name="ocr_processing_title">Analisando documento com IA…</string>
+    <string name="ocr_processing_desc">Lendo sua foto/PDF para gerar uma explicação simples.</string>
+    <string name="tab_ai_explanation">Explicação IA</string>
+    <string name="tab_raw_ocr">Texto extraído</string>
+    <string name="btn_copy_text">Copiar texto</string>
+    <string name="btn_ask_in_chat">Discutir no chat</string>
+    <string name="btn_add_to_reminders">Adicionar aos lembretes</string>
+    <string name="text_copied">Copiado para a área de transferência!</string>
+    <string name="saved_reports_header">Exames salvos</string>
+    <string name="no_scanned_reports">Nenhum exame escaneado ainda.</string>
+    <string name="scan_report_fab">Escanear exame</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">Contador de Passos e Fitness</string>
+    <string name="step_counter_subtitle">Sensor físico • Calorias e atividade</string>
+    <string name="steps_label">Passos</string>
+    <string name="step_goal_label">Meta diária</string>
+    <string name="calories_burned_label">Calorias</string>
+    <string name="distance_walked_label">Distância</string>
+    <string name="active_time_label">Tempo ativo</string>
+    <string name="sensor_active_label">Sensor ativo</string>
+    <string name="sensor_paused_label">Sensor pausado</string>
+    <string name="add_steps_btn">Registro rápido</string>
+    <string name="reset_steps_btn">Zerar dia</string>
+    <string name="set_goal_dialog_title">Definir meta diária de passos</string>
+    <string name="weekly_movement_history">Tendência de 7 dias</string>
+    <string name="activity_permission_rationale">Permissão de atividade física necessária para contar seus passos diários.</string>
+    <string name="activity_permission_btn">Ativar contador de passos</string>
+    <string name="fitness_tips_header">Dicas cardiovasculares e bem-estar</string>
+    <string name="nav_steps">Passos</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS e Primeiros Socorros</string>
+    <string name="tab_nearby_hospitals">Hospitais e Clínicas</string>
+    <string name="nearby_map_header_title">Centros Médicos Próximos</string>
+    <string name="nearby_map_header_subtitle">Distância GPS em tempo real até hospitais, clínicas e farmácias.</string>
+    <string name="nearby_filter_all">Todos</string>
+    <string name="nearby_filter_hospitals">Hospitais</string>
+    <string name="nearby_filter_clinics">Clínicas</string>
+    <string name="nearby_filter_pharmacies">Farmácias 24/7</string>
+    <string name="btn_open_google_maps">Buscar no Maps</string>
+    <string name="btn_navigate_facility">Rotas</string>
+    <string name="btn_call_facility">Ligar emergência</string>
+    <string name="nearby_gps_detecting">Detectando localização GPS…</string>
+    <string name="nearby_gps_refresh">Atualizar localização</string>
+    <string name="nearby_beds_available">%d leitos disponíveis</string>
+    <string name="emergency_room_badge">Pronto-Socorro / UTI 24/7</string>
+    <string name="locating_permission_notice">O GPS é necessário para calcular a distância aos hospitais próximos.</string>
+    <string name="grant_location_btn">Ativar GPS</string>
+    <string name="btn_refresh_language">Atualizar app e idioma</string>
+    <string name="toast_language_refreshed">App e idioma atualizados com sucesso!</string>
+    <string name="btn_download_apk_label">Baixar Health Care AI APK</string>
+    <string name="apk_download_banner_title">Baixar Health Care AI APK</string>
+    <string name="apk_download_banner_desc">Instale ou compartilhe o app atualizado com OCR, hospitais GPS e pedômetro.</string>
+    <string name="btn_test_med_notification">Testar notificação</string>
+    <string name="toast_med_notification_sent">Notificação de teste enviada!</string>
+    <string name="real_hospital_tracking_badge">Rastreamento GPS ativo</string>
+    <string name="startup_permissions_dialog_title">Bem-vindo ao Health Care AI</string>
+    <string name="startup_permissions_dialog_desc">Autorize permissões para hospitais, passos, scanner, voz e lembretes.</string>
+    <string name="btn_grant_all_permissions">Conceder todas as permissões</string>
+</resources>

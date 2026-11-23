@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,14 +23,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.FactCheck
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AddAlert
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Mic
@@ -40,9 +46,12 @@ import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DocumentScanner
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FamilyRestroom
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Medication
 import androidx.compose.material.icons.filled.MonitorHeart
@@ -50,6 +59,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -104,8 +114,18 @@ import com.example.ui.theme.OnEmergencyRed
 import com.example.ui.theme.tr
 import com.example.ui.theme.trLang
 import com.example.ui.viewmodel.AppScreen
+import com.example.ui.viewmodel.ClinicalAiTab
 import com.example.ui.viewmodel.MediAssistViewModel
 import com.example.ui.viewmodel.SymptomDetails
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.Biotech
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.FolderShared
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.VideoCall
+import androidx.compose.material.icons.filled.Watch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,6 +146,8 @@ fun ChatTriageScreen(
     val themeMode by viewModel.themeMode.collectAsState()
 
     val selectedImageUri by viewModel.selectedImageUri.collectAsState()
+    val devAppConfig by viewModel.devAppConfig.collectAsState()
+    val retryableQuery by viewModel.retryableQuery.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
 
     var attachedContext by remember { mutableStateOf<SymptomDetails?>(null) }
@@ -163,11 +185,7 @@ fun ChatTriageScreen(
     }
 
     val createSpeechIntent: () -> android.content.Intent = {
-        val langTag = when (selectedLanguage) {
-            "Gujarati" -> "gu-IN"
-            "Hindi" -> "hi-IN"
-            else -> "en-IN"
-        }
+        val langTag = com.example.ui.theme.AppLanguages.speechTagFor(selectedLanguage)
         android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(
                 android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -175,7 +193,7 @@ fun ChatTriageScreen(
             )
             putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE, langTag)
             putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, langTag)
-            putExtra("android.speech.extra.EXTRA_ADDITIONAL_LANGUAGES", arrayOf("gu-IN", "hi-IN", "en-IN", "en-US"))
+            putExtra("android.speech.extra.EXTRA_ADDITIONAL_LANGUAGES", arrayOf(langTag, "en-IN", "hi-IN", "gu-IN"))
             putExtra(android.speech.RecognizerIntent.EXTRA_MAX_RESULTS, 3)
             putExtra(
                 android.speech.RecognizerIntent.EXTRA_PROMPT,
@@ -190,26 +208,30 @@ fun ChatTriageScreen(
     }
 
     androidx.compose.runtime.DisposableEffect(Unit) {
-        val recognizer = if (android.speech.SpeechRecognizer.isRecognitionAvailable(context)) {
-            try {
+        val recognizer = try {
+            if (android.speech.SpeechRecognizer.isRecognitionAvailable(context)) {
                 android.speech.SpeechRecognizer.createSpeechRecognizer(context)
-            } catch (_: Exception) {
+            } else {
                 null
             }
-        } else {
+        } catch (_: Throwable) {
             null
         }
         speechRecognizer = recognizer
         onDispose {
             try {
                 recognizer?.destroy()
-            } catch (_: Exception) {}
+            } catch (_: Throwable) {}
         }
     }
 
     val startVoiceListening: () -> Unit = {
         val intent = createSpeechIntent()
-        val isServiceAvailable = android.speech.SpeechRecognizer.isRecognitionAvailable(context)
+        val isServiceAvailable = try {
+            android.speech.SpeechRecognizer.isRecognitionAvailable(context)
+        } catch (_: Throwable) {
+            false
+        }
 
         if (isServiceAvailable) {
             try {
@@ -983,6 +1005,23 @@ fun ChatTriageScreen(
                         )
                     }
 
+                    // 1-Tap AI Doctor Video Call button
+                    IconButton(
+                        onClick = { viewModel.setScreen(AppScreen.AI_VIDEO_CALL) },
+                        modifier = Modifier
+                            .testTag("top_video_call_button")
+                            .padding(end = 4.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.VideoCall,
+                            contentDescription = tr("AI Video Call", "AI વિડિયો કૉલ", "AI वीडियो कॉल"),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
                     // Emergency SOS quick trigger button
                     IconButton(
                         onClick = { viewModel.triggerEmergencyDirect() },
@@ -1020,6 +1059,197 @@ fun ChatTriageScreen(
                             expanded = moreMenuExpanded,
                             onDismissRequest = { moreMenuExpanded = false }
                         ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "✨ Ultra Health Hub (Score, QR ID, Labs)",
+                                            "✨ અલ્ટ્રા હેલ્થ હબ (સ્કોર, QR ID, લેબ)",
+                                            "✨ अल्ट्रा हेल्थ हब (स्कोर, QR ID, लैब)"
+                                        ),
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openUltraHealthHub()
+                                },
+                                modifier = Modifier.testTag("open_ultra_health_hub_menu_btn")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "AI Doctor Video Call (Live)",
+                                            "AI ડૉક્ટર સાથે વિડિયો કૉલ",
+                                            "AI डॉक्टर वीडियो कॉल (लाइव)"
+                                        ),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.VideoCall, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.setScreen(AppScreen.AI_VIDEO_CALL)
+                                },
+                                modifier = Modifier.testTag("open_ai_video_call_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Personalized Treatment AI",
+                                            "વ્યક્તિગત સારવાર યોજના AI",
+                                            "व्यक्तिगत उपचार योजना AI"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.Biotech, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.TREATMENT_PLAN)
+                                },
+                                modifier = Modifier.testTag("open_treatment_ai_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Predictive Risk & Early Detection",
+                                            "ભવિષ્યની બિમારી & જોખમ આગાહી",
+                                            "रोग जोखिम और प्रारंभिक अनुमान"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.PREDICTIVE_ANALYTICS)
+                                },
+                                modifier = Modifier.testTag("open_predictive_risk_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Clinical NLP Scribe (Notes & Rx)",
+                                            "ક્લિનિકલ NLP નોટ્સ અને Rx",
+                                            "क्लिनिकल NLP नोट्स और पर्चा"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.Description, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.CLINICAL_SCRIBE)
+                                },
+                                modifier = Modifier.testTag("open_clinical_scribe_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Remote Monitoring & Virtual Ward",
+                                            "સ્માર્ટવોચ & વર્ચ્યુઅલ વોર્ડ",
+                                            "वियरेबल और वर्चुअल वार्ड"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.REMOTE_MONITORING)
+                                },
+                                modifier = Modifier.testTag("open_remote_ward_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "EHR Automation (NLP)",
+                                            "EHR ઓટોમેશન (હેલ્થ રેકોર્ડ્સ)",
+                                            "EHR ऑटोमेशन (रिकॉर्ड्स)"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.FolderShared, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.EHR_AUTOMATION)
+                                },
+                                modifier = Modifier.testTag("open_ehr_auto_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Mental Health & Counseling",
+                                            "માનસિક સ્વાસ્થ્ય & કાઉન્સેલિંગ",
+                                            "मानसिक स्वास्थ्य और परामर्श"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.Psychology, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.MENTAL_HEALTH)
+                                },
+                                modifier = Modifier.testTag("open_mental_health_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Drug Discovery & Clinical Trials",
+                                            "દવાની નવી શોધ (Drug Discovery)",
+                                            "AI ड्रग डिस्कवरी और ट्रायल"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.Science, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.DRUG_DISCOVERY)
+                                },
+                                modifier = Modifier.testTag("open_drug_discovery_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Epidemic Outbreak Prediction",
+                                            "મહામારીની આગાહી & એલર્ટ",
+                                            "महामारी पूर्वानुमान और अलर्ट"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.Public, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.EPIDEMIC_PREDICTION)
+                                },
+                                modifier = Modifier.testTag("open_epidemic_alert_button")
+                            )
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        tr(
+                                            "Smart Doctor Finder & Booking",
+                                            "સ્માર્ટ ડૉક્ટર ફાઇન્ડર & બુકિંગ",
+                                            "स्मार्ट डॉक्टर फ़ाइंडर और बुकिंग"
+                                        )
+                                    )
+                                },
+                                leadingIcon = { Icon(Icons.Default.MedicalServices, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.openClinicalAiSuite(ClinicalAiTab.DOCTOR_FINDER)
+                                },
+                                modifier = Modifier.testTag("open_doctor_finder_button")
+                            )
+                            HorizontalDivider()
                             DropdownMenuItem(
                                 text = {
                                     Text(
@@ -1123,23 +1353,68 @@ fun ChatTriageScreen(
                                 modifier = Modifier.testTag("language_refresh_button")
                             )
                             DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        tr(
-                                            "Share App (.apk)",
-                                            "એપ શેર કરો (.apk)",
-                                            "ऐप शेयर करें (.apk)"
-                                        )
-                                    )
-                                },
-                                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                text = { Text("NEAR PMJAY HOSPITAL FIND", fontWeight = FontWeight.SemiBold) },
+                                leadingIcon = { Icon(Icons.Default.LocalHospital, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                trailingIcon = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                 onClick = {
                                     moreMenuExpanded = false
-                                    apkScope.launch {
-                                        com.example.utils.ApkShareHelper.shareInstalledApk(context, selectedLanguage)
-                                    }
+                                    com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context)
                                 },
-                                modifier = Modifier.testTag("menu_share_apk_button")
+                                modifier = Modifier.testTag("menu_near_pmjay_hospital_btn")
+                            )
+                            DropdownMenuItem(
+                                text = { Text(tr("AI Medicine Advisor", "AI દવા સલાહકાર", "AI दवा सलाहकार")) },
+                                leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.setScreen(AppScreen.AI_MEDICINE_ADVISOR)
+                                },
+                                modifier = Modifier.testTag("open_medicine_advisor_menu_btn")
+                            )
+                            DropdownMenuItem(
+                                text = { Text(tr("Daily Symptom Logger", "દૈનિક લક્ષણ લોગર", "दैनिक लक्षण लॉगर")) },
+                                leadingIcon = { Icon(Icons.Default.Healing, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.setScreen(AppScreen.DAILY_SYMPTOM_LOGGER)
+                                },
+                                modifier = Modifier.testTag("open_daily_symptom_logger_menu_btn")
+                            )
+                            DropdownMenuItem(
+                                text = { Text(tr("Developer Control & Upgrades", "ડેવલપર કંટ્રોલ અને અપગ્રેડ", "डेवलपर कंट्रोल और अपग्रेड")) },
+                                leadingIcon = { Icon(Icons.Default.AdminPanelSettings, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.setScreen(AppScreen.DEVELOPER_CONSOLE)
+                                },
+                                modifier = Modifier.testTag("open_developer_console_menu_btn")
+                            )
+                            DropdownMenuItem(
+                                text = { Text(tr("Developer Logs", "ડેવલપર લોગ્સ", "डेवलपर लॉग्स")) },
+                                leadingIcon = { Icon(Icons.Default.BugReport, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.setScreen(AppScreen.DEVELOPER_LOGS)
+                                },
+                                modifier = Modifier.testTag("open_developer_logs_menu_btn")
+                            )
+                            DropdownMenuItem(
+                                text = { Text(tr("Switch / Developer Login", "એકાઉન્ટ / ડેવલપર લોગિન", "खाता / डेवलपर लॉगिन")) },
+                                leadingIcon = { Icon(Icons.Default.SwitchAccount, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.setScreen(AppScreen.AUTH_LOGIN)
+                                },
+                                modifier = Modifier.testTag("switch_account_menu_btn")
+                            )
+                            DropdownMenuItem(
+                                text = { Text(tr("Sign Out", "લોગ આઉટ", "साइन आउट"), color = EmergencyRed) },
+                                leadingIcon = { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = EmergencyRed) },
+                                onClick = {
+                                    moreMenuExpanded = false
+                                    viewModel.logoutAccount()
+                                },
+                                modifier = Modifier.testTag("menu_logout_account_btn")
                             )
                             DropdownMenuItem(
                                 text = { Text(tr("App Info", "એપ માહિતી", "ऐप जानकारी")) },
@@ -1200,6 +1475,33 @@ fun ChatTriageScreen(
                 }
             }
 
+            // Live Developer Upgrade / Public Announcement Banner (if published by Developer)
+            if (devAppConfig.appBannerNotice.isNotBlank()) {
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    modifier = Modifier.fillMaxWidth().testTag("live_dev_announcement_banner")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Campaign,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = devAppConfig.appBannerNotice,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                }
+            }
+
             // Room Database Personalization Context Banner
             val symptomLogs by viewModel.symptomLogs.collectAsState()
             if (symptomLogs.isNotEmpty() || (userProfile != null && userProfile?.chronicConditions != "None")) {
@@ -1251,6 +1553,9 @@ fun ChatTriageScreen(
                         onOpenScreen = { screen ->
                             viewModel.setScreen(screen)
                         },
+                        onOpenClinicalTab = { tab ->
+                            viewModel.openClinicalAiSuite(tab)
+                        },
                         onShareApp = {
                             apkScope.launch {
                                 com.example.utils.ApkShareHelper.shareInstalledApk(context, selectedLanguage)
@@ -1300,6 +1605,45 @@ fun ChatTriageScreen(
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+            }
+
+            // One-tap Retry bar when slow internet interrupted Q&A
+            if (retryableQuery != null && !isLoading) {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+                    modifier = Modifier.fillMaxWidth().testTag("retry_slow_network_banner")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = tr(
+                                "Slow connection interrupted AI reply.",
+                                "ઇન્ટરનેટ ધીમું હોવાથી જવાબ અટક્યો.",
+                                "धीमे इंटरनेट के कारण उत्तर रुका।"
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { viewModel.retryLastQuery() },
+                            shape = RoundedCornerShape(20.dp),
+                            modifier = Modifier.height(48.dp).testTag("retry_last_query_btn")
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                tr("Retry", "ફરી પ્રયાસ કરો", "पुनः प्रयास करें"),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
@@ -1645,8 +1989,10 @@ fun WelcomeTriageView(
     onSelectSymptom: (String) -> Unit,
     onOpenQuestionnaire: () -> Unit,
     onOpenScreen: (AppScreen) -> Unit = {},
+    onOpenClinicalTab: (ClinicalAiTab) -> Unit = {},
     onShareApp: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1692,6 +2038,115 @@ fun WelcomeTriageView(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
         )
 
+        // Ultra Clinical Glass Hero Banner Card
+        Spacer(modifier = Modifier.height(6.dp))
+        com.example.ui.components.UltraGradientHeroCard(
+            modifier = Modifier.testTag("home_ultra_hub_hero_card"),
+            cornerRadius = 20.dp,
+            contentPadding = 14.dp
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = trLang(
+                            selectedLanguage,
+                            "✨ Ultra Health Command Center",
+                            "✨ અલ્ટ્રા હેલ્થ કમાન્ડ સેન્ટર",
+                            "✨ अल्ट्रा हेल्थ कमांड सेंटर"
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = androidx.compose.ui.graphics.Color.White
+                    )
+                    Text(
+                        text = trLang(
+                            selectedLanguage,
+                            "Health Score • Med Streaks • Scannable QR Medical ID • BMI & Sleep • Lab Trends",
+                            "હેલ્થ સ્કોર • દવા સ્ટ્રીક • QR મેડિકલ ID • BMI અને ઊંઘ • લેબ ટ્રેન્ડ",
+                            "हेल्थ स्कोर • दवा स्ट्रीक • QR मेडिकल ID • BMI व नींद • लैब ट्रेंड"
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.88f)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = { onOpenScreen(AppScreen.ULTRA_HEALTH_HUB) },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.ui.graphics.Color.White,
+                        contentColor = com.example.ui.theme.UltraTealStart
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.height(44.dp).testTag("home_open_ultra_hub_btn")
+                ) {
+                    Text(
+                        text = trLang(selectedLanguage, "Open", "ખોલો", "खोलें"),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // Prominent NEAR PMJAY HOSPITAL FIND Portal Button (Direct link to https://hem.nha.gov.in/search)
+        Spacer(modifier = Modifier.height(10.dp))
+        Button(
+            onClick = { com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context) },
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .testTag("home_near_pmjay_hospital_btn")
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocalHospital,
+                    contentDescription = "NEAR PMJAY HOSPITAL FIND",
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "NEAR PMJAY HOSPITAL FIND",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = trLang(
+                            selectedLanguage,
+                            "Official Ayushman Bharat Portal • hem.nha.gov.in",
+                            "સત્તાવાર આયુષ્માન ભારત પોર્ટલ • hem.nha.gov.in",
+                            "आधिकारिक आयुष्मान भारत पोर्टल • hem.nha.gov.in"
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
         // Quick-access horizontal strip for secondary health tools
         Spacer(modifier = Modifier.height(8.dp))
         Row(
@@ -1700,6 +2155,30 @@ fun WelcomeTriageView(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            SuggestionChip(
+                onClick = { onOpenScreen(AppScreen.ULTRA_HEALTH_HUB) },
+                label = { Text(trLang(selectedLanguage, "Ultra Hub", "અલ્ટ્રા હબ", "अल्ट्रा हब"), fontWeight = FontWeight.Bold) },
+                icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                modifier = Modifier.testTag("home_quick_ultra_hub")
+            )
+            SuggestionChip(
+                onClick = { com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context) },
+                label = { Text("NEAR PMJAY HOSPITAL FIND", fontWeight = FontWeight.Bold) },
+                icon = { Icon(Icons.Default.LocalHospital, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                modifier = Modifier.testTag("home_quick_pmjay_hospital")
+            )
+            SuggestionChip(
+                onClick = { onOpenScreen(AppScreen.AI_VIDEO_CALL) },
+                label = { Text(trLang(selectedLanguage, "AI Video Call", "વિડિયો કૉલ AI", "वीडियो कॉल AI"), fontWeight = FontWeight.Bold) },
+                icon = { Icon(Icons.Default.VideoCall, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                modifier = Modifier.testTag("home_quick_video_call")
+            )
+            SuggestionChip(
+                onClick = { onOpenScreen(AppScreen.AI_MEDICINE_ADVISOR) },
+                label = { Text(trLang(selectedLanguage, "AI Medicine", "AI દવા સલાહ", "AI दवा सलाह"), fontWeight = FontWeight.Bold) },
+                icon = { Icon(Icons.Default.Medication, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                modifier = Modifier.testTag("home_quick_medicine_advisor")
+            )
             SuggestionChip(
                 onClick = { onOpenScreen(AppScreen.STEP_COUNTER) },
                 label = { Text(trLang(selectedLanguage, "Steps", "સ્ટેપ્સ", "कदम")) },
@@ -1725,10 +2204,70 @@ fun WelcomeTriageView(
                 modifier = Modifier.testTag("home_quick_medicine")
             )
             SuggestionChip(
+                onClick = { onOpenScreen(AppScreen.DAILY_SYMPTOM_LOGGER) },
+                label = { Text(trLang(selectedLanguage, "Log Symptom", "લક્ષણ નોંધ", "लक्षण लॉग")) },
+                icon = { Icon(Icons.Default.Healing, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_symptom_logger")
+            )
+            SuggestionChip(
                 onClick = { onOpenScreen(AppScreen.SMART_HUB) },
                 label = { Text(trLang(selectedLanguage, "Smart Hub", "સ્માર્ટ હબ", "स्मार्ट हब")) },
                 icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp)) },
                 modifier = Modifier.testTag("home_quick_smart_hub")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.TREATMENT_PLAN) },
+                label = { Text(trLang(selectedLanguage, "Treatment AI", "સારવાર AI", "उपचार AI")) },
+                icon = { Icon(Icons.Default.Biotech, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_treatment_ai")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.PREDICTIVE_ANALYTICS) },
+                label = { Text(trLang(selectedLanguage, "Risk Predict", "જોખમ આગાહી", "जोखिम अनुमान")) },
+                icon = { Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_risk_predict")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.CLINICAL_SCRIBE) },
+                label = { Text(trLang(selectedLanguage, "Clinical NLP", "ક્લિનિકલ NLP", "क्लिनिकल NLP")) },
+                icon = { Icon(Icons.Default.Description, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_clinical_nlp")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.REMOTE_MONITORING) },
+                label = { Text(trLang(selectedLanguage, "Virtual Ward", "વર્ચ્યુઅલ વોર્ડ", "वर्चुअल वार्ड")) },
+                icon = { Icon(Icons.Default.Watch, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_virtual_ward")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.EHR_AUTOMATION) },
+                label = { Text(trLang(selectedLanguage, "EHR Auto", "EHR ઓટો", "EHR ऑटो")) },
+                icon = { Icon(Icons.Default.FolderShared, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_ehr_auto")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.MENTAL_HEALTH) },
+                label = { Text(trLang(selectedLanguage, "Mental Health", "માનસિક સપોર્ટ", "मानसिक मदद")) },
+                icon = { Icon(Icons.Default.Psychology, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_mental_health")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.DRUG_DISCOVERY) },
+                label = { Text(trLang(selectedLanguage, "Drug R&D", "દવા શોધ", "ड्रग R&D")) },
+                icon = { Icon(Icons.Default.Science, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_drug_discovery")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.EPIDEMIC_PREDICTION) },
+                label = { Text(trLang(selectedLanguage, "Outbreak AI", "મહામારી AI", "महामारी AI")) },
+                icon = { Icon(Icons.Default.Public, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_epidemic")
+            )
+            SuggestionChip(
+                onClick = { onOpenClinicalTab(ClinicalAiTab.DOCTOR_FINDER) },
+                label = { Text(trLang(selectedLanguage, "Book Doctor", "ડૉક્ટર બુકિંગ", "डॉक्टर बुकिंग")) },
+                icon = { Icon(Icons.Default.MedicalServices, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                modifier = Modifier.testTag("home_quick_doctor_finder")
             )
             SuggestionChip(
                 onClick = { onOpenScreen(AppScreen.FAMILY_CARE) },

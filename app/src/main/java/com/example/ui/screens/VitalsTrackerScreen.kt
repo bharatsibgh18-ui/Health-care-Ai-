@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Scale
+import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -70,6 +71,7 @@ import com.example.ui.theme.SafeMint
 import com.example.ui.theme.tr
 import com.example.ui.theme.trLang
 import com.example.ui.viewmodel.AppScreen
+import com.example.ui.viewmodel.ClinicalAiTab
 import com.example.ui.viewmodel.MediAssistViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -191,6 +193,18 @@ fun VitalsTrackerScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = tr("Back", "પાછા જાઓ", "वापस जाएं")
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.openClinicalAiSuite(ClinicalAiTab.REMOTE_MONITORING) },
+                        modifier = Modifier.testTag("vitals_open_wearable_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Watch,
+                            contentDescription = tr("Connect Wearable", "સ્માર્ટવોચ જોડો", "वियरेबल कनेक्ट करें"),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 },

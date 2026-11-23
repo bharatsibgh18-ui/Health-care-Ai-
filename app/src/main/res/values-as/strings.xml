@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">হেল্থ কেয়াৰ AI</string>
+    <string name="app_subtitle">ভাৰ্চুৱেল মেডিকেল সহায়ক</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">পৰীক্ষা</string>
+    <string name="nav_water">পানী</string>
+    <string name="nav_water_reminder">পানী ৰিমাইণ্ডাৰ</string>
+    <string name="nav_medicine">ঔষধ</string>
+    <string name="nav_medicine_reminder">ঔষধ ৰিমাইণ্ডাৰ</string>
+    <string name="nav_emergency">জৰুৰী</string>
+    <string name="nav_history">স্বাস্থ্য লগ</string>
+    <string name="nav_profile">প্ৰ\'ফাইল</string>
+    <string name="nav_app_info">এপৰ তথ্য</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">চিষ্টেম ডিফল্ট</string>
+    <string name="theme_dark">ডাৰ্ক মোড</string>
+    <string name="theme_light">লাইট মোড</string>
+    <string name="theme_toggle_desc">ডাৰ্ক / লাইট / চিষ্টেম থীম সলনি কৰক</string>
+    <string name="theme_switched_system">চিষ্টেম থীমলৈ সলনি কৰা হ\'ল</string>
+    <string name="theme_switched_dark">ডাৰ্ক মোডলৈ সলনি কৰা হ\'ল</string>
+    <string name="theme_switched_light">লাইট মোডলৈ সলনি কৰা হ\'ল</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">অটো-স্পীক সক্ৰিয়</string>
+    <string name="auto_speak_off">অটো-স্পীক বন্ধ</string>
+    <string name="emergency_sos">জৰুৰী SOS</string>
+    <string name="language_selector">ভাষা</string>
+    <string name="language_switched">ভাষা সলনি হ\'ল</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">হেল্থকেয়াৰ সহায়কত স্বাগতম</string>
+    <string name="chat_input_placeholder">লক্ষণ বা স্বাস্থ্য সমস্যা লিখক...</string>
+    <string name="btn_send">পঠাওক</string>
+    <string name="btn_voice_input">ভয়েছ ইনপুট</string>
+    <string name="btn_attach_image">ফটো সংলগ্ন কৰক</string>
+    <string name="btn_add_symptoms">লক্ষণৰ বিৱৰণ যোগ কৰক</string>
+    <string name="listening">শুনি আছে...</string>
+    <string name="analyzing">লক্ষণ বিশ্লেষণ কৰি আছে...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">জৰুৰী প্ৰ\'ট\'কল</string>
+    <string name="emergency_alert_title">জৰুৰী বিপদৰ সতৰ্কবাণী</string>
+    <string name="emergency_alert_desc">প্ৰাণঘাতী লক্ষণ ধৰা পৰিছে। ততাতৈয়াকৈ জৰুৰী চিকিৎসা লওক।</string>
+    <string name="emergency_dispatch_title">তাৎক্ষণিক জৰুৰী কল</string>
+    <string name="emergency_dispatch_desc">কোনোবা সংকটত থাকিলে পলম নকৰি তলত টিপি কল কৰক।</string>
+    <string name="emergency_call_112">112 জৰুৰী</string>
+    <string name="emergency_call_108">108 এম্বুলেন্স</string>
+    <string name="emergency_call_104">104 স্বাস্থ্য হেল্পলাইন</string>
+    <string name="emergency_send_gps_sos">🚨 সম্পৰ্কলৈ লাইভ GPS SOS SMS পঠাওক</string>
+    <string name="emergency_sending_gps_sos">GPS বিচাৰি আছে &amp; SOS পঠাই আছে...</string>
+    <string name="emergency_call_contact_format">%1$s (%2$s) লৈ কল কৰক</string>
+    <string name="emergency_red_flags_header">🚨 প্ৰাণঘাতী বিপদ সংকেত</string>
+    <string name="emergency_red_flags_sub">তলৰ কোনো লক্ষণ দেখিলে ততাতৈয়াকৈ চিকিৎসালয়লৈ যাওক:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">বুকুত তীব্ৰ বিষ</string>
+    <string name="emergency_sign_chest_desc">বাহু, কান্ধ, ডিঙি বা হনুলৈ বিয়পা চাপযুক্ত বিষ।</string>
+    <string name="emergency_sign_breath_title">হঠাৎ উশাহ লোৱাত কষ্ট</string>
+    <string name="emergency_sign_breath_desc">উশাহ বন্ধ হোৱা বা সম্পূৰ্ণ বাক্য ক\'ব নোৱাৰা।</string>
+    <string name="emergency_sign_stroke_title">ষ্ট্ৰোকৰ লক্ষণ (FAST)</string>
+    <string name="emergency_sign_stroke_desc">মুখ বেঁকা হোৱা, বাহু দুৰ্বল হোৱা বা কথা অস্পষ্ট হোৱা।</string>
+    <string name="emergency_sign_headache_title">হঠাৎ তীব্ৰ মূৰৰ বিষ</string>
+    <string name="emergency_sign_headache_desc">কেতিয়াবা ছেকেণ্ডতে অসহ্য হোৱা মূৰৰ বিষ।</string>
+    <string name="emergency_sign_bleeding_title">অত্যধিক ৰক্তক্ষৰণ বা কাহত তেজ</string>
+    <string name="emergency_sign_bleeding_desc">নিয়ন্ত্ৰণ নোহোৱা ৰক্তক্ষৰণ।</string>
+    <string name="emergency_sign_allergy_title">তীব্ৰ এলাৰ্জিৰ লক্ষণ</string>
+    <string name="emergency_sign_allergy_desc">ওঁঠ/জিভা ফুলা, শ্বাসকষ্ট, চোকোৰা বা মূৰ ঘূৰোৱা।</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. ষ্ট্ৰোক পৰীক্ষা</string>
+    <string name="emergency_fast_f_title">F - মুখ (Face)</string>
+    <string name="emergency_fast_f_desc">হাঁহিবলৈ কওক। মুখৰ এফাল হাউলি পৰিছে নেকি?</string>
+    <string name="emergency_fast_a_title">A - বাহু (Arms)</string>
+    <string name="emergency_fast_a_desc">দুয়োখন হাত ওপৰলৈ তুলিবলৈ কওক। এখন হাত তললৈ নামি যায় নেকি?</string>
+    <string name="emergency_fast_s_title">S - কথা (Speech)</string>
+    <string name="emergency_fast_s_desc">সহজ বাক্য ক\'বলৈ কওক। কথা অস্পষ্ট নেকি?</string>
+    <string name="emergency_fast_t_title">T - সময় (Time)</string>
+    <string name="emergency_fast_t_desc">প্ৰতিটো মুহূৰ্ত মূল্যৱান! ততাতৈয়াকৈ 112/108 কল কৰক।</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 প্ৰাথমিক চিকিৎসা নিৰ্দেশনা</string>
+    <string name="emergency_fa_heart_title">• বুকুৰ বিষ / হাৰ্ট এটেকৰ সন্দেহ:</string>
+    <string name="emergency_fa_heart_desc">আঁঠু ভাঁজ কৰি পিঠিত আউজি বহক। টান কাপোৰ ঢিলা কৰি শান্ত থাকক।</string>
+    <string name="emergency_fa_allergy_title">• তীব্ৰ এলাৰ্জি (Anaphylaxis):</string>
+    <string name="emergency_fa_allergy_desc">চিকিৎসকৰ নিৰ্দেশিত EpiPen থাকিলে ততাতৈয়াকৈ কৰঙনত দিয়ক।</string>
+    <string name="emergency_fa_unconscious_title">• অচেতন কিন্তু স্বাভাবিক উশাহ:</string>
+    <string name="emergency_fa_unconscious_desc">শ্বাসনলী মুকলি ৰাখিবলৈ এফালে কাতি কৰি শুৱাই উশাহ লক্ষ্য কৰক।</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">দৈনিক পানী ট্ৰেকাৰ</string>
+    <string name="water_goal">দৈনিক লক্ষ্য: 2,500 ml</string>
+    <string name="water_log_cup">+250 ml (গিলাচ)</string>
+    <string name="water_log_bottle">+500 ml (বটল)</string>
+    <string name="water_reminder_interval">ৰিমাইণ্ডাৰ বিৰতি</string>
+    <string name="water_reminder_enable">পানী সতৰ্কতা চালু কৰক</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">দৈনিক ঔষধ ৰিমাইণ্ডাৰ</string>
+    <string name="medicine_reminder_subtitle">দৈনিক ঔষধ • স্বয়ংক্ৰিয় সতৰ্কতা</string>
+    <string name="medicine_automated_alerts_title">স্বয়ংক্ৰিয় ঔষধ ৰিমাইণ্ডাৰ</string>
+    <string name="medicine_automated_alerts_desc">সময়মতে ঔষধ খাবলৈ জাননী লাভ কৰিব।</string>
+    <string name="medicine_empty_title">কোনো ঔষধ যোগ কৰা হোৱা নাই</string>
+    <string name="medicine_empty_desc">দৈনিক টেবলেট আৰু ঔষধৰ সময়সূচী সংৰক্ষণ কৰক।</string>
+    <string name="add_medicine">ঔষধ যোগ কৰক</string>
+    <string name="add_daily_medicine">দৈনিক ঔষধ যোগ কৰক</string>
+    <string name="add_medicine_dialog_title">ঔষধ ৰিমাইণ্ডাৰ যোগ কৰক</string>
+    <string name="edit_medicine_dialog_title">ঔষধৰ সময় &amp; বিৱৰণ সলনি কৰক</string>
+    <string name="adjust_time_title">ৰিমাইণ্ডাৰ সময় সলনি কৰক</string>
+    <string name="adjust_time_btn">সময় সলনি</string>
+    <string name="medicine_name">ঔষধৰ নাম</string>
+    <string name="medicine_dosage">মাত্ৰা (যেনে 500mg, 1 টেবলেট)</string>
+    <string name="medicine_time">নিৰ্ধাৰিত সময়</string>
+    <string name="medicine_time_preference">পছন্দৰ সময়:</string>
+    <string name="medicine_instruction">নিৰ্দেশনা:</string>
+    <string name="medicine_saved">ঔষধ ৰিমাইণ্ডাৰ ছেট হ\'ল</string>
+    <string name="medicine_updated">ঔষধৰ সময় আপডেট হ\'ল!</string>
+    <string name="medicine_deleted_format">%1$s আঁতৰোৱা হ\'ল</string>
+    <string name="medicine_schedule_btn">ৰিমাইণ্ডাৰ ছেট কৰক</string>
+    <string name="medicine_update_btn">সংৰক্ষণ &amp; আপডেট</string>
+    <string name="medicine_preset_morning">পুৱা (08:00 AM)</string>
+    <string name="medicine_preset_noon">দুপৰীয়া (01:00 PM)</string>
+    <string name="medicine_preset_evening">সন্ধিয়া (06:00 PM)</string>
+    <string name="medicine_preset_night">ৰাতি (09:00 PM)</string>
+    <string name="medicine_inst_after_food">খোৱাৰ পাছত</string>
+    <string name="medicine_inst_before_food">খোৱাৰ আগতে</string>
+    <string name="medicine_inst_with_water">পানীৰ সৈতে</string>
+    <string name="medicine_inst_bedtime">শোৱাৰ আগতে</string>
+    <string name="medicine_hour">ঘণ্টা</string>
+    <string name="medicine_minute">মিনিট</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">স্বাস্থ্য &amp; লক্ষণ লগ</string>
+    <string name="symptom_severity_chart">সময় অনুসৰি লক্ষণৰ তীব্ৰতা</string>
+    <string name="filter_all">সকলো লক্ষণ</string>
+    <string name="filter_headache">মূৰৰ বিষ ট্ৰেকাৰ</string>
+    <string name="btn_export_pdf">PDF ৰিপ\'ৰ্ট এক্সপ\'ৰ্ট</string>
+    <string name="btn_backup_cloud">ক্লাউড বেকআপ (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">ৰোগীৰ মেডিকেল প্ৰ\'ফাইল</string>
+    <string name="full_name">সম্পূৰ্ণ নাম</string>
+    <string name="age">বয়স</string>
+    <string name="gender">লিংগ</string>
+    <string name="blood_group">তেজৰ গ্ৰুপ</string>
+    <string name="allergies">এলাৰ্জি</string>
+    <string name="chronic_conditions">দীৰ্ঘম্যাদী ৰোগ</string>
+    <string name="current_medications">বৰ্তমানৰ ঔষধ</string>
+    <string name="emergency_contact_name">জৰুৰী সম্পৰ্কৰ নাম</string>
+    <string name="emergency_contact_phone">জৰুৰী ফোন নম্বৰ</string>
+    <string name="btn_save_profile">প্ৰ\'ফাইল সংৰক্ষণ কৰক</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">সংৰক্ষণ</string>
+    <string name="action_cancel">বাতিল</string>
+    <string name="action_delete">মচক</string>
+    <string name="action_close">বন্ধ কৰক</string>
+    <string name="disclaimer_text">সতৰ্কবাণী: এইটো কেৱল শৈক্ষিক স্বাস্থ্য সহায়ক; চিকিৎসকৰ পৰামৰ্শৰ বিকল্প নহয়।</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI মেডিকেল ৰিপ\'ৰ্ট স্কেনাৰ</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • AI ব্যাখ্যা</string>
+    <string name="scan_camera_btn">কেমেৰাৰে স্কেন কৰক</string>
+    <string name="scan_gallery_btn">গেলাৰীৰ পৰা আপলোড</string>
+    <string name="scan_pdf_btn">PDF লেব ৰিপ\'ৰ্ট আপলোড</string>
+    <string name="scan_type_prescription">প্ৰেছক্ৰিপচন / Rx</string>
+    <string name="scan_type_lab_report">লেব &amp; তেজ পৰীক্ষা</string>
+    <string name="scan_type_discharge">ডিছচাৰ্জ সাৰাংশ</string>
+    <string name="scan_type_medicine_strip">ঔষধৰ পাত</string>
+    <string name="ocr_processing_title">AI ৰে নথি বিশ্লেষণ চলিছে…</string>
+    <string name="ocr_processing_desc">আপোনাৰ ফটো/PDF পঢ়ি সহজ ভাষাত ব্যাখ্যা প্ৰস্তুত কৰা হৈছে।</string>
+    <string name="tab_ai_explanation">AI সহজ ব্যাখ্যা</string>
+    <string name="tab_raw_ocr">স্কেন কৰা পাঠ্য</string>
+    <string name="btn_copy_text">পাঠ্য কপি কৰক</string>
+    <string name="btn_ask_in_chat">চেটত সোধক</string>
+    <string name="btn_add_to_reminders">ৰিমাইণ্ডাৰত যোগ কৰক</string>
+    <string name="text_copied">ক্লিপব\'ৰ্ডত কপি হ\'ল!</string>
+    <string name="saved_reports_header">সংৰক্ষিত স্কেন ৰিপ\'ৰ্ট</string>
+    <string name="no_scanned_reports">এতিয়ালৈকে কোনো ৰিপ\'ৰ্ট স্কেন কৰা হোৱা নাই।</string>
+    <string name="scan_report_fab">ৰিপ\'ৰ্ট স্কেন</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">খোজ গণনা &amp; ফিটনেছ</string>
+    <string name="step_counter_subtitle">হাৰ্ডৱেৰ ছেন্সৰ • কেলৰি ট্ৰেকাৰ</string>
+    <string name="steps_label">খোজ</string>
+    <string name="step_goal_label">দৈনিক লক্ষ্য</string>
+    <string name="calories_burned_label">কেলৰি</string>
+    <string name="distance_walked_label">দূৰত্ব</string>
+    <string name="active_time_label">সক্ৰিয় সময়</string>
+    <string name="sensor_active_label">ছেন্সৰ সক্ৰিয়</string>
+    <string name="sensor_paused_label">ছেন্সৰ বিৰতি</string>
+    <string name="add_steps_btn">দ্ৰুত যোগ</string>
+    <string name="reset_steps_btn">দিন ৰিছেট</string>
+    <string name="set_goal_dialog_title">দৈনিক খোজৰ লক্ষ্য ছেট কৰক</string>
+    <string name="weekly_movement_history">৭-দিনৰ খোজৰ ধাৰা</string>
+    <string name="activity_permission_rationale">দৈনিক খোজ সঠিকভাৱে গণিবলৈ শাৰীৰিক কাৰ্যকলাপৰ অনুমতি প্ৰয়োজন।</string>
+    <string name="activity_permission_btn">খোজ ট্ৰেকিং চালু কৰক</string>
+    <string name="fitness_tips_header">হৃদযন্ত্ৰ &amp; স্বাস্থ্য পৰামৰ্শ</string>
+    <string name="nav_steps">খোজ</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS &amp; প্ৰাথমিক চিকিৎসা</string>
+    <string name="tab_nearby_hospitals">ওচৰৰ চিকিৎসালয় &amp; ক্লিনিক</string>
+    <string name="nearby_map_header_title">ওচৰৰ চিকিৎসা কেন্দ্ৰ</string>
+    <string name="nearby_map_header_subtitle">ওচৰৰ চিকিৎসালয়, ক্লিনিক আৰু ফাৰ্মাচীৰ লাইভ GPS দূৰত্ব।</string>
+    <string name="nearby_filter_all">সকলো স্থান</string>
+    <string name="nearby_filter_hospitals">চিকিৎসালয়</string>
+    <string name="nearby_filter_clinics">ক্লিনিক</string>
+    <string name="nearby_filter_pharmacies">24/7 ফাৰ্মাচী</string>
+    <string name="btn_open_google_maps">লাইভ মেপত বিচাৰক</string>
+    <string name="btn_navigate_facility">দিশ</string>
+    <string name="btn_call_facility">জৰুৰী কল</string>
+    <string name="nearby_gps_detecting">GPS অৱস্থান চিনাক্ত কৰি আছে…</string>
+    <string name="nearby_gps_refresh">অৱস্থান ৰিফ্ৰেছ</string>
+    <string name="nearby_beds_available">%d বিচনা উপলব্ধ</string>
+    <string name="emergency_room_badge">24/7 ট্ৰমা / ICU</string>
+    <string name="locating_permission_notice">ওচৰৰ চিকিৎসালয়ৰ দূৰত্ব জানিবলৈ GPS অনুমতি প্ৰয়োজন।</string>
+    <string name="grant_location_btn">GPS অৱস্থান চালু কৰক</string>
+    <string name="btn_refresh_language">এপ &amp; ভাষা ৰিফ্ৰেছ</string>
+    <string name="toast_language_refreshed">এপ আৰু ভাষা সফলতাৰে ৰিফ্ৰেছ হ\'ল!</string>
+    <string name="btn_download_apk_label">Health Care AI APK ডাউনলোড</string>
+    <string name="apk_download_banner_title">Health Care AI APK ডাউনলোড</string>
+    <string name="apk_download_banner_desc">OCR, GPS চিকিৎসালয় আৰু খোজ গণনাসহ এপ ইনষ্টল বা শ্বেয়াৰ কৰক।</string>
+    <string name="btn_test_med_notification">ঔষধ জাননী পৰীক্ষা</string>
+    <string name="toast_med_notification_sent">ঔষধ পৰীক্ষা জাননী পঠোৱা হ\'ল!</string>
+    <string name="real_hospital_tracking_badge">লাইভ GPS ট্ৰেকিং সক্ৰিয়</string>
+    <string name="startup_permissions_dialog_title">Health Care AI ত স্বাগতম</string>
+    <string name="startup_permissions_dialog_desc">চিকিৎসালয় দূৰত্ব, খোজ গণনা, স্কেনিং, ভয়েছ ইনপুট আৰু ৰিমাইণ্ডাৰৰ বাবে অনুমতি দিয়ক।</string>
+    <string name="btn_grant_all_permissions">সকলো অনুমতি দিয়ক</string>
+</resources>

@@ -12,6 +12,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
+class SlowNetworkException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
 interface GeminiApiService {
     @POST("v1beta/models/{model}:generateContent")
     suspend fun generateContent(
@@ -29,13 +31,15 @@ object GeminiApiClient {
         .build()
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
+        level = HttpLoggingInterceptor.Level.BASIC
     }
 
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .connectTimeout(45, TimeUnit.SECONDS)
+        .readTimeout(90, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
+        .callTimeout(120, TimeUnit.SECONDS)
         .addInterceptor(loggingInterceptor)
         .build()
 

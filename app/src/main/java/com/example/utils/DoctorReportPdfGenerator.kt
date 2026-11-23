@@ -98,6 +98,8 @@ object DoctorReportPdfGenerator {
         val conditions = "Chronic Conditions: ${profile?.chronicConditions?.ifBlank { "None Reported" } ?: "None Reported"}"
         val meds = "Current Medications: ${profile?.currentMedications?.ifBlank { "None" } ?: "None"}"
         val emergencyContact = "Emergency Contact: ${profile?.emergencyContactName ?: "Family"} (${profile?.emergencyContactPhone ?: "112"})"
+        val pmjayText = profile?.pmjayCardNumber?.takeIf { it.isNotBlank() }?.let { "PMJAY Card: $it" }
+        val abhaText = profile?.abhaCardNumber?.takeIf { it.isNotBlank() }?.let { "ABHA Card: ${HealthCardValidator.formatAbhaForDisplay(it)}" }
 
         canvas.drawText("• Patient Name: $name", MARGIN + 12f, y + 20f, paint)
         canvas.drawText("• Demographics: $ageGenderBlood", MARGIN + 12f, y + 36f, paint)
@@ -105,6 +107,12 @@ object DoctorReportPdfGenerator {
         canvas.drawText("• $conditions", MARGIN + 12f, y + 68f, paint)
         canvas.drawText("• $meds", MARGIN + 280f, y + 20f, paint)
         canvas.drawText("• $emergencyContact", MARGIN + 280f, y + 36f, paint)
+        if (pmjayText != null) {
+            canvas.drawText("• $pmjayText", MARGIN + 280f, y + 52f, paint)
+        }
+        if (abhaText != null) {
+            canvas.drawText("• $abhaText", MARGIN + 280f, y + 68f, paint)
+        }
 
         y += 105f
 

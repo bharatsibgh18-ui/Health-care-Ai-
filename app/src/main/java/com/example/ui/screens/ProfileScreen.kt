@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,16 +17,32 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContactPhone
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SwitchAccount
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import com.example.ui.theme.SafeMint
+import com.example.utils.HealthCardValidator
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +50,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -78,6 +96,7 @@ fun ProfileScreen(
     val appLanguage = LocalAppLanguage.current
     val userProfile by viewModel.userProfile.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
+    val authSession by viewModel.authSession.collectAsState()
 
     var name by remember { mutableStateOf(userProfile?.fullName ?: "Health Patient") }
     var ageText by remember { mutableStateOf(userProfile?.age?.toString() ?: "30") }
@@ -90,6 +109,9 @@ fun ProfileScreen(
     var emergencyName by remember { mutableStateOf(userProfile?.emergencyContactName ?: "Family Contact") }
     var emergencyPhone by remember { mutableStateOf(userProfile?.emergencyContactPhone ?: "112") }
     var preferredLanguage by remember { mutableStateOf(userProfile?.preferredLanguage ?: "English") }
+    var pmjayCardNumber by remember { mutableStateOf(userProfile?.pmjayCardNumber ?: "") }
+    var abhaCardNumber by remember { mutableStateOf(userProfile?.abhaCardNumber ?: "") }
+    var cardValidationError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(userProfile) {
         userProfile?.let {
@@ -104,6 +126,8 @@ fun ProfileScreen(
             emergencyName = it.emergencyContactName
             emergencyPhone = it.emergencyContactPhone
             preferredLanguage = it.preferredLanguage
+            pmjayCardNumber = it.pmjayCardNumber
+            abhaCardNumber = it.abhaCardNumber
         }
     }
 
@@ -170,6 +194,94 @@ fun ProfileScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Account & Authentication Status Card
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (authSession.isDeveloper) {
+                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.65f)
+                    } else {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    }
+                ),
+                modifier = Modifier.fillMaxWidth().testTag("profile_account_card")
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.VerifiedUser,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (authSession.isDeveloper) {
+                                    tr("Developer Session Active (SHAILESH)", "ડેવલપર સેશન સક્રિય (SHAILESH)", "डेवलपर सेशन सक्रिय (SHAILESH)")
+                                } else {
+                                    tr("Signed-In Account: ${authSession.displayName.ifBlank { authSession.username }}", "લોગિન ખાતું: ${authSession.displayName.ifBlank { authSession.username }}", "लॉगिन खाता: ${authSession.displayName.ifBlank { authSession.username }}")
+                                },
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (authSession.phoneNumber.isNotBlank()) {
+                                    "Mobile OTP: +91 ${authSession.phoneNumber}"
+                                } else {
+                                    "Username: ${authSession.username.ifBlank { "Guest" }} • ${authSession.authMethod}"
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { viewModel.setScreen(com.example.ui.viewmodel.AppScreen.AUTH_LOGIN) },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f).height(48.dp).testTag("profile_switch_account_btn")
+                        ) {
+                            Icon(Icons.Default.SwitchAccount, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(tr("Switch / Dev Login", "એકાઉન્ટ બદલો", "खाता बदलें"), fontSize = 12.sp)
+                        }
+                        Button(
+                            onClick = { viewModel.logoutAccount() },
+                            colors = ButtonDefaults.buttonColors(containerColor = EmergencyRed),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f).height(48.dp).testTag("profile_logout_btn")
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(tr("Sign Out", "લોગ આઉટ", "साइन आउट"), fontSize = 12.sp)
+                        }
+                    }
+                    if (authSession.isDeveloper) {
+                        Button(
+                            onClick = { viewModel.setScreen(com.example.ui.viewmodel.AppScreen.DEVELOPER_CONSOLE) },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth().height(48.dp).testTag("profile_open_dev_console_btn")
+                        ) {
+                            Icon(Icons.Default.AdminPanelSettings, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                tr(
+                                    "Developer Control: Public Doctors, Upgrades & Users",
+                                    "ડેવલપર કંટ્રોલ: પબ્લિક ડૉક્ટર્સ, અપગ્રેડ અને યુઝર્સ",
+                                    "डेवलपर कंट्रोल: पब्लिक डॉक्टर, अपग्रेड व यूज़र्स"
+                                ),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
             // Profile Card
             Card(
                 shape = RoundedCornerShape(16.dp),
@@ -216,6 +328,253 @@ fun ProfileScreen(
                             onValueChange = { bloodGroup = it },
                             label = { Text(tr("Blood Group", "બ્લડ ગ્રુપ", "ब्लड ग्रुप")) },
                             modifier = Modifier.weight(1.2f).testTag("profile_blood_field")
+                        )
+                    }
+                }
+            }
+
+            // Government Health Cards: 1) PMJAY Card (8 Alphanumeric) & 2) ABHA Card (14 Digits)
+            val isPmjayError = pmjayCardNumber.isNotEmpty() && !HealthCardValidator.isCompletePmjay(pmjayCardNumber)
+            val isAbhaError = abhaCardNumber.isNotEmpty() && !HealthCardValidator.isCompleteAbha(abhaCardNumber)
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier.fillMaxWidth().testTag("profile_health_cards_section")
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Badge,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = tr(
+                                    "Government Health ID Cards",
+                                    "સરકારી આરોગ્ય કાર્ડ (PMJAY & ABHA)",
+                                    "सरकारी स्वास्थ्य पहचान कार्ड (PMJAY व ABHA)"
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = tr(
+                                    "Save your PMJAY (Ayushman) & ABHA IDs safely in your health profile.",
+                                    "તમારા PMJAY (આયુષ્માન) અને ABHA કાર્ડ નંબર પ્રોફાઇલમાં સુરક્ષિત સેવ કરો.",
+                                    "अपने PMJAY (आयुष्मान) और ABHA कार्ड नंबर प्रोफ़ाइल में सुरक्षित सहेजें।"
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // 1) PMJAY CARD NUMBER (8 Characters: Alphabet & Number)
+                    OutlinedTextField(
+                        value = pmjayCardNumber,
+                        onValueChange = { raw ->
+                            pmjayCardNumber = HealthCardValidator.sanitizePmjayInput(raw)
+                            cardValidationError = null
+                        },
+                        label = {
+                            Text(
+                                tr(
+                                    "1) PMJAY Card Number (8 Alphanumeric)",
+                                    "૧) PMJAY કાર્ડ નંબર (૮ અક્ષર: અક્ષર અને અંક)",
+                                    "1) PMJAY कार्ड नंबर (8 अक्षर व अंक)"
+                                )
+                            )
+                        },
+                        placeholder = { Text("e.g. AB12CD34") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.CreditCard,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        trailingIcon = {
+                            when {
+                                HealthCardValidator.isCompletePmjay(pmjayCardNumber) -> {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = tr("Valid PMJAY Card", "માન્ય PMJAY કાર્ડ", "मान्य PMJAY कार्ड"),
+                                        tint = SafeMint
+                                    )
+                                }
+                                isPmjayError -> {
+                                    Icon(
+                                        imageVector = Icons.Default.ErrorOutline,
+                                        contentDescription = tr("Invalid PMJAY Card", "અમાન્ય PMJAY કાર્ડ", "अमान्य PMJAY कार्ड"),
+                                        tint = EmergencyRed
+                                    )
+                                }
+                            }
+                        },
+                        isError = isPmjayError,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Characters,
+                            keyboardType = KeyboardType.Ascii
+                        ),
+                        supportingText = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = if (isPmjayError) {
+                                        tr(
+                                            "Enter exact 8 characters (A-Z & 0-9)",
+                                            "ચોક્કસ ૮ અક્ષર (A-Z અને 0-9) દાખલ કરો",
+                                            "ठीक 8 अक्षर और अंक (A-Z, 0-9) दर्ज करें"
+                                        )
+                                    } else {
+                                        tr(
+                                            "8 chars • Letters & Numbers only",
+                                            "૮ અક્ષર • ફક્ત અંગ્રેજી અક્ષર અને અંક",
+                                            "8 अक्षर • केवल अंग्रेज़ी अक्षर और अंक"
+                                        )
+                                    },
+                                    color = if (isPmjayError) EmergencyRed else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${pmjayCardNumber.length}/${HealthCardValidator.PMJAY_LENGTH}",
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (HealthCardValidator.isCompletePmjay(pmjayCardNumber)) SafeMint else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("profile_pmjay_card_field")
+                    )
+
+                    // 2) ABHA CARD NUMBER (14 Digits: Numbers Only)
+                    OutlinedTextField(
+                        value = abhaCardNumber,
+                        onValueChange = { raw ->
+                            abhaCardNumber = HealthCardValidator.sanitizeAbhaInput(raw)
+                            cardValidationError = null
+                        },
+                        label = {
+                            Text(
+                                tr(
+                                    "2) ABHA Card Number (14 Digits)",
+                                    "૨) ABHA કાર્ડ નંબર (૧૪ અંક — ફક્ત નંબર)",
+                                    "2) ABHA कार्ड नंबर (14 अंक — केवल नंबर)"
+                                )
+                            )
+                        },
+                        placeholder = { Text("e.g. 12345678901234") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Badge,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        trailingIcon = {
+                            when {
+                                HealthCardValidator.isCompleteAbha(abhaCardNumber) -> {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = tr("Valid ABHA Card", "માન્ય ABHA કાર્ડ", "मान्य ABHA कार्ड"),
+                                        tint = SafeMint
+                                    )
+                                }
+                                isAbhaError -> {
+                                    Icon(
+                                        imageVector = Icons.Default.ErrorOutline,
+                                        contentDescription = tr("Invalid ABHA Card", "અમાન્ય ABHA કાર્ડ", "अमान्य ABHA कार्ड"),
+                                        tint = EmergencyRed
+                                    )
+                                }
+                            }
+                        },
+                        isError = isAbhaError,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        supportingText = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = when {
+                                        isAbhaError -> tr(
+                                            "Enter exact 14 numeric digits (0-9)",
+                                            "ચોક્કસ ૧૪ અંક (0-9) દાખલ કરો",
+                                            "ठीक 14 अंक (0-9) दर्ज करें"
+                                        )
+                                        HealthCardValidator.isCompleteAbha(abhaCardNumber) ->
+                                            "ABHA ID: ${HealthCardValidator.formatAbhaForDisplay(abhaCardNumber)}"
+                                        else -> tr(
+                                            "14 digits • Numbers only (0-9)",
+                                            "૧૪ અંક • ફક્ત નંબર (0-9)",
+                                            "14 अंक • केवल नंबर (0-9)"
+                                        )
+                                    },
+                                    color = when {
+                                        isAbhaError -> EmergencyRed
+                                        HealthCardValidator.isCompleteAbha(abhaCardNumber) -> SafeMint
+                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
+                                Text(
+                                    text = "${abhaCardNumber.length}/${HealthCardValidator.ABHA_LENGTH}",
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (HealthCardValidator.isCompleteAbha(abhaCardNumber)) SafeMint else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("profile_abha_card_field")
+                    )
+
+                    if (!cardValidationError.isNullOrBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = EmergencyRed.copy(alpha = 0.12f),
+                            modifier = Modifier.fillMaxWidth().testTag("profile_card_error_banner")
+                        ) {
+                            Text(
+                                text = cardValidationError!!,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = EmergencyRed,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = { com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context) },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .testTag("profile_near_pmjay_hospital_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocalHospital,
+                            contentDescription = "NEAR PMJAY HOSPITAL FIND",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "NEAR PMJAY HOSPITAL FIND",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -373,9 +732,37 @@ fun ProfileScreen(
                 }
             }
 
+            // OneSignal Background Push Notification Settings
+            com.example.ui.components.OneSignalSettingsCard(viewModel = viewModel)
+
             // Save Button
             Button(
                 onClick = {
+                    val pmjayValid = HealthCardValidator.isValidPmjayForSave(pmjayCardNumber)
+                    val abhaValid = HealthCardValidator.isValidAbhaForSave(abhaCardNumber)
+                    if (!pmjayValid) {
+                        val msg = trLang(
+                            appLanguage,
+                            "PMJAY Card Number must be exactly 8 alphanumeric characters (A-Z, 0-9).",
+                            "PMJAY કાર્ડ નંબર બરાબર ૮ અક્ષર (અંગ્રેજી અક્ષર અને અંક) નો હોવો જોઈએ.",
+                            "PMJAY कार्ड नंबर ठीक 8 अक्षरों और अंकों (A-Z, 0-9) का होना चाहिए।"
+                        )
+                        cardValidationError = msg
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        return@Button
+                    }
+                    if (!abhaValid) {
+                        val msg = trLang(
+                            appLanguage,
+                            "ABHA Card Number must be exactly 14 numeric digits (0-9).",
+                            "ABHA કાર્ડ નંબર બરાબર ૧૪ અંક (ફક્ત નંબર) નો હોવો જોઈએ.",
+                            "ABHA कार्ड नंबर ठीक 14 अंकों (केवल नंबर) का होना चाहिए।"
+                        )
+                        cardValidationError = msg
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        return@Button
+                    }
+                    cardValidationError = null
                     val parsedAge = ageText.toIntOrNull() ?: 30
                     viewModel.saveProfile(
                         name = name,
@@ -388,7 +775,9 @@ fun ProfileScreen(
                         pastSurgeries = pastSurgeries,
                         emergencyName = emergencyName,
                         emergencyPhone = emergencyPhone,
-                        language = preferredLanguage
+                        language = preferredLanguage,
+                        pmjayCardNumber = pmjayCardNumber,
+                        abhaCardNumber = abhaCardNumber
                     )
                     Toast.makeText(
                         context,
@@ -401,7 +790,7 @@ fun ProfileScreen(
                         Toast.LENGTH_SHORT
                     ).show()
                 },
-                modifier = Modifier.fillMaxWidth().testTag("save_profile_button")
+                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("save_profile_button")
             ) {
                 Icon(Icons.Default.Save, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))

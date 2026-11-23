@@ -27,7 +27,48 @@ data class SymptomLogEntity(
     val bodyLocation: String = "General",
     val duration: String = "1-2 Days",
     val notesOrTriggers: String = "",
-    val status: String = "Ongoing" // "Ongoing", "Improving", "Resolved"
+    val status: String = "Ongoing", // "Ongoing", "Improving", "Resolved"
+    val dateKey: String = "" // "yyyy-MM-dd" for daily grouping
+)
+
+@Entity(
+    tableName = "symptom_notes",
+    foreignKeys = [
+        androidx.room.ForeignKey(
+            entity = SymptomLogEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["symptomLogId"],
+            onDelete = androidx.room.ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        androidx.room.Index(value = ["symptomLogId"]),
+        androidx.room.Index(value = ["timestamp"])
+    ]
+)
+data class SymptomNoteEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val symptomLogId: Long,
+    val noteText: String,
+    val severitySnapshot: Int = 5,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "developer_logs",
+    indices = [
+        androidx.room.Index(value = ["timestamp"]),
+        androidx.room.Index(value = ["level"])
+    ]
+)
+data class DeveloperLogEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val level: String, // "DEBUG", "INFO", "WARN", "ERROR"
+    val tag: String,
+    val message: String,
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 @Entity(tableName = "chat_messages")
@@ -58,7 +99,9 @@ data class UserProfileEntity(
     val pastSurgeries: String = "None",
     val emergencyContactName: String = "Family Contact",
     val emergencyContactPhone: String = "112",
-    val preferredLanguage: String = "English"
+    val preferredLanguage: String = "English",
+    val pmjayCardNumber: String = "",
+    val abhaCardNumber: String = ""
 )
 
 @Entity(tableName = "medicines")
@@ -69,8 +112,38 @@ data class MedicineEntity(
     val dosage: String = "1 Tablet",
     val timeOfDay: String = "08:00 AM", // e.g. "08:00 AM", "01:00 PM", "08:00 PM"
     val instruction: String = "After Food", // "Before Food", "After Food", "With Water"
+    val frequencyHours: Int = 24, // 24 = Once daily, 12 = Twice daily, 8 = Every 8 hours
+    val prescribedBy: String = "",
     val isActive: Boolean = true,
     val createdAt: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "medication_adherence",
+    foreignKeys = [
+        androidx.room.ForeignKey(
+            entity = MedicineEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["medicineId"],
+            onDelete = androidx.room.ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        androidx.room.Index(value = ["medicineId"]),
+        androidx.room.Index(value = ["scheduledDate"])
+    ]
+)
+data class MedicationAdherenceEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val medicineId: Long,
+    val medicineName: String,
+    val dosage: String,
+    val scheduledTime: String,
+    val scheduledDate: String, // "yyyy-MM-dd"
+    val status: String, // "TAKEN", "SKIPPED", "SNOOZED", "MISSED"
+    val actionTimestamp: Long = System.currentTimeMillis(),
+    val notes: String = ""
 )
 
 @Entity(tableName = "scanned_reports")
@@ -125,4 +198,201 @@ data class FamilyMemberEntity(
     val chronicConditions: String = "None",
     val avatarColor: Long = 0xFF26A69A
 )
+
+@Entity(tableName = "treatment_plans")
+data class TreatmentPlanEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val targetGoal: String,
+    val geneticMarkers: String,
+    val lifestyleSummary: String,
+    val labResultsSummary: String,
+    val planContent: String,
+    val isAiPowered: Boolean = false
+)
+
+@Entity(tableName = "risk_assessments")
+data class RiskAssessmentEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val heartRiskScore: Int,
+    val sepsisRiskScore: Int,
+    val metabolicRiskScore: Int,
+    val overallRiskLevel: String,
+    val contributingFactors: String,
+    val aiForecast: String
+)
+
+@Entity(tableName = "clinical_notes")
+data class ClinicalNoteEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val patientName: String,
+    val conversationTranscript: String,
+    val soapNote: String,
+    val medicalReport: String,
+    val prescriptionSummary: String
+)
+
+@Entity(tableName = "ehr_records")
+data class EhrRecordEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val patientName: String,
+    val category: String,
+    val rawNotes: String,
+    val structuredSummary: String,
+    val diagnosisTags: String,
+    val medicationsDetected: String
+)
+
+@Entity(tableName = "mental_health_checkins")
+data class MentalHealthCheckInEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val stressScore: Int,
+    val moodLabel: String,
+    val spokenTranscript: String,
+    val hasFacialPhoto: Boolean = false,
+    val counselingGuidance: String
+)
+
+@Entity(tableName = "drug_studies")
+data class DrugCandidateStudyEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val targetDisease: String,
+    val moleculeInput: String,
+    val drugLikenessScore: Int,
+    val analysisReport: String
+)
+
+@Entity(tableName = "outbreak_alerts")
+data class OutbreakAlertEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val regionName: String,
+    val overallAlertTier: String,
+    val vectorRiskScore: Int,
+    val respiratoryRiskScore: Int,
+    val alertBrief: String
+)
+
+@Entity(tableName = "doctor_appointments")
+data class DoctorAppointmentEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val timestamp: Long = System.currentTimeMillis(),
+    val bookingRef: String,
+    val doctorName: String,
+    val specialty: String,
+    val clinicName: String,
+    val distanceKm: Double,
+    val appointmentDate: String,
+    val timeSlot: String,
+    val consultationMode: String,
+    val symptomNote: String,
+    val status: String = "Confirmed"
+)
+
+@Entity(
+    tableName = "user_accounts",
+    indices = [
+        androidx.room.Index(value = ["username"], unique = true),
+        androidx.room.Index(value = ["phoneNumber"])
+    ]
+)
+data class UserAccountEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val username: String,
+    val displayName: String,
+    val phoneNumber: String = "",
+    val passwordSalt: String = "",
+    val passwordHash: String = "",
+    val role: String = "PATIENT", // "PATIENT" or "DEVELOPER"
+    val authMethod: String = "PASSWORD", // "PASSWORD" or "MOBILE_OTP"
+    val createdAt: Long = System.currentTimeMillis(),
+    val totalOnlineSeconds: Long = 0L,
+    val lastOnlineAt: Long = System.currentTimeMillis(),
+    val isCurrentlyOnline: Boolean = false
+)
+
+/**
+ * Privacy-preserving projection exposed to the Developer Console:
+ * strictly username and online activity timing only (no passwords, salts, phone numbers, or clinical records).
+ */
+data class DeveloperUserPresenceSummary(
+    val username: String,
+    val authMethod: String,
+    val totalOnlineSeconds: Long,
+    val lastOnlineAt: Long,
+    val isCurrentlyOnline: Boolean
+)
+
+@Entity(
+    tableName = "public_doctors",
+    indices = [
+        androidx.room.Index(value = ["cloudId"], unique = true)
+    ]
+)
+data class PublicDoctorEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val cloudId: String = java.util.UUID.randomUUID().toString(),
+    val doctorName: String,
+    val specialty: String,
+    val clinicOrCity: String,
+    val mobileNumber: String,
+    val consultationFee: String = "₹300",
+    val videoCallEnabled: Boolean = false,
+    val videoCallRoomUrl: String = "",
+    val isPublicActive: Boolean = true,
+    val addedByDeveloper: String = "SHAILESH",
+    val updatedAt: Long = System.currentTimeMillis()
+)
+
+@Entity(tableName = "developer_app_config")
+data class DeveloperAppConfigEntity(
+    @PrimaryKey
+    val id: Int = 1,
+    val appBannerNotice: String = "",
+    val publicDoctorConsultEnabled: Boolean = true,
+    val videoCallFeatureEnabled: Boolean = true,
+    val medicineAdvisorFeatureEnabled: Boolean = true,
+    val emergencyHelplineOverride: String = "112",
+    val configVersion: Int = 1,
+    val updatedBy: String = "SHAILESH",
+    val updatedAt: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "sleep_wellness_logs",
+    indices = [
+        androidx.room.Index(value = ["dateKey"]),
+        androidx.room.Index(value = ["timestamp"])
+    ]
+)
+data class SleepWellnessLogEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val dateKey: String, // "yyyy-MM-dd"
+    val sleepHours: Double, // e.g. 7.5
+    val sleepQuality: Int = 4, // 1 (Poor) to 5 (Restorative)
+    val bedTime: String = "10:30 PM",
+    val wakeTime: String = "06:00 AM",
+    val weightKg: Double = 0.0,
+    val heightCm: Double = 0.0,
+    val notes: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+
 

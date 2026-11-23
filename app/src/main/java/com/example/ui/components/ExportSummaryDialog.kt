@@ -24,11 +24,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,12 +60,14 @@ import com.example.ui.theme.LocalAppLanguage
 import com.example.ui.theme.PrimaryTeal
 import com.example.ui.theme.tr
 import com.example.ui.theme.trLang
+import com.example.utils.ExportFormat
 
 @Composable
 fun ExportSummaryDialog(
     summaryText: String,
     onDownloadPdf: () -> Unit,
     onSharePdf: () -> Unit,
+    onOpenCsvJsonExport: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -194,6 +198,29 @@ fun ExportSummaryDialog(
                                 Text(tr("Share PDF", "PDF શેર કરો", "PDF शेयर करें"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
+                    }
+                }
+
+                if (onOpenCsvJsonExport != null) {
+                    OutlinedButton(
+                        onClick = onOpenCsvJsonExport,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("export_open_csv_json_btn")
+                    ) {
+                        Icon(Icons.Default.TableChart, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(Icons.Default.Code, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = tr(
+                                "Export Medication & Symptom Data (CSV / JSON)",
+                                "દવા અને લક્ષણ ડેટા એક્સપોર્ટ (CSV / JSON)",
+                                "दवा और लक्षण डेटा एक्सपोर्ट (CSV / JSON)"
+                            ),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 

@@ -30,6 +30,8 @@ import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -44,19 +46,37 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.ui.screens.AiMedicineAdvisorScreen
+import com.example.ui.screens.AiVideoCallScreen
+import com.example.ui.screens.AnimatedSplashScreen
 import com.example.ui.screens.AppInfoScreen
+import com.example.ui.screens.AuthScreen
 import com.example.ui.screens.ChatTriageScreen
+import com.example.ui.screens.ClinicalIntelligenceScreen
+import com.example.ui.screens.DailySymptomLoggerScreen
+import com.example.ui.screens.DeveloperControlPanelScreen
+import com.example.ui.screens.DeveloperLogsScreen
 import com.example.ui.screens.EmergencyGuideScreen
+import kotlinx.coroutines.delay
 import com.example.ui.screens.FamilyCareScreen
 import com.example.ui.screens.HistoryScreen
 import com.example.ui.screens.MedicalReportScannerScreen
@@ -64,8 +84,10 @@ import com.example.ui.screens.MedicineReminderScreen
 import com.example.ui.screens.ProfileScreen
 import com.example.ui.screens.SmartHubScreen
 import com.example.ui.screens.StepCounterScreen
+import com.example.ui.screens.UltraHealthHubScreen
 import com.example.ui.screens.VitalsTrackerScreen
 import com.example.ui.screens.WaterReminderScreen
+import com.example.ui.theme.AppLanguages
 import com.example.ui.theme.EmergencyRed
 import com.example.ui.theme.LocalAppLanguage
 import com.example.ui.theme.MediAssistTheme
@@ -75,42 +97,70 @@ import com.example.ui.viewmodel.MediAssistViewModel
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        const val EXTRA_OPEN_SCREEN = "extra_open_screen"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        runCatching { enableEdgeToEdge() }
+        val initialScreenExtra = runCatching { intent?.getStringExtra(EXTRA_OPEN_SCREEN) }.getOrNull()
         setContent {
-            val viewModel: MediAssistViewModel = viewModel()
+            val appFactory = remember(application) {
+                androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory(application)
+            }
+            val viewModel: MediAssistViewModel = viewModel(factory = appFactory)
             val themeMode by viewModel.themeMode.collectAsState()
             val selectedLanguage by viewModel.selectedLanguage.collectAsState()
             val context = LocalContext.current
 
-            val locale = remember(selectedLanguage) {
-                when (selectedLanguage) {
-                    "Gujarati" -> Locale.forLanguageTag("gu")
-                    "Hindi" -> Locale.forLanguageTag("hi")
-                    else -> Locale.ENGLISH
-                }
+            val languageInfo = remember(selectedLanguage) {
+                AppLanguages.findByName(selectedLanguage)
             }
+            val locale = remember(languageInfo) { languageInfo.toLocale() }
+            val layoutDirection = if (languageInfo.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
 
-            // Initialize notification channels asynchronously without blocking first frame with OS permission popups
-            LaunchedEffect(Unit) {
+            // Sync Android resources locale outside composition only when language actually differs
+            LaunchedEffect(locale) {
                 try {
-                    com.example.utils.WaterReminderNotificationHelper.createNotificationChannel(context)
-                    com.example.utils.MedicineReminderWorker.createNotificationChannel(context)
-                } catch (_: Exception) {}
-            }
-
-            val currentConfig = LocalConfiguration.current
-            val localizedConfiguration = remember(currentConfig, locale) {
-                try {
-                    val resLocale = resources.configuration.locales[0]
-                    if (resLocale?.language != locale.language) {
+                    val resLocales = resources.configuration.locales
+                    val resLocale = if (!resLocales.isEmpty) resLocales[0] else null
+                    val targetLang = locale.language.lowercase(Locale.US)
+                    val currentLang = resLocale?.language?.lowercase(Locale.US)
+                    if (currentLang != targetLang) {
+                        Locale.setDefault(locale)
                         val config = Configuration(resources.configuration)
                         config.setLocale(locale)
                         @Suppress("DEPRECATION")
                         resources.updateConfiguration(config, resources.displayMetrics)
                     }
-                } catch (_: Exception) {}
+                } catch (_: Throwable) {
+                }
+            }
+
+            // Initialize notification channels and handle notification/widget tap deep-link
+            LaunchedEffect(initialScreenExtra) {
+                try {
+                    when (initialScreenExtra) {
+                        "MEDICINE_REMINDER" -> viewModel.setScreen(AppScreen.MEDICINE_REMINDER)
+                        "WATER_REMINDER" -> viewModel.setScreen(AppScreen.WATER_REMINDER)
+                        "ULTRA_HEALTH_HUB" -> viewModel.openUltraHealthHub()
+                        "EMERGENCY_GUIDE" -> viewModel.setScreen(AppScreen.EMERGENCY_GUIDE)
+                        "TRIAGE_CHAT" -> viewModel.setScreen(AppScreen.TRIAGE_CHAT)
+                    }
+                } catch (_: Throwable) {}
+                try {
+                    viewModel.syncHealthSummaryWidget()
+                } catch (_: Throwable) {}
+                try {
+                    com.example.utils.WaterReminderNotificationHelper.createNotificationChannel(context)
+                    com.example.utils.MedicineReminderWorker.createNotificationChannel(context)
+                } catch (_: Throwable) {}
+            }
+
+            val currentConfig = LocalConfiguration.current
+            val localizedConfiguration = remember(currentConfig, locale) {
                 Configuration(currentConfig).apply {
                     setLocale(locale)
                 }
@@ -118,10 +168,18 @@ class MainActivity : ComponentActivity() {
 
             CompositionLocalProvider(
                 LocalConfiguration provides localizedConfiguration,
-                LocalAppLanguage provides selectedLanguage
+                LocalAppLanguage provides languageInfo.id,
+                LocalLayoutDirection provides layoutDirection
             ) {
                 MediAssistTheme(themeMode = themeMode) {
-                    MediAssistApp(viewModel = viewModel)
+                    var showSplash by rememberSaveable { mutableStateOf(initialScreenExtra == null) }
+                    if (showSplash) {
+                        AnimatedSplashScreen(
+                            onSplashFinished = { showSplash = false }
+                        )
+                    } else {
+                        MediAssistApp(viewModel = viewModel)
+                    }
                 }
             }
         }
@@ -131,11 +189,102 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MediAssistApp(viewModel: MediAssistViewModel) {
     val currentScreen by viewModel.currentScreen.collectAsState()
+    val authSession by viewModel.authSession.collectAsState()
+    val pendingInAppAlert by viewModel.pendingInAppAlert.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    pendingInAppAlert?.let { alert ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissInAppAlert() },
+            title = { Text(text = alert.title) },
+            text = {
+                Column {
+                    Text(text = alert.message)
+                    if (!alert.scheduledIsoTime.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = tr(
+                                "Scheduled (ISO): ${alert.scheduledIsoTime}",
+                                "શેડ્યૂલ સમય (ISO): ${alert.scheduledIsoTime}",
+                                "शेड्यूल समय (ISO): ${alert.scheduledIsoTime}"
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = alert.reason,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.dismissInAppAlert() },
+                    modifier = Modifier.testTag("dismiss_offline_in_app_alert_btn")
+                ) {
+                    Text(tr("OK", "બરાબર", "ठीक है"))
+                }
+            },
+            modifier = Modifier.testTag("offline_in_app_alert_dialog")
+        )
+    }
+
+    // Sync public doctors/config and accumulate foreground online duration every 30s
+    LaunchedEffect(authSession.isLoggedIn, authSession.username) {
+        if (authSession.isLoggedIn) {
+            viewModel.syncPublicDataFromCloud()
+            viewModel.recordOnlineSessionHeartbeat(0L, isOnline = true)
+            while (true) {
+                delay(30_000L)
+                viewModel.recordOnlineSessionHeartbeat(30L, isOnline = true)
+            }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, authSession.isLoggedIn, authSession.username) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> {
+                    if (authSession.isLoggedIn) {
+                        viewModel.recordOnlineSessionHeartbeat(0L, isOnline = true)
+                    }
+                }
+                Lifecycle.Event.ON_STOP -> {
+                    if (authSession.isLoggedIn) {
+                        viewModel.markCurrentSessionOffline()
+                    }
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val navigateTo: (AppScreen) -> Unit = { targetScreen ->
         if (targetScreen != currentScreen) {
             viewModel.setScreen(targetScreen)
         }
+    }
+
+    if (!authSession.isLoggedIn || currentScreen == AppScreen.AUTH_LOGIN) {
+        if (currentScreen == AppScreen.AUTH_LOGIN && authSession.isLoggedIn) {
+            BackHandler {
+                viewModel.setScreen(AppScreen.TRIAGE_CHAT)
+            }
+        }
+        AuthScreen(
+            viewModel = viewModel,
+            onAuthSuccess = {
+                viewModel.setScreen(AppScreen.TRIAGE_CHAT)
+            }
+        )
+        return
     }
 
     // Handle back button on secondary screens
@@ -148,7 +297,9 @@ fun MediAssistApp(viewModel: MediAssistViewModel) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val isExpandedWindow = maxWidth >= 600.dp
 
-        if (isExpandedWindow) {
+        if (currentScreen == AppScreen.AI_VIDEO_CALL) {
+            AiVideoCallScreen(viewModel = viewModel)
+        } else if (isExpandedWindow) {
             // Adaptive Window / Tablet / Desktop layout with NavigationRail
             Row(modifier = Modifier.fillMaxSize()) {
                 NavigationRail(
@@ -405,6 +556,49 @@ private fun AppScreenContent(
         AppScreen.VITALS_TRACKER -> VitalsTrackerScreen(viewModel = viewModel)
         AppScreen.FAMILY_CARE -> FamilyCareScreen(viewModel = viewModel)
         AppScreen.SMART_HUB -> SmartHubScreen(viewModel = viewModel)
+        AppScreen.CLINICAL_AI_SUITE -> ClinicalIntelligenceScreen(viewModel = viewModel)
+        AppScreen.AI_VIDEO_CALL -> AiVideoCallScreen(viewModel = viewModel)
+        AppScreen.DAILY_SYMPTOM_LOGGER -> DailySymptomLoggerScreen(viewModel = viewModel)
+        AppScreen.DEVELOPER_LOGS -> {
+            val authSession by viewModel.authSession.collectAsState()
+            if (authSession.isDeveloper) {
+                DeveloperLogsScreen(viewModel = viewModel)
+            } else {
+                AuthScreen(
+                    viewModel = viewModel,
+                    initialTab = 3,
+                    onAuthSuccess = {
+                        viewModel.setScreen(
+                            if (viewModel.authSession.value.isDeveloper) AppScreen.DEVELOPER_LOGS
+                            else AppScreen.TRIAGE_CHAT
+                        )
+                    }
+                )
+            }
+        }
+        AppScreen.DEVELOPER_CONSOLE -> {
+            val authSession by viewModel.authSession.collectAsState()
+            if (authSession.isDeveloper) {
+                DeveloperControlPanelScreen(viewModel = viewModel)
+            } else {
+                AuthScreen(
+                    viewModel = viewModel,
+                    initialTab = 3,
+                    onAuthSuccess = {
+                        viewModel.setScreen(
+                            if (viewModel.authSession.value.isDeveloper) AppScreen.DEVELOPER_CONSOLE
+                            else AppScreen.TRIAGE_CHAT
+                        )
+                    }
+                )
+            }
+        }
+        AppScreen.AI_MEDICINE_ADVISOR -> AiMedicineAdvisorScreen(viewModel = viewModel)
+        AppScreen.ULTRA_HEALTH_HUB -> UltraHealthHubScreen(viewModel = viewModel)
+        AppScreen.AUTH_LOGIN -> AuthScreen(
+            viewModel = viewModel,
+            onAuthSuccess = { viewModel.setScreen(AppScreen.TRIAGE_CHAT) }
+        )
     }
 }
 

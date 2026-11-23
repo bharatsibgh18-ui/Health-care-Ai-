@@ -3,8 +3,10 @@ package com.example
 import android.content.Context
 import android.content.res.Configuration
 import androidx.test.core.app.ApplicationProvider
+import com.example.ui.theme.AppLanguages
 import com.example.ui.theme.trLang
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,6 +34,69 @@ class LocalizationTest {
         assertEquals("નમસ્તે", trLang("gujarati", "Hello", "નમસ્તે", "नमस्ते"))
         assertEquals("नमस्ते", trLang("hindi", "Hello", "નમસ્તે", "नमस्ते"))
         assertEquals("Hello", trLang("Other", "Hello", "નમસ્તે", "नमस्ते"))
+    }
+
+    @Test
+    fun `verify 21 languages are registered including 18 newly added languages`() {
+        assertEquals(21, AppLanguages.all.size)
+        assertEquals(21, AppLanguages.all.map { it.id }.toSet().size)
+        assertEquals(21, AppLanguages.all.map { it.localeTag }.toSet().size)
+        assertEquals(12, AppLanguages.indianLanguages.size)
+        assertEquals(9, AppLanguages.globalLanguages.size)
+
+        // Verify RTL configuration for Arabic and Urdu
+        assertTrue(AppLanguages.isRtl("Arabic"))
+        assertTrue(AppLanguages.isRtl("Urdu"))
+        assertFalse(AppLanguages.isRtl("English"))
+        assertFalse(AppLanguages.isRtl("Gujarati"))
+        assertFalse(AppLanguages.isRtl("Japanese"))
+
+        // Verify speech tags and trLang translations across all 18 new languages
+        val newLanguages = AppLanguages.all.filter { it.id !in setOf("English", "Gujarati", "Hindi") }
+        assertEquals(18, newLanguages.size)
+        newLanguages.forEach { info ->
+            assertTrue("Speech tag should not be blank for ${info.id}", info.speechTag.isNotBlank())
+            val translatedHello = trLang(info.id, "Hello", "નમસ્તે", "नमस्ते")
+            assertNotEquals("trLang Hello should translate for ${info.id}", "Hello", translatedHello)
+            val translatedSelect = trLang(info.id, "Select Language", "ભાષા પસંદ કરો", "भाषा चुनें")
+            assertNotEquals("trLang Select Language should translate for ${info.id}", "Select Language", translatedSelect)
+        }
+    }
+
+    @Test
+    fun `verify all 18 new language string resource bundles exist and differ from english`() {
+        val en = ApplicationProvider.getApplicationContext<Context>()
+        val newLanguages = AppLanguages.all.filter { it.id !in setOf("English", "Gujarati", "Hindi") }
+        assertEquals(18, newLanguages.size)
+
+        val keysToCheck = listOf(
+            R.string.welcome_screen_title,
+            R.string.nav_water,
+            R.string.nav_emergency,
+            R.string.emergency_protocol_title,
+            R.string.medicine_reminder_title,
+            R.string.step_counter_title,
+            R.string.nearby_map_header_title,
+            R.string.report_scanner_title,
+            R.string.btn_grant_all_permissions
+        )
+
+        newLanguages.forEach { langInfo ->
+            val localized = localizedContext(langInfo.localeTag)
+            keysToCheck.forEach { resId ->
+                val localizedText = localized.getString(resId)
+                val enText = en.getString(resId)
+                assertTrue(
+                    "${langInfo.id} (${langInfo.localeTag}) string should not be blank for $resId",
+                    localizedText.isNotBlank()
+                )
+                assertNotEquals(
+                    "${langInfo.id} (${langInfo.localeTag}) string should differ from English for $resId",
+                    enText,
+                    localizedText
+                )
+            }
+        }
     }
 
     @Test

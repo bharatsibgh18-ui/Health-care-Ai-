@@ -18,7 +18,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
@@ -34,6 +36,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -174,9 +177,9 @@ fun AppInfoScreen(
 
                     Text(
                         text = tr(
-                            "Health Care AI • Version 2.0",
-                            "હેલ્થ કેર એઆઈ • વર્ઝન 2.0",
-                            "हेल्थ केयर AI • वर्ज़न 2.0"
+                            "Health Care AI • Version ${com.example.BuildConfig.VERSION_NAME}",
+                            "હેલ્થ કેર એઆઈ • વર્ઝન ${com.example.BuildConfig.VERSION_NAME}",
+                            "हेल्थ केयर AI • वर्ज़न ${com.example.BuildConfig.VERSION_NAME}"
                         ),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
@@ -367,6 +370,29 @@ fun AppInfoScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 20.sp
                     )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { viewModel.setScreen(AppScreen.DEVELOPER_LOGS) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("app_info_open_dev_logs_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.BugReport,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            tr(
+                                "Open Developer Logs Console",
+                                "ડેવલપર લોગ્સ કન્સોલ ખોલો",
+                                "डेवलपर लॉग्स कंसोल खोलें"
+                            )
+                        )
+                    }
                 }
             }
 
@@ -462,6 +488,7 @@ fun AppInfoScreen(
             }
 
             // Full-Featured APK Export & Share Card
+            val apkSizeLabel = ApkShareHelper.getInstalledApkSizeLabel(context)
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
@@ -477,15 +504,27 @@ fun AppInfoScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    val ver = com.example.BuildConfig.VERSION_NAME
+                    val versionedApk = "HealthCareAI_v${ver}.apk"
+                    val versionedAab = "HealthCareAI_v${ver}.aab"
                     Text(
                         text = tr(
-                            "📤 Share HealthCareAI.apk",
-                            "📤 HealthCareAI.apk શેર કરો",
-                            "📤 HealthCareAI.apk शेयर करें"
+                            "📤 $versionedApk & $versionedAab",
+                            "📤 $versionedApk અને $versionedAab વિગતો",
+                            "📤 $versionedApk और $versionedAab विवरण"
                         ),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = tr(
+                            "Package: ${com.example.BuildConfig.APPLICATION_ID}\nVersion: $ver (Code ${com.example.BuildConfig.VERSION_CODE})${apkSizeLabel?.let { " • APK Size: $it" } ?: ""}\nFiles: $versionedApk & $versionedAab Ready.",
+                            "પેકેજ: ${com.example.BuildConfig.APPLICATION_ID}\nવર્ઝન: $ver (કોડ ${com.example.BuildConfig.VERSION_CODE})${apkSizeLabel?.let { " • APK સાઇઝ: $it" } ?: ""}\nફાઇલો: $versionedApk અને $versionedAab તૈયાર છે.",
+                            "पैकेज: ${com.example.BuildConfig.APPLICATION_ID}\nवर्ज़न: $ver (कोड ${com.example.BuildConfig.VERSION_CODE})${apkSizeLabel?.let { " • APK साइज: $it" } ?: ""}\nफ़ाइलें: $versionedApk व $versionedAab तैयार हैं।"
+                        ),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = tr(
@@ -508,9 +547,27 @@ fun AppInfoScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             tr(
-                                "Share HealthCareAI.apk",
-                                "APK ફાઇલ શેર કરો",
-                                "APK फ़ाइल शेयर करें"
+                                "Share $versionedApk",
+                                "$versionedApk શેર કરો",
+                                "$versionedApk शेयर करें"
+                            )
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                ApkShareHelper.saveInstalledApkToDownloads(context, selectedLanguage)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("app_info_save_apk_button")
+                    ) {
+                        Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            tr(
+                                "Save $versionedApk to Downloads",
+                                "$versionedApk ડાઉનલોડ્સમાં સેવ કરો",
+                                "$versionedApk डाउनलोड में सेव करें"
                             )
                         )
                     }

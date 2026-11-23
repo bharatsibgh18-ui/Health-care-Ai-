@@ -83,6 +83,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.local.ScannedReportEntity
 import com.example.data.local.SymptomLogEntity
 import com.example.data.local.TriageSessionEntity
+import com.example.ui.components.ClinicalDataExportDialog
 import com.example.ui.components.ExportSummaryDialog
 import com.example.ui.components.HeadacheHistoryListView
 import com.example.ui.theme.EmergencyRed
@@ -106,6 +107,8 @@ fun HistoryScreen(
 ) {
     val sessions by viewModel.sessions.collectAsState()
     val symptomLogs by viewModel.symptomLogs.collectAsState()
+    val symptomNotes by viewModel.symptomNotes.collectAsState()
+    val adherenceLogs by viewModel.allAdherenceLogs.collectAsState()
     val headacheLogs by viewModel.headacheLogs.collectAsState()
     val scannedReports by viewModel.scannedReports.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
@@ -114,6 +117,7 @@ fun HistoryScreen(
     var showClearDialog by remember { mutableStateOf(false) }
     var showAddSymptomDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showCsvJsonExportDialog by remember { mutableStateOf(false) }
     var dialogInitialTitle by remember { mutableStateOf("") }
     var dialogInitialLocation by remember { mutableStateOf("Head") }
     var selectedReportDetail by remember { mutableStateOf<ScannedReportEntity?>(null) }
@@ -153,7 +157,23 @@ fun HistoryScreen(
             onSharePdf = {
                 viewModel.shareDoctorReportPdf(context)
             },
+            onOpenCsvJsonExport = {
+                showExportDialog = false
+                showCsvJsonExportDialog = true
+            },
             onDismiss = { showExportDialog = false }
+        )
+    }
+
+    if (showCsvJsonExportDialog) {
+        ClinicalDataExportDialog(
+            adherenceCount = adherenceLogs.size,
+            symptomCount = symptomLogs.size,
+            noteCount = symptomNotes.size,
+            generatePreview = { format -> viewModel.generateClinicalDataExport(format) },
+            onSaveFile = { format -> viewModel.saveClinicalDataExport(context, format) },
+            onShareFile = { format -> viewModel.shareClinicalDataExport(context, format) },
+            onDismiss = { showCsvJsonExportDialog = false }
         )
     }
 
@@ -390,6 +410,39 @@ fun HistoryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = tr(
+                            "Log daily severity & timestamped notes",
+                            "દૈનિક તીવ્રતા અને સમય-નોંધ ઉમેરો",
+                            "दैनिक गंभीरता और समय-नोट्स दर्ज करें"
+                        ),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedButton(
+                        onClick = { viewModel.setScreen(AppScreen.DAILY_SYMPTOM_LOGGER) },
+                        modifier = Modifier.testTag("history_open_daily_logger_btn")
+                    ) {
+                        Text(tr("Open Logger", "લોગર ખોલો", "लॉगर खोलें"), fontSize = 12.sp)
+                    }
+                }
+            }
+
             // Tab Selector: Headache Monitor vs Symptom Diary vs Triage Sessions
             TabRow(selectedTabIndex = selectedTab) {
                 Tab(

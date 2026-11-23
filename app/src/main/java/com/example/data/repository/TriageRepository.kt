@@ -2,10 +2,12 @@ package com.example.data.repository
 
 import com.example.BuildConfig
 import com.example.data.api.GeminiApiClient
+import com.example.data.api.GeminiApiService
 import com.example.data.api.GeminiContent
 import com.example.data.api.GeminiGenerateContentRequest
 import com.example.data.api.GeminiGenerationConfig
 import com.example.data.api.GeminiPart
+import com.example.data.api.SlowNetworkException
 import com.example.data.local.ChatMessageEntity
 import com.example.data.local.StepRecordEntity
 import com.example.data.local.SymptomLogEntity
@@ -14,25 +16,148 @@ import com.example.data.local.TriageSessionEntity
 import com.example.data.local.UserProfileEntity
 import com.example.data.local.WaterLogEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
+import java.io.InterruptedIOException
+import java.net.SocketTimeoutException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class TriageRepository(private val triageDao: TriageDao) {
+class TriageRepository(
+    private val triageDao: TriageDao,
+    geminiService: GeminiApiService? = null,
+    private val apiKeyOverride: String = BuildConfig.GEMINI_API_KEY
+) {
+    private val resolvedGeminiService: GeminiApiService by lazy {
+        geminiService ?: GeminiApiClient.service
+    }
+
+    private sealed interface GeminiCallResult {
+        data class Success(val text: String) : GeminiCallResult
+        data object NoApiKey : GeminiCallResult
+        data class NetworkError(
+            val message: String,
+            val isTimeout: Boolean,
+            val cause: Throwable? = null
+        ) : GeminiCallResult
+    }
+
+    private suspend fun executeGeminiWithRetry(
+        request: GeminiGenerateContentRequest,
+        explicitApiKey: String = apiKeyOverride
+    ): GeminiCallResult {
+        if (explicitApiKey.isBlank() || explicitApiKey == "MY_GEMINI_API_KEY") {
+            return GeminiCallResult.NoApiKey
+        }
+
+        val modelCascade = listOf(
+            "gemini-3.1-flash-lite-preview",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite"
+        )
+
+        var lastError: Throwable? = null
+        var sawTimeout = false
+
+        for ((modelIndex, modelName) in modelCascade.withIndex()) {
+            val attemptsForModel = if (modelIndex < 2) 2 else 1
+            for (attempt in 1..attemptsForModel) {
+                try {
+                    val response = resolvedGeminiService.generateContent(
+                        model = modelName,
+                        apiKey = explicitApiKey,
+                        request = request
+                    )
+                    val apiErr = response.error
+                    if (apiErr != null) {
+                        val code = apiErr.code ?: 500
+                        lastError = RuntimeException(apiErr.message ?: "Gemini API error ($code)")
+                        if (code in setOf(408, 429, 500, 502, 503, 504) && attempt < attemptsForModel) {
+                            delay(800L * attempt)
+                            continue
+                        }
+                        break
+                    }
+                    val text = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                    if (!text.isNullOrBlank()) {
+                        return GeminiCallResult.Success(text)
+                    }
+                    lastError = IllegalStateException("Empty response from $modelName")
+                    break
+                } catch (e: HttpException) {
+                    lastError = e
+                    val code = e.code()
+                    if (code in setOf(408, 429, 500, 502, 503, 504)) {
+                        if (code == 408 || code == 504) sawTimeout = true
+                        if (attempt < attemptsForModel) {
+                            delay(850L * attempt)
+                            continue
+                        }
+                    }
+                    // On 400/404/non-retryable or exhausted attempts, fall through to next valid model
+                    break
+                } catch (e: SocketTimeoutException) {
+                    lastError = e
+                    sawTimeout = true
+                    if (attempt < attemptsForModel) {
+                        delay(900L * attempt)
+                        continue
+                    }
+                } catch (e: InterruptedIOException) {
+                    lastError = e
+                    sawTimeout = true
+                    if (attempt < attemptsForModel) {
+                        delay(900L * attempt)
+                        continue
+                    }
+                } catch (e: IOException) {
+                    lastError = e
+                    if (attempt < attemptsForModel) {
+                        delay(800L * attempt)
+                        continue
+                    }
+                } catch (e: Exception) {
+                    lastError = e
+                    break
+                }
+            }
+        }
+
+        val errMsg = lastError?.message ?: if (sawTimeout) "Connection timed out" else "Network error"
+        com.example.utils.DevLogger.w("GeminiRetry", "All Gemini attempts failed (timeout=$sawTimeout): $errMsg")
+        return GeminiCallResult.NetworkError(
+            message = errMsg,
+            isTimeout = sawTimeout,
+            cause = lastError
+        )
+    }
 
     val allSessions: Flow<List<TriageSessionEntity>> = triageDao.getAllSessions()
     val allMessages: Flow<List<ChatMessageEntity>> = triageDao.getAllMessages()
     val userProfile: Flow<UserProfileEntity?> = triageDao.getUserProfile()
     val allSymptomLogs: Flow<List<SymptomLogEntity>> = triageDao.getAllSymptomLogs()
+    val allSymptomNotes: Flow<List<com.example.data.local.SymptomNoteEntity>> = triageDao.getAllSymptomNotes()
+    val allDeveloperLogs: Flow<List<com.example.data.local.DeveloperLogEntity>> = triageDao.getAllDeveloperLogs()
     val headacheLogs: Flow<List<SymptomLogEntity>> = triageDao.getHeadacheLogs()
     val allMedicines: Flow<List<com.example.data.local.MedicineEntity>> = triageDao.getAllMedicines()
     val activeMedicines: Flow<List<com.example.data.local.MedicineEntity>> = triageDao.getActiveMedicines()
+    val allAdherenceLogs: Flow<List<com.example.data.local.MedicationAdherenceEntity>> = triageDao.getAllAdherenceLogs()
     val recentStepRecords: Flow<List<StepRecordEntity>> = triageDao.getRecentStepRecords(7)
     val allStepRecords: Flow<List<StepRecordEntity>> = triageDao.getAllStepRecords()
     val allVitalLogs: Flow<List<com.example.data.local.VitalLogEntity>> = triageDao.getAllVitalLogs()
     val allFamilyMembers: Flow<List<com.example.data.local.FamilyMemberEntity>> = triageDao.getAllFamilyMembers()
+    val allTreatmentPlans: Flow<List<com.example.data.local.TreatmentPlanEntity>> = triageDao.getAllTreatmentPlans()
+    val allRiskAssessments: Flow<List<com.example.data.local.RiskAssessmentEntity>> = triageDao.getAllRiskAssessments()
+    val allClinicalNotes: Flow<List<com.example.data.local.ClinicalNoteEntity>> = triageDao.getAllClinicalNotes()
+    val allEhrRecords: Flow<List<com.example.data.local.EhrRecordEntity>> = triageDao.getAllEhrRecords()
+    val allMentalHealthCheckIns: Flow<List<com.example.data.local.MentalHealthCheckInEntity>> = triageDao.getAllMentalHealthCheckIns()
+    val allDrugStudies: Flow<List<com.example.data.local.DrugCandidateStudyEntity>> = triageDao.getAllDrugStudies()
+    val allOutbreakAlerts: Flow<List<com.example.data.local.OutbreakAlertEntity>> = triageDao.getAllOutbreakAlerts()
+    val allDoctorAppointments: Flow<List<com.example.data.local.DoctorAppointmentEntity>> = triageDao.getAllDoctorAppointments()
 
     private val systemInstructionText = """
         You are "MediAssist AI," a virtual medical triage and health education assistant. Your purpose is to listen to user symptoms, ask relevant clarifying clinical questions, provide structured health education, and guide users to appropriate real-world care.
@@ -130,7 +255,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         # Response Tone & Style Guidelines
         - Tone: Empathetic, calm, professional, and personalized.
         - Formatting: Use bullet points, bold key terms, and short paragraphs for readability.
-        - Language Handling: Respond in the exact language the user communicates in (e.g., Hindi, Gujarati, English, or mixed Hinglish/Gujlish). If the user asks in Hindi/Hinglish like "muje sir dard hai", reply entirely in Hindi/Hinglish!
+        - Language Handling: Respond fluently in the exact language the user communicates in or has selected (supports 21 languages: English, Gujarati, Hindi, Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi, Urdu, Odia, Assamese, Spanish, French, German, Arabic, Portuguese, Russian, Japanese, Chinese, or mixed Hinglish/Gujlish). Match the user's language naturally across the entire response.
 
         # MULTIMODAL MEDICAL PHOTO & VISUAL ANALYSIS (CRITICAL)
         When a photo/image of a bodily ailment (skin rash, fungal patch, wound, swelling, burn, eye, throat, insect bite, lesion, or discoloration) is provided:
@@ -148,7 +273,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         5. 👨‍⚕️ Appropriate Medical Specialist:
            - Recommend consulting a Dermatologist (ચામડીના નિષ્ણાત), General Surgeon, or General Physician.
         6. Language:
-           - If the user communicates in Gujarati, provide the complete visual analysis, remedies, and medication guidance in warm, fluent, compassionate Gujarati!
+           - Provide the complete visual analysis, remedies, and medication guidance in warm, fluent, compassionate language matching the patient's selected or spoken language (across all 21 supported languages).
 
         # Mandatory Closing Disclaimer
         Every symptom-related output must conclude with:
@@ -178,11 +303,77 @@ class TriageRepository(private val triageDao: TriageDao) {
     }
 
     suspend fun saveSymptomLog(log: SymptomLogEntity): Long {
-        return triageDao.insertSymptomLog(log)
+        val resolvedDateKey = log.dateKey.ifBlank {
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(log.timestamp))
+        }
+        val finalLog = log.copy(dateKey = resolvedDateKey)
+        val id = triageDao.insertSymptomLog(finalLog)
+        com.example.utils.DevLogger.i(
+            "SymptomLogger",
+            "Saved symptom #${id}: '${finalLog.symptomTitle}' severity=${finalLog.severity}/10 date=$resolvedDateKey"
+        )
+        return id
     }
 
     suspend fun updateSymptomLog(log: SymptomLogEntity) {
         triageDao.updateSymptomLog(log)
+        com.example.utils.DevLogger.d(
+            "SymptomLogger",
+            "Updated symptom #${log.id}: status=${log.status}, severity=${log.severity}/10"
+        )
+    }
+
+    fun getSymptomLogsByDate(dateKey: String): Flow<List<SymptomLogEntity>> =
+        triageDao.getSymptomLogsByDate(dateKey)
+
+    fun getNotesForSymptom(symptomLogId: Long): Flow<List<com.example.data.local.SymptomNoteEntity>> =
+        triageDao.getNotesForSymptom(symptomLogId)
+
+    suspend fun addTimestampedSymptomNote(
+        symptomLogId: Long,
+        noteText: String,
+        severitySnapshot: Int = 5,
+        timestamp: Long = System.currentTimeMillis()
+    ): Long {
+        val note = com.example.data.local.SymptomNoteEntity(
+            symptomLogId = symptomLogId,
+            noteText = noteText.trim(),
+            severitySnapshot = severitySnapshot.coerceIn(1, 10),
+            timestamp = timestamp
+        )
+        val id = triageDao.insertSymptomNote(note)
+        com.example.utils.DevLogger.i(
+            "SymptomNotes",
+            "Added timestamped note #${id} for symptom #$symptomLogId (severity=${note.severitySnapshot}/10)"
+        )
+        return id
+    }
+
+    suspend fun deleteSymptomNote(note: com.example.data.local.SymptomNoteEntity) {
+        triageDao.deleteSymptomNote(note)
+        com.example.utils.DevLogger.d("SymptomNotes", "Deleted note #${note.id}")
+    }
+
+    suspend fun saveDeveloperLogToDb(
+        level: String,
+        tag: String,
+        message: String,
+        timestamp: Long = System.currentTimeMillis()
+    ): Long {
+        val rowId = triageDao.insertDeveloperLog(
+            com.example.data.local.DeveloperLogEntity(
+                level = level,
+                tag = tag,
+                message = message,
+                timestamp = timestamp
+            )
+        )
+        triageDao.trimOldDeveloperLogs(250)
+        return rowId
+    }
+
+    suspend fun clearAllDeveloperLogs() {
+        triageDao.clearAllDeveloperLogs()
     }
 
     fun getWaterLogsForDate(date: String): Flow<List<WaterLogEntity>> = triageDao.getWaterLogsForDate(date)
@@ -215,6 +406,62 @@ class TriageRepository(private val triageDao: TriageDao) {
 
     suspend fun deleteMedicine(medicine: com.example.data.local.MedicineEntity) {
         triageDao.deleteMedicine(medicine)
+    }
+
+    suspend fun getMedicineById(id: Long): com.example.data.local.MedicineEntity? {
+        return triageDao.getMedicineById(id)
+    }
+
+    fun getAdherenceLogsForDate(date: String): Flow<List<com.example.data.local.MedicationAdherenceEntity>> {
+        return triageDao.getAdherenceLogsForDate(date)
+    }
+
+    fun getAdherenceLogsForMedicine(medicineId: Long): Flow<List<com.example.data.local.MedicationAdherenceEntity>> {
+        return triageDao.getAdherenceLogsForMedicine(medicineId)
+    }
+
+    suspend fun recordMedicationAdherence(
+        medicine: com.example.data.local.MedicineEntity,
+        status: String,
+        dateString: String,
+        notes: String = "",
+        actionTimestamp: Long = System.currentTimeMillis()
+    ): Long {
+        val existing = triageDao.getAdherenceLogForMedicineAndDate(medicine.id, dateString)
+        return if (existing != null) {
+            triageDao.updateAdherenceLog(
+                existing.copy(
+                    medicineName = medicine.name,
+                    dosage = medicine.dosage,
+                    scheduledTime = medicine.timeOfDay,
+                    status = status,
+                    actionTimestamp = actionTimestamp,
+                    notes = notes
+                )
+            )
+            existing.id
+        } else {
+            triageDao.insertAdherenceLog(
+                com.example.data.local.MedicationAdherenceEntity(
+                    medicineId = medicine.id,
+                    medicineName = medicine.name,
+                    dosage = medicine.dosage,
+                    scheduledTime = medicine.timeOfDay,
+                    scheduledDate = dateString,
+                    status = status,
+                    actionTimestamp = actionTimestamp,
+                    notes = notes
+                )
+            )
+        }
+    }
+
+    suspend fun deleteAdherenceLog(log: com.example.data.local.MedicationAdherenceEntity) {
+        triageDao.deleteAdherenceLog(log)
+    }
+
+    suspend fun clearAllAdherenceLogs() {
+        triageDao.clearAllAdherenceLogs()
     }
 
     val allScannedReports: Flow<List<com.example.data.local.ScannedReportEntity>> = triageDao.getAllScannedReports()
@@ -286,9 +533,10 @@ class TriageRepository(private val triageDao: TriageDao) {
             val pastLogs = triageDao.getRecentSymptomLogs(5)
             val pastSessions = triageDao.getRecentSessions(3)
 
-            val apiKey = BuildConfig.GEMINI_API_KEY
+            val hasImage = !imageBase64.isNullOrBlank() && !imageMimeType.isNullOrBlank()
+            val apiKey = apiKeyOverride
             if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
-                return@withContext Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs))
+                return@withContext Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs, hasImage = hasImage))
             }
 
             val contentsList = mutableListOf<GeminiContent>()
@@ -336,8 +584,6 @@ class TriageRepository(private val triageDao: TriageDao) {
                 )
             }
 
-            val hasImage = !imageBase64.isNullOrBlank() && !imageMimeType.isNullOrBlank()
-
             val photoPromptSuffix = if (hasImage) {
                 val baseText = if (userMessage.isNotBlank()) userMessage else "કૃપા કરીને આ દર્શાવેલા ફોટાનું ક્લિનિકલ નિરીક્ષણ કરી જણાવો કે અહીં શું થયું છે અને તેના માટે શું ઘરેલુ ઉપાય કે દવા કરવી?"
                 """
@@ -351,7 +597,7 @@ class TriageRepository(private val triageDao: TriageDao) {
                 3. 💊 Recommend safe home care, soothing remedies, and supportive OTC medications (e.g. antiseptics, soothing lotions like Calamine, or pain relief where safe).
                 4. ⚠️ Highlight critical red flag warning signs requiring urgent emergency/doctor visit.
                 5. 👨‍⚕️ Recommend the specific healthcare specialist (e.g. Dermatologist, General Physician, Surgeon).
-                Respond thoroughly in Gujarati if the patient communicated in Gujarati or selected Gujarati.
+                Respond thoroughly in the patient's preferred or spoken language (${userProfile?.preferredLanguage ?: "same language as query"}).
                 """.trimIndent()
             } else {
                 userMessage
@@ -390,35 +636,43 @@ class TriageRepository(private val triageDao: TriageDao) {
                 )
             )
 
-            val response = try {
-                GeminiApiClient.service.generateContent(
-                    model = "gemini-3.1-flash-lite-preview",
-                    apiKey = apiKey,
-                    request = request
-                )
-            } catch (eLite: Exception) {
-                try {
-                    GeminiApiClient.service.generateContent(
-                        model = "gemini-3.8-flash",
-                        apiKey = apiKey,
-                        request = request
-                    )
-                } catch (eFlash: Exception) {
-                    val pastLogs = triageDao.getRecentSymptomLogs(5)
-                    return@withContext Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs, hasImage = hasImage))
+            return@withContext when (val outcome = executeGeminiWithRetry(request, apiKey)) {
+                is GeminiCallResult.Success -> Result.success(outcome.text)
+                is GeminiCallResult.NoApiKey -> {
+                    Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs, hasImage = hasImage))
+                }
+                is GeminiCallResult.NetworkError -> {
+                    // Never delay/block life-saving emergency 108/112 escalation even if offline
+                    if (isEmergencyText(userMessage)) {
+                        Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs, hasImage = hasImage))
+                    } else {
+                        Result.failure(
+                            SlowNetworkException(
+                                message = outcome.message,
+                                cause = outcome.cause
+                            )
+                        )
+                    }
                 }
             }
-
-            val responseText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-
-            if (responseText.isNullOrBlank()) {
-                Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs, hasImage = hasImage))
-            } else {
-                Result.success(responseText)
-            }
         } catch (e: Exception) {
-            val pastLogs = triageDao.getRecentSymptomLogs(5)
-            Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs, hasImage = !imageBase64.isNullOrBlank()))
+            if (isEmergencyText(userMessage)) {
+                val pastLogs = triageDao.getRecentSymptomLogs(5)
+                Result.success(getEducationalTriageFallback(userMessage, userProfile, pastLogs, hasImage = !imageBase64.isNullOrBlank()))
+            } else {
+                Result.failure(SlowNetworkException(e.message ?: "Slow internet or network interruption", e))
+            }
+        }
+    }
+
+    private fun hasTerm(lowerText: String, vararg terms: String): Boolean {
+        return terms.any { term ->
+            val isAscii = term.all { it.code < 128 }
+            if (isAscii) {
+                Regex("\\b${Regex.escape(term)}\\b").containsMatchIn(lowerText)
+            } else {
+                lowerText.contains(term)
+            }
         }
     }
 
@@ -451,22 +705,19 @@ class TriageRepository(private val triageDao: TriageDao) {
             """.trimIndent()
         }
 
-        val isGujarati = lower.contains("mathu") || lower.contains("matho") || lower.contains("mane") ||
-                         lower.contains("chhe") || lower.contains("che") || lower.contains("karo") ||
-                         lower.contains("hal") || lower.contains("aama") || lower.contains("boline") ||
-                         lower.contains("samja") || lower.contains("bimari") || lower.contains("kem") ||
-                         lower.contains("pani") || lower.contains("paani") || lower.contains("taav") ||
-                         lower.contains("tav") || lower.contains("shardi") || lower.contains("udhras") ||
-                         lower.contains("pet") || lower.contains("dardo") || lower.contains("upay") ||
-                         lower.contains("gharelu") || lower.contains("aapo") ||
-                         userMessage.any { it in '\u0A80'..'\u0AFF' }
+        val isGujarati = hasTerm(
+            lower,
+            "mathu", "matho", "mane", "chhe", "che", "karo", "hal", "aama", "boline",
+            "samja", "bimari", "kem", "pani", "paani", "taav", "tav", "shardi",
+            "udhras", "pet", "dardo", "upay", "gharelu", "aapo", "nathi", "dukhavo"
+        ) || userMessage.any { it in '\u0A80'..'\u0AFF' }
 
         val isHindi = !isGujarati && (
-            lower.contains("hai") || lower.contains("muje") || lower.contains("mujhe") ||
-            lower.contains("kya") || lower.contains("dard") || lower.contains("ho raha") ||
-            lower.contains("kare") || lower.contains("meri") || lower.contains("mera") ||
-            lower.contains("bukhar") || lower.contains("khasi") || lower.contains("dawa") ||
-            userMessage.any { it in '\u0900'..'\u097F' }
+            hasTerm(
+                lower,
+                "hai", "muje", "mujhe", "kya", "dard", "ho raha", "kare", "meri",
+                "mera", "bukhar", "khasi", "dawa"
+            ) || userMessage.any { it in '\u0900'..'\u097F' }
         )
 
         // PHOTO / MEDICAL IMAGE ANALYSIS FALLBACK
@@ -538,9 +789,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 1. FEVER / તાવ / बुखार
-        val isFever = lower.contains("fever") || lower.contains("taav") || lower.contains("tav") ||
-                      lower.contains("તાવ") || lower.contains("bukhar") || lower.contains("बुखार") ||
-                      lower.contains("temperature") || lower.contains("chills") || lower.contains("dhujari")
+        val isFever = hasTerm(lower, "fever", "taav", "tav", "તાવ", "bukhar", "बुखार", "temperature", "chills", "dhujari")
 
         if (isFever) {
             if (isGujarati) {
@@ -593,11 +842,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 2. COLD, COUGH & SORE THROAT / શરદી, ઉધરસ, કફ, ગળું / खांसी, जुकाम
-        val isColdCough = lower.contains("cough") || lower.contains("cold") || lower.contains("shardi") ||
-                          lower.contains("udhras") || lower.contains("kaf") || lower.contains("શરદી") ||
-                          lower.contains("ઉધરસ") || lower.contains("કફ") || lower.contains("ગળું") ||
-                          lower.contains("khasi") || lower.contains("jukam") || lower.contains("sore throat") ||
-                          lower.contains("throat") || lower.contains("खांसी") || lower.contains("जुकाम")
+        val isColdCough = hasTerm(lower, "cough", "cold", "shardi", "udhras", "kaf", "શરદી", "ઉધરસ", "કફ", "ગળું", "khasi", "jukam", "sore throat", "throat", "खांसी", "जुकाम")
 
         if (isColdCough) {
             if (isGujarati) {
@@ -643,11 +888,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 3. STOMACH PAIN, GAS, ACIDITY, INDIGESTION / પેટમાં દુખાવો, ગેસ, એસિડિટી, અપચો, કબજિયાત
-        val isStomach = lower.contains("stomach") || lower.contains("pet") || lower.contains("gas") ||
-                        lower.contains("acidity") || lower.contains("kabjiyaat") || lower.contains("kabj") ||
-                        lower.contains("પેટ") || lower.contains("ગેસ") || lower.contains("એસિડિટી") ||
-                        lower.contains("અપચો") || lower.contains("कब्ज") || lower.contains("पेट दर्द") ||
-                        lower.contains("indigestion") || lower.contains("constipation") || lower.contains("heartburn")
+        val isStomach = hasTerm(lower, "stomach", "pet", "gas", "acidity", "kabjiyaat", "kabj", "પેટ", "ગેસ", "એસિડિટી", "અપચો", "कब्ज", "पेट दर्द", "indigestion", "constipation", "heartburn")
 
         if (isStomach) {
             if (isGujarati) {
@@ -659,7 +900,7 @@ class TriageRepository(private val triageDao: TriageDao) {
                     * **વરિયાળી અને જીરાનું પાણી:** ૧ ચમચી વરિયાળી અને જીરું પાણીમાં ઉકાળીને ઠંડુ કરીને પીવાથી એસિડિટી અને પેટની બળતરા શાંત થાય છે.
                     * **ઠંડું દૂધ અથવા છાશ:** એસિડિટી માટે અડધો ગ્લાસ ઠંડું દૂધ અથવા જીરા-હિંગવાળી તાજી મોળી છાશ પીવી ખૂબ ગુણકારી છે.
                     * **નાળિયેર પાણી:** પેટના એસિડને સામાન્ય કરવા અને પેટને ઠંડક આપવા માટે નાળિયેર પાણી ઉત્તમ છે.
-                    * **કબજિયાત માટે:** રાત્રે સૂતી વખતે હુંફાળા દૂધ સાથે ઇસબગુલ અથવા ત્રિફળા ચૂર્ણ લેવું અને પુષ્કળ લીલા શાકભાજી ખાવ.
+                    * **કબજિયાત માટે:** રાત્રે સૂતી વખતે હુંફાળા દૂધ સાથે ઇસબગગુલ અથવા ત્રિફળા ચૂર્ણ લેવું અને પુષ્કળ લીલા શાકભાજી ખાવ.
                     * **ખાસ સાવચેતી:** તીખો, તળેલો, વાસી કે વધુ પડતો મસાલેદાર ખોરાક બિલકુલ ન ખાવો.
 
                     ### 2. જોખમી લક્ષણો (Red Flags)
@@ -689,10 +930,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 4. DIARRHEA & VOMITING / ઝાડા અને ઉલટી / दस्त और उल्टी
-        val isDiarrhea = lower.contains("diarrhea") || lower.contains("vomit") || lower.contains("zhada") ||
-                         lower.contains("jada") || lower.contains("ulti") || lower.contains("ઝાડા") ||
-                         lower.contains("ઉલટી") || lower.contains("दस्त") || lower.contains("उल्टी") ||
-                         lower.contains("loose motion") || lower.contains("food poisoning")
+        val isDiarrhea = hasTerm(lower, "diarrhea", "vomit", "vomiting", "zhada", "jada", "ulti", "ઝાડા", "ઉલટી", "दस्त", "उल्टी", "loose motion", "food poisoning")
 
         if (isDiarrhea) {
             if (isGujarati) {
@@ -718,11 +956,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 5. JOINT PAIN, BACK PAIN, KNEE PAIN / સાંધા, કમર અને ગોઠણનો દુખાવો
-        val isJointPain = lower.contains("joint") || lower.contains("knee") || lower.contains("back pain") ||
-                          lower.contains("sandha") || lower.contains("kamar") || lower.contains("gothan") ||
-                          lower.contains("સાંધા") || lower.contains("કમર") || lower.contains("ગોઠણ") ||
-                          lower.contains("જોડો") || lower.contains("कमर दर्द") || lower.contains("गठिया") ||
-                          lower.contains("arthritis") || lower.contains("sciatica")
+        val isJointPain = hasTerm(lower, "joint", "knee", "back pain", "sandha", "kamar", "gothan", "સાંધા", "કમર", "ગોઠણ", "જોડો", "कमर दर्द", "गठिया", "arthritis", "sciatica")
 
         if (isJointPain) {
             if (isGujarati) {
@@ -745,10 +979,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 6. DIABETES & BLOOD PRESSURE / ડાયાબિટીસ અને બ્લડ પ્રેશર
-        val isDiabetesBP = lower.contains("diabetes") || lower.contains("sugar") || lower.contains("bp") ||
-                           lower.contains("blood pressure") || lower.contains("ડાયાબિટીસ") || lower.contains("સુગર") ||
-                           lower.contains("શુગર") || lower.contains("બીપી") || lower.contains("પ્રેશર") ||
-                           lower.contains("शुगर") || lower.contains("डायबिटीज") || lower.contains("hypertension")
+        val isDiabetesBP = hasTerm(lower, "diabetes", "sugar", "bp", "blood pressure", "ડાયાબિટીસ", "સુગર", "શુગર", "બીપી", "પ્રેશર", "शुगर", "डायबिटीज", "hypertension")
 
         if (isDiabetesBP) {
             if (isGujarati) {
@@ -772,11 +1003,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 7. SKIN ALLERGY, ITCHING, RASH / ચામડી, ખંજવાળ, ધાધર, ફોલ્લી
-        val isSkin = lower.contains("skin") || lower.contains("itching") || lower.contains("rash") ||
-                     lower.contains("khanjval") || lower.contains("dhadhar") || lower.contains("chamdi") ||
-                     lower.contains("ચામડી") || lower.contains("ખંજવાળ") || lower.contains("ધાધર") ||
-                     lower.contains("ફોલ્લી") || lower.contains("खुजली") || lower.contains("दाद") ||
-                     lower.contains("allergy") || lower.contains("fungal")
+        val isSkin = hasTerm(lower, "skin", "itching", "rash", "khanjval", "dhadhar", "chamdi", "ચામડી", "ખંજવાળ", "ધાધર", "ફોલ્લી", "खुजली", "दाद", "allergy", "fungal")
 
         if (isSkin) {
             if (isGujarati) {
@@ -799,9 +1026,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 8. TOOTHACHE & ORAL ISSUES / દાંતનો દુખાવો
-        val isTooth = lower.contains("tooth") || lower.contains("teeth") || lower.contains("dant") ||
-                      lower.contains("daant") || lower.contains("દાંત") || lower.contains("પેઢા") ||
-                      lower.contains("दांत दर्द") || lower.contains("cavity")
+        val isTooth = hasTerm(lower, "tooth", "toothache", "teeth", "dant", "daant", "દાંત", "પેઢા", "दांत दर्द", "cavity")
 
         if (isTooth) {
             if (isGujarati) {
@@ -823,10 +1048,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 9. WEAKNESS, FATIGUE, DIZZINESS / નબળાઈ, અશક્તિ, ચક્કર, થાક
-        val isWeakness = lower.contains("weakness") || lower.contains("tired") || lower.contains("fatigue") ||
-                         lower.contains("chakkar") || lower.contains("ashakti") || lower.contains("nablai") ||
-                         lower.contains("નબળાઈ") || lower.contains("અશક્તિ") || lower.contains("ચક્કર") ||
-                         lower.contains("થાક") || lower.contains("कमजोरी") || lower.contains("चक्कर")
+        val isWeakness = hasTerm(lower, "weakness", "tired", "fatigue", "chakkar", "ashakti", "nablai", "નબળાઈ", "અશક્તિ", "ચક્કર", "થાક", "कमजोरी", "चक्कर")
 
         if (isWeakness) {
             if (isGujarati) {
@@ -849,10 +1071,7 @@ class TriageRepository(private val triageDao: TriageDao) {
         }
 
         // 10. HEADACHE & MIGRAINE / માથાનો દુખાવો
-        val isHeadache = lower.contains("sir dard") || lower.contains("sar dard") ||
-                         lower.contains("sir me dard") || lower.contains("sar me dard") ||
-                         lower.contains("headache") || lower.contains("mathu") || lower.contains("matho") ||
-                         lower.contains("માથું") || lower.contains("માથાનો") || lower.contains("migraine")
+        val isHeadache = hasTerm(lower, "sir dard", "sar dard", "sir me dard", "sar me dard", "headache", "mathu", "matho", "માથું", "માથાનો", "migraine")
 
         if (isHeadache) {
             if (isGujarati) {
@@ -948,8 +1167,8 @@ class TriageRepository(private val triageDao: TriageDao) {
         imageBase64: String? = null,
         imageMimeType: String? = null
     ): Result<String> = withContext(Dispatchers.IO) {
-        val apiKey = com.example.BuildConfig.GEMINI_API_KEY
-        if (apiKey.isBlank()) {
+        val apiKey = apiKeyOverride
+        if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
             return@withContext Result.success(getReportExplanationFallback(extractedText, reportType, language))
         }
 
@@ -996,32 +1215,13 @@ class TriageRepository(private val triageDao: TriageDao) {
                 generationConfig = GeminiGenerationConfig(temperature = 0.2, topP = 0.95, topK = 40)
             )
 
-            val response = try {
-                GeminiApiClient.service.generateContent(
-                    model = "gemini-3.1-flash-lite-preview",
-                    apiKey = apiKey,
-                    request = request
-                )
-            } catch (_: Exception) {
-                try {
-                    GeminiApiClient.service.generateContent(
-                        model = "gemini-3.8-flash",
-                        apiKey = apiKey,
-                        request = request
-                    )
-                } catch (_: Exception) {
-                    return@withContext Result.success(getReportExplanationFallback(extractedText, reportType, language))
-                }
-            }
-
-            val resultText = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
-            if (resultText.isNullOrBlank()) {
-                Result.success(getReportExplanationFallback(extractedText, reportType, language))
-            } else {
-                Result.success(resultText)
+            return@withContext when (val outcome = executeGeminiWithRetry(request, apiKey)) {
+                is GeminiCallResult.Success -> Result.success(outcome.text)
+                is GeminiCallResult.NoApiKey -> Result.success(getReportExplanationFallback(extractedText, reportType, language))
+                is GeminiCallResult.NetworkError -> Result.failure(SlowNetworkException(outcome.message, outcome.cause))
             }
         } catch (e: Exception) {
-            Result.success(getReportExplanationFallback(extractedText, reportType, language))
+            Result.failure(SlowNetworkException(e.message ?: "Slow internet interrupted report analysis", e))
         }
     }
 
@@ -1165,4 +1365,929 @@ class TriageRepository(private val triageDao: TriageDao) {
     suspend fun deleteFamilyMember(member: com.example.data.local.FamilyMemberEntity) = withContext(Dispatchers.IO) {
         triageDao.deleteFamilyMember(member)
     }
+
+    suspend fun saveTreatmentPlan(plan: com.example.data.local.TreatmentPlanEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertTreatmentPlan(plan)
+    }
+
+    suspend fun deleteTreatmentPlan(plan: com.example.data.local.TreatmentPlanEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteTreatmentPlan(plan)
+    }
+
+    suspend fun saveRiskAssessment(assessment: com.example.data.local.RiskAssessmentEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertRiskAssessment(assessment)
+    }
+
+    suspend fun deleteRiskAssessment(assessment: com.example.data.local.RiskAssessmentEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteRiskAssessment(assessment)
+    }
+
+    suspend fun saveClinicalNote(note: com.example.data.local.ClinicalNoteEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertClinicalNote(note)
+    }
+
+    suspend fun deleteClinicalNote(note: com.example.data.local.ClinicalNoteEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteClinicalNote(note)
+    }
+
+    private suspend fun callClinicalGeminiPrompt(promptText: String): String? {
+        val request = GeminiGenerateContentRequest(
+            contents = listOf(
+                GeminiContent(
+                    parts = listOf(GeminiPart(text = promptText)),
+                    role = "user"
+                )
+            ),
+            generationConfig = GeminiGenerationConfig(
+                temperature = 0.25,
+                topP = 0.9,
+                topK = 40
+            )
+        )
+        return when (val outcome = executeGeminiWithRetry(request)) {
+            is GeminiCallResult.Success -> outcome.text.takeIf { it.isNotBlank() }
+            else -> null
+        }
+    }
+
+    suspend fun generatePersonalizedTreatmentPlan(
+        profile: UserProfileEntity?,
+        targetGoal: String,
+        geneticsMarkers: String,
+        lifestyleSummary: String,
+        labResultsSummary: String,
+        vitalLogs: List<com.example.data.local.VitalLogEntity>,
+        language: String
+    ): Pair<String, Boolean> = withContext(Dispatchers.IO) {
+        val vitalsContext = vitalLogs.take(5).joinToString("; ") {
+            val sec = if (it.secondaryValue > 0) "/${it.secondaryValue.toInt()}" else ""
+            "${it.vitalType}: ${it.primaryValue.toInt()}$sec ${it.unit} (${it.status})"
+        }.ifBlank { "No recent vitals recorded" }
+
+        val prompt = """
+            You are a Precision Medicine & Personalized Treatment Planning AI assistant.
+            Analyze the patient's genetics, lifestyle, lab test results, allergies, and medical profile to suggest the safest, best personalized treatment options for discussion with their physician.
+
+            PATIENT PROFILE:
+            - Age: ${profile?.age ?: 30}, Gender: ${profile?.gender ?: "Not Specified"}, Blood Group: ${profile?.bloodGroup ?: "Not Specified"}
+            - Allergies: ${profile?.allergies ?: "None Known"}
+            - Chronic Conditions: ${profile?.chronicConditions ?: "None"}
+            - Current Medications: ${profile?.currentMedications ?: "None"}
+            - Recent Vitals: $vitalsContext
+
+            PERSONALIZED CARE INPUTS:
+            - Primary Health Goal / Condition: $targetGoal
+            - Genetic / Hereditary Factors: $geneticsMarkers
+            - Lifestyle Profile: $lifestyleSummary
+            - Lab & Test Results: $labResultsSummary
+
+            REQUIRED LANGUAGE: Respond completely in $language.
+            FORMAT STRICTLY INTO 4 CLEAR SECTIONS:
+            1. 🧬 Genetic & Biomarker Insights
+            2. 🥗 Personalized Lifestyle & Nutrition Protocol
+            3. 💊 Targeted Treatment & Pharmacogenomic Considerations (explicitly cross-check allergies: ${profile?.allergies ?: "None"})
+            4. 🔬 Recommended Follow-Up Tests & Doctor Action Plan
+
+            End with a clear educational medical disclaimer.
+        """.trimIndent()
+
+        val aiText = callClinicalGeminiPrompt(prompt)
+        if (aiText != null) {
+            return@withContext aiText to true
+        }
+
+        val allergyWarning = profile?.allergies?.takeIf { it.isNotBlank() && !it.equals("None Known", ignoreCase = true) }
+        val fallback = when {
+            language.equals("Gujarati", ignoreCase = true) -> """
+                ### 1. 🧬 જીનેટિક અને લેબ રિઝલ્ટ વિશ્લેષણ
+                * **લક્ષ્ય સ્થિતિ:** $targetGoal
+                * **આનુવંશિક / પારિવારિક ઇતિહાસ:** $geneticsMarkers
+                * **લેબ ટેસ્ટ અને વાઇટલ્સ:** $labResultsSummary ($vitalsContext)
+                * વારસાગત જોખમ અને લેબ રિઝલ્ટના આધારે નિવારક (Preventive) અને વ્યક્તિગત સંભાળની ભલામણ કરવામાં આવે છે.
+
+                ### 2. 🥗 વ્યક્તિગત જીવનશૈલી અને આહાર યોજના
+                * **જીવનશૈલી આધાર:** $lifestyleSummary
+                * ઓછું મીઠું, ઉચ્ચ ફાઇબર (લીલા શાકભાજી, કઠોળ, આખા અનાજ), અને પ્રોસેસ્ડ શુગર ટાળો.
+                * રોજ ઓછામાં ઓછી ૩૦ મિનિટ ઝડપી ચાલવું અને ૭+ કલાક ઊંઘ લેવી.
+
+                ### 3. 💊 વ્યક્તિગત સારવાર વિકલ્પો (ડૉક્ટર સાથે ચર્ચા માટે)
+                * ${if (allergyWarning != null) "⚠️ **એલર્જી ચેતવણી:** '$allergyWarning' નોંધાયેલ છે — કોઈ પણ દવા લેતા પહેલા ડૉક્ટરને ખાસ જણાવો." else "કોઈ જાણીતી એલર્જી નોંધાયેલ નથી; દવાઓ ડૉક્ટરની સલાહ મુજબ જ લો."}
+                * ચાલુ ક્રોનિક સ્થિતિ (${profile?.chronicConditions ?: "None"}) સાથે દવાઓના ડોઝ અને સમયનું સંતુલન જાળવવું.
+
+                ### 4. 🔬 આગામી લેબ ટેસ્ટ અને ફોલો-અપ
+                * દર ૩ મહિને HbA1c, લિપિડ પ્રોફાઇલ, CBC અને BP ટ્રેકિંગ કરાવવું.
+
+                *નોંધ: ઓફલાઇન ક્લિનિકલ રૂલ્સ મુજબ તૈયાર થયેલ માર્ગદર્શન; અંતિમ સારવાર માટે ડૉક્ટરની સલાહ જરૂરી છે.*
+            """.trimIndent()
+            language.equals("Hindi", ignoreCase = true) -> """
+                ### 1. 🧬 जेनेटिक और लैब परिणाम विश्लेषण
+                * **लक्ष्य स्थिति:** $targetGoal
+                * **आनुवंशिक कारक:** $geneticsMarkers
+                * **लैब और वाइटल्स:** $labResultsSummary ($vitalsContext)
+
+                ### 2. 🥗 व्यक्तिगत जीवनशैली और आहार योजना
+                * **लाइफस्टाइल प्रोफ़ाइल:** $lifestyleSummary
+                * कम नमक, उच्च फाइबर आहार और नियमित 30 मिनट वॉक + 7 घंटे नींद को प्राथमिकता दें।
+
+                ### 3. 💊 लक्षित उपचार विकल्प (डॉक्टर से परामर्श हेतु)
+                * ${if (allergyWarning != null) "⚠️ **एलर्जी चेतावनी:** '$allergyWarning' दर्ज है — नई दवा से पहले डॉक्टर को बताएं।" else "प्रोफ़ाइल के अनुसार निर्धारित समय पर दवा लें।"}
+                * पुरानी बीमारी (${profile?.chronicConditions ?: "None"}) के अनुसार दवाओं की समीक्षा कराएं।
+
+                ### 4. 🔬 अनुशंसित फॉलो-अप टेस्ट
+                * हर 3 महीने में HbA1c, लिपिड प्रोफाइल और नियमित BP जांच कराएं।
+
+                *अस्वीकरण: यह शैक्षिक मार्गदर्शन है; अंतिम उपचार डॉक्टर की सलाह से ही लें।*
+            """.trimIndent()
+            else -> """
+                ### 1. 🧬 Genetic & Biomarker Insights
+                * **Target Goal:** $targetGoal
+                * **Genetic / Family Risk Profile:** $geneticsMarkers
+                * **Lab & Vitals Context:** $labResultsSummary ($vitalsContext)
+
+                ### 2. 🥗 Personalized Lifestyle & Nutrition Protocol
+                * **Current Lifestyle:** $lifestyleSummary
+                * Prioritize high-fiber whole foods, balanced glycemic load, reduced sodium (<2g/day), 30 min daily aerobic activity, and 7+ hrs restorative sleep.
+
+                ### 3. 💊 Targeted Treatment Options (For Physician Review)
+                * ${if (allergyWarning != null) "⚠️ **Allergy Cross-Check:** Avoid medications triggering '$allergyWarning'." else "No known drug allergies flagged; verify compatibility with current regimen (${profile?.currentMedications ?: "None"})."}
+                * Tailor preventive therapy and monitoring frequency to genetic predisposition and chronic background (${profile?.chronicConditions ?: "None"}).
+
+                ### 4. 🔬 Recommended Follow-Up Screenings
+                * Schedule periodic Lipid Panel, HbA1c, Renal/Liver function, and home vitals tracking every 3 months.
+
+                Disclaimer: Generated via offline precision clinical rules. Always finalize personalized treatment with your licensed physician.
+            """.trimIndent()
+        }
+        fallback to false
+    }
+
+    suspend fun generatePredictiveRiskForecast(
+        profile: UserProfileEntity?,
+        riskSnapshot: com.example.utils.PredictiveRiskSnapshot,
+        vitalLogs: List<com.example.data.local.VitalLogEntity>,
+        symptomLogs: List<SymptomLogEntity>,
+        language: String
+    ): Pair<String, Boolean> = withContext(Dispatchers.IO) {
+        val recentSymptoms = symptomLogs.take(6).joinToString("; ") { "${it.symptomTitle} (${it.severity}/10, ${it.status})" }
+            .ifBlank { "No active symptoms logged" }
+        val recentVitals = vitalLogs.take(6).joinToString("; ") { "${it.vitalType}=${it.primaryValue}" }
+            .ifBlank { "No recent vitals" }
+
+        val prompt = """
+            You are a Predictive Clinical Analytics & Early Disease Detection AI.
+            Analyze the patient's medical history, computed risk indices, vitals, and symptoms to forecast early cardiovascular, sepsis/infection, and metabolic risks.
+
+            PATIENT RECORD:
+            - Age: ${profile?.age ?: 30}, Chronic Conditions: ${profile?.chronicConditions ?: "None"}
+            - Computed Cardiac Risk Score: ${riskSnapshot.heartRiskScore}/100
+            - Computed Sepsis / Systemic Infection Early Warning Score: ${riskSnapshot.sepsisRiskScore}/100
+            - Computed Metabolic Risk Score: ${riskSnapshot.metabolicRiskScore}/100
+            - Overall Status: ${riskSnapshot.overallRiskLevel}
+            - Recent Vitals: $recentVitals
+            - Recent Symptoms: $recentSymptoms
+
+            REQUIRED LANGUAGE: Respond completely in $language.
+            Provide:
+            1. ❤️ Early Cardiovascular Risk Forecast & Prevention
+            2. 🦠 Sepsis / Infection Early Warning Interpretation
+            3. ⚖️ 30–90 Day Preventive Action Plan & Warning Red Flags
+            Include an educational medical disclaimer at the end.
+        """.trimIndent()
+
+        val aiText = callClinicalGeminiPrompt(prompt)
+        if (aiText != null) return@withContext aiText to true
+
+        val factors = (riskSnapshot.heartFactors + riskSnapshot.sepsisFactors).distinct().joinToString("\n• ")
+        val actions = riskSnapshot.immediateActions.joinToString("\n• ")
+        val fallback = when {
+            language.equals("Gujarati", ignoreCase = true) -> """
+                ### 📊 પ્રારંભિક જોખમ આગાહી (${riskSnapshot.overallRiskLevel})
+                * **હૃદય રોગ જોખમ સ્કોર:** ${riskSnapshot.heartRiskScore}%
+                * **સેપ્સિસ / ચેપ પ્રારંભિક સંકેત:** ${riskSnapshot.sepsisRiskScore}%
+                * **મેટાબોલિક જોખમ:** ${riskSnapshot.metabolicRiskScore}%
+
+                ### 🔍 મુખ્ય કારણો
+                • $factors
+
+                ### 🛡️ સમયસર નિવારણ પગલાં
+                • $actions
+            """.trimIndent()
+            language.equals("Hindi", ignoreCase = true) -> """
+                ### 📊 प्रारंभिक जोखिम पूर्वानुमान (${riskSnapshot.overallRiskLevel})
+                * **हृदय जोखिम स्कोर:** ${riskSnapshot.heartRiskScore}%
+                * **सेप्सिस / संक्रमण प्रारंभिक चेतावनी:** ${riskSnapshot.sepsisRiskScore}%
+                * **मेटाबोलिक जोखिम:** ${riskSnapshot.metabolicRiskScore}%
+
+                ### 🔍 मुख्य कारक
+                • $factors
+
+                ### 🛡️ समय रहते बचाव के कदम
+                • $actions
+            """.trimIndent()
+            else -> """
+                ### 📊 Early Risk Forecast (${riskSnapshot.overallRiskLevel})
+                * **Cardiovascular Risk Index:** ${riskSnapshot.heartRiskScore}%
+                * **Sepsis / Systemic Early Warning:** ${riskSnapshot.sepsisRiskScore}%
+                * **Metabolic Trajectory Risk:** ${riskSnapshot.metabolicRiskScore}%
+
+                ### 🔍 Key Clinical Drivers
+                • $factors
+
+                ### 🛡️ Timely Preventive Actions
+                • $actions
+            """.trimIndent()
+        }
+        fallback to false
+    }
+
+    suspend fun generateClinicalDocumentation(
+        transcript: String,
+        patientName: String,
+        profile: UserProfileEntity?,
+        language: String
+    ): Pair<com.example.utils.ParsedClinicalDocument, Boolean> = withContext(Dispatchers.IO) {
+        val localParsed = com.example.utils.ClinicalRiskEngine.parseClinicalTranscriptLocally(
+            transcript = transcript,
+            patientName = patientName,
+            language = language
+        )
+
+        val apiKey = BuildConfig.GEMINI_API_KEY
+        if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
+            return@withContext localParsed to false
+        }
+
+        val prompt = """
+            You are an Automated Clinical Documentation & Medical NLP Scribe.
+            Convert the following doctor-patient conversation into crisp clinical documentation in $language.
+            Patient Name: $patientName | Age: ${profile?.age ?: 30} | Allergies: ${profile?.allergies ?: "None Known"}
+
+            TRANSCRIPT:
+            "$transcript"
+
+            Output clearly with these exact 3 section headers:
+            ===SOAP_NOTE===
+            (Subjective, Objective, Assessment, Plan concisely formatted)
+            ===MEDICAL_REPORT===
+            (Structured consultation report summary for patient file)
+            ===PRESCRIPTION===
+            (Numbered medications discussed with dosage and timing, or "No medications prescribed — follow clinical advice")
+        """.trimIndent()
+
+        val aiText = callClinicalGeminiPrompt(prompt) ?: return@withContext localParsed to false
+
+        val soap = aiText.substringAfter("===SOAP_NOTE===", "")
+            .substringBefore("===MEDICAL_REPORT===").trim()
+            .ifBlank { localParsed.soapNote }
+        val report = aiText.substringAfter("===MEDICAL_REPORT===", "")
+            .substringBefore("===PRESCRIPTION===").trim()
+            .ifBlank { localParsed.medicalReport }
+        val rx = aiText.substringAfter("===PRESCRIPTION===", "").trim()
+            .ifBlank { localParsed.prescriptionSummary }
+
+        return@withContext localParsed.copy(
+            soapNote = soap,
+            medicalReport = report,
+            prescriptionSummary = rx
+        ) to true
+    }
+
+    // -------------------------------------------------------------------------
+    // Version 5.0 Modules: EHR, Mental Health, Drug Discovery, Epidemic & Doctor Booking
+    // -------------------------------------------------------------------------
+    suspend fun saveEhrRecord(record: com.example.data.local.EhrRecordEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertEhrRecord(record)
+    }
+
+    suspend fun deleteEhrRecord(record: com.example.data.local.EhrRecordEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteEhrRecord(record)
+    }
+
+    suspend fun saveMentalHealthCheckIn(checkIn: com.example.data.local.MentalHealthCheckInEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertMentalHealthCheckIn(checkIn)
+    }
+
+    suspend fun deleteMentalHealthCheckIn(checkIn: com.example.data.local.MentalHealthCheckInEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteMentalHealthCheckIn(checkIn)
+    }
+
+    suspend fun saveDrugStudy(study: com.example.data.local.DrugCandidateStudyEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertDrugStudy(study)
+    }
+
+    suspend fun deleteDrugStudy(study: com.example.data.local.DrugCandidateStudyEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteDrugStudy(study)
+    }
+
+    suspend fun saveOutbreakAlert(alert: com.example.data.local.OutbreakAlertEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertOutbreakAlert(alert)
+    }
+
+    suspend fun deleteOutbreakAlert(alert: com.example.data.local.OutbreakAlertEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteOutbreakAlert(alert)
+    }
+
+    suspend fun saveDoctorAppointment(appointment: com.example.data.local.DoctorAppointmentEntity): Long = withContext(Dispatchers.IO) {
+        triageDao.insertDoctorAppointment(appointment)
+    }
+
+    suspend fun deleteDoctorAppointment(appointment: com.example.data.local.DoctorAppointmentEntity) = withContext(Dispatchers.IO) {
+        triageDao.deleteDoctorAppointment(appointment)
+    }
+
+    private suspend fun callMultimodalClinicalPromptDetailed(
+        promptText: String,
+        imageBase64: String? = null,
+        imageMimeType: String? = null
+    ): GeminiCallResult {
+        val parts = mutableListOf<GeminiPart>()
+        if (!imageBase64.isNullOrBlank() && !imageMimeType.isNullOrBlank()) {
+            parts.add(GeminiApiClient.createImagePart(imageMimeType, imageBase64))
+        }
+        parts.add(GeminiApiClient.createTextPart(promptText))
+
+        val request = GeminiGenerateContentRequest(
+            contents = listOf(GeminiContent(parts = parts, role = "user")),
+            generationConfig = GeminiGenerationConfig(
+                temperature = 0.25,
+                topP = 0.9,
+                topK = 40
+            )
+        )
+        return executeGeminiWithRetry(request)
+    }
+
+    private suspend fun callMultimodalClinicalPrompt(
+        promptText: String,
+        imageBase64: String? = null,
+        imageMimeType: String? = null
+    ): String? {
+        return when (val outcome = callMultimodalClinicalPromptDetailed(promptText, imageBase64, imageMimeType)) {
+            is GeminiCallResult.Success -> outcome.text.takeIf { it.isNotBlank() }
+            else -> null
+        }
+    }
+
+    suspend fun generateAutomatedEhrSummary(
+        rawNotes: String,
+        patientName: String,
+        profile: UserProfileEntity?,
+        parsed: com.example.utils.StructuredEhrParseResult,
+        language: String
+    ): Pair<String, Boolean> = withContext(Dispatchers.IO) {
+        val prompt = """
+            You are an Electronic Health Records (EHR) Automation NLP Specialist.
+            Organize messy dictated/typed patient notes into a clean, structured digital EHR entry for a physician.
+            Patient: $patientName | Age: ${profile?.age ?: 30} | Gender: ${profile?.gender ?: "Not specified"} | Blood Group: ${profile?.bloodGroup ?: "Unknown"}
+            Known Allergies: ${profile?.allergies ?: "None Known"}
+            Detected Category: ${parsed.category}
+            Extracted Tags: ${parsed.diagnosisTags}
+            Extracted Medications: ${parsed.medicationsDetected}
+
+            RAW CLINICAL NOTES:
+            "$rawNotes"
+
+            REQUIRED LANGUAGE: Respond completely in $language.
+            Format clearly into:
+            1. 🗂️ EHR Header & Chief Complaint
+            2. 📊 Organized Vitals, Labs & History
+            3. 💊 Structured Medication Reconciliation & Allergy Cross-Check
+            4. ✅ Actionable Follow-Up & Coding Summary
+        """.trimIndent()
+
+        val aiText = callClinicalGeminiPrompt(prompt)
+        if (aiText != null) aiText to true else parsed.structuredSummary to false
+    }
+
+    suspend fun generateMentalHealthCounseling(
+        transcript: String,
+        screening: com.example.utils.MentalHealthScreeningResult,
+        stressSlider: Int,
+        sleepHours: Float,
+        anxietyDays: Int,
+        imageBase64: String? = null,
+        imageMimeType: String? = null,
+        language: String
+    ): Pair<String, Boolean> = withContext(Dispatchers.IO) {
+        val hasPhoto = !imageBase64.isNullOrBlank()
+        val prompt = """
+            You are a compassionate Mental Health Support & Primary CBT Counseling AI assistant.
+            Analyze the patient's spoken/written feelings, sleep & stress index${if (hasPhoto) ", and facial expression cues from the attached image" else ""} to gently screen for anxiety, stress, or low mood and offer supportive primary counseling.
+            IMPORTANT SAFETY RULE: Never diagnose major psychiatric disorders clinically. If crisis/self-harm indicators exist, prioritize urgent Tele-MANAS (14416) / 112 crisis intervention first.
+
+            SCREENING SIGNALS:
+            - Mood/Distress Assessment: ${screening.moodLabel} (Stress Index: ${screening.stressScore}/100)
+            - Self-Rated Stress: $stressSlider/10 | Sleep: $sleepHours hrs/night | Anxious Days (last 14d): $anxietyDays
+            - Patient Voice / Journal Input: "${transcript.ifBlank { "No text provided — check-in via sliders/expression." }}"
+            - Crisis Flag: ${screening.crisisDetected}
+
+            REQUIRED LANGUAGE: Respond warmly and supportively in $language.
+            Include:
+            1. 💬 Empathetic Reflection & Affect Observation
+            2. 🌬️ Immediate Calming Breath & Grounding Exercise
+            3. 🧠 Gentle CBT Coping Steps
+            4. 📞 Helpline & When to See a Counselor/Psychiatrist (Include Tele-MANAS 14416 / 112 if high distress)
+        """.trimIndent()
+
+        val aiText = callMultimodalClinicalPrompt(prompt, imageBase64, imageMimeType)
+        if (aiText != null) aiText to true else screening.fallbackGuidance to false
+    }
+
+    suspend fun generateDrugDiscoveryAnalysis(
+        targetDisease: String,
+        moleculeInput: String,
+        priority: String,
+        screening: com.example.utils.MoleculeScreeningResult,
+        language: String
+    ): Pair<String, Boolean> = withContext(Dispatchers.IO) {
+        val prompt = """
+            You are a Computational Medicinal Chemistry & AI Drug Discovery Research Assistant.
+            Evaluate the candidate compound and explain how in-silico AI accelerates preclinical discovery before lab validation and human clinical trials.
+
+            CANDIDATE METRICS:
+            - Target Disease / Protein Pathway: $targetDisease
+            - Compound Formula / SMILES: $moleculeInput
+            - Optimization Priority: $priority
+            - Estimated Molecular Weight: ${screening.estimatedMolecularWeight} g/mol
+            - Heavy Atoms: ${screening.heavyAtomEstimate} | H-Donors: ${screening.hBondDonors} | H-Acceptors: ${screening.hBondAcceptors}
+            - Lipinski Rule-of-5 Violations: ${screening.lipinskiViolations} | Drug-Likeness Index: ${screening.drugLikenessScore}% (${screening.bioavailabilityTier})
+
+            REQUIRED LANGUAGE: Respond completely in $language.
+            Format clearly into:
+            1. 🧪 Physicochemical & Lipinski ADMET Profile
+            2. 🎯 Target Binding & Mechanism Hypothesis
+            3. 🚀 AI Preclinical Acceleration Roadmap (Months vs Years before Phase I-III Clinical Trials)
+            4. ⚠️ Scientific Caveat (Computational screening requires wet-lab synthesis & regulatory clinical trials)
+        """.trimIndent()
+
+        val aiText = callClinicalGeminiPrompt(prompt)
+        if (aiText != null) aiText to true else screening.fallbackReport to false
+    }
+
+    suspend fun generateEpidemicAlertBrief(
+        regionName: String,
+        tempCelsius: Int,
+        humidityPercent: Int,
+        travelDensity: String,
+        hospitalLoadPercent: Int,
+        newsSignals: String,
+        prediction: com.example.utils.OutbreakPredictionResult,
+        language: String
+    ): Pair<String, Boolean> = withContext(Dispatchers.IO) {
+        val prompt = """
+            You are an Epidemiological Surveillance & Public Health Early-Warning AI.
+            Analyze weather, mobility/travel, hospital capacity, and local outbreak news signals to produce an actionable Early-Warning Health Bulletin for public health officials & hospitals.
+
+            TELEMETRY INPUTS:
+            - Region / District: $regionName
+            - Weather: ${tempCelsius}°C, Humidity $humidityPercent%
+            - Travel / Mobility Density: $travelDensity
+            - Local Hospital OPD/ICU Load: $hospitalLoadPercent%
+            - News / Cluster Signals: "${newsSignals.ifBlank { "Routine seasonal monitoring" }}"
+            - Computed Risk Scores: Vector-Borne ${prediction.vectorRiskScore}%, Respiratory/Viral ${prediction.respiratoryRiskScore}%, Water-Borne ${prediction.waterBorneRiskScore}%
+            - Alert Tier: ${prediction.overallAlertTier}
+
+            REQUIRED LANGUAGE: Respond completely in $language.
+            Include:
+            1. 🚨 Outbreak Risk Assessment & Dominant Pathogen Vectors
+            2. 🏥 Health Dept & Municipal Preventive Actions
+            3. 🧬 Surveillance & Hospital Surge Readiness Checklist
+        """.trimIndent()
+
+        val aiText = callClinicalGeminiPrompt(prompt)
+        if (aiText != null) aiText to true else prediction.fallbackBrief to false
+    }
+
+    suspend fun sendVideoConsultationTurn(
+        spokenMessage: String,
+        recentCallTurns: List<Pair<String, String>>, // Pair(speaker, text)
+        userProfile: UserProfileEntity?,
+        cameraFrameBase64: String? = null,
+        language: String
+    ): Result<Pair<String, Boolean>> = withContext(Dispatchers.IO) {
+        try {
+            val isEmergency = isEmergencyText(spokenMessage)
+            if (isEmergency) {
+                val emergencyReply = when {
+                    language.equals("Gujarati", ignoreCase = true) ->
+                        "સાવધાન! તમારા લક્ષણો ગંભીર લાગે છે. કૃપા કરીને તરત જ ૧૦૮ અથવા ૧૧૨ ઇમરજન્સી પર કૉલ કરો અને નજીકની હૉસ્પિટલમાં જાઓ. શાંતિથી બેસો અને મદદ આવતા સુધી રાહ જુઓ."
+                    language.equals("Hindi", ignoreCase = true) ->
+                        "सावधान! आपके लक्षण गंभीर लग रहे हैं। कृपया तुरंत 108 या 112 पर कॉल करें और नजदीकी अस्पताल जाएं। शांत बैठें और मदद आने तक प्रतीक्षा करें।"
+                    else ->
+                        "Urgent alert! Your symptoms sound critical. Please call emergency services at 112 or 108 immediately and go to the nearest emergency room. Sit upright and stay calm while help arrives."
+                }
+                return@withContext Result.success(emergencyReply to true)
+            }
+
+            val historyBlock = recentCallTurns.takeLast(6).joinToString("\n") { (speaker, msg) ->
+                "$speaker: $msg"
+            }.ifBlank { "First turn of video call." }
+
+            val hasCameraFrame = !cameraFrameBase64.isNullOrBlank()
+            val prompt = """
+                You are "Health Care AI Doctor," speaking face-to-face with a patient during a live mobile VIDEO CALL consultation.
+                Speak naturally, warmly, concisely (3 to 5 clear spoken sentences, NO markdown bullets, NO hashtags, NO asterisks) because your reply will be read aloud immediately via Text-to-Speech while shown as live video call subtitles.
+
+                PATIENT PROFILE:
+                - Name: ${userProfile?.fullName ?: "Patient"}, Age: ${userProfile?.age ?: 30}, Allergies: ${userProfile?.allergies ?: "None Known"}, Conditions: ${userProfile?.chronicConditions ?: "None"}
+                - Live Camera Snapshot Attached: $hasCameraFrame (If attached, briefly note any visible clinical cue or demeanor naturally without overclaiming a diagnosis.)
+                - Recent Video Call Dialogue:
+                $historyBlock
+
+                PATIENT JUST SAID:
+                "$spokenMessage"
+
+                REQUIRED LANGUAGE: Reply completely and naturally in $language.
+                Include:
+                1. Empathetic acknowledgement (and visual observation if a camera frame shows something relevant).
+                2. One practical self-care step or follow-up question to keep the video consultation flowing.
+                3. Clear advice on when to see an in-person doctor or specialist.
+            """.trimIndent()
+
+            when (val aiOutcome = callMultimodalClinicalPromptDetailed(
+                promptText = prompt,
+                imageBase64 = cameraFrameBase64,
+                imageMimeType = if (hasCameraFrame) "image/jpeg" else null
+            )) {
+                is GeminiCallResult.Success -> {
+                    return@withContext Result.success(aiOutcome.text.replace(Regex("[#*`_~]"), "") to false)
+                }
+                is GeminiCallResult.NetworkError -> {
+                    return@withContext Result.failure(SlowNetworkException(aiOutcome.message, aiOutcome.cause))
+                }
+                is GeminiCallResult.NoApiKey -> {
+                    // Continue below ONLY for unconfigured offline test builds
+                }
+            }
+
+            // Conversational local fallback cleanly tailored for spoken Video Call dialogue (unconfigured/offline mode)
+            val rawFallback = getEducationalTriageFallback(
+                userMessage = spokenMessage,
+                profile = userProfile,
+                hasImage = hasCameraFrame && spokenMessage.isBlank()
+            )
+            val cleanSpokenFallback = rawFallback
+                .lineSequence()
+                .map { it.trim() }
+                .filter { it.isNotBlank() && !it.startsWith("###") && !it.startsWith("Disclaimer:") }
+                .take(4)
+                .joinToString(" ") { it.replace(Regex("[#*`_~•]"), "").trim() }
+                .ifBlank {
+                    when {
+                        language.equals("Gujarati", ignoreCase = true) ->
+                            "હું તમને સાંભળી રહ્યો છું. કૃપા કરીને તમારા લક્ષણો કેટલા સમયથી છે તે જણાવો, પૂરતું પાણી પીઓ અને જરૂર જણાય તો ડૉક્ટરની સલાહ લો."
+                        language.equals("Hindi", ignoreCase = true) ->
+                            "मैं आपकी बात सुन रहा हूँ। कृपया बताएं कि यह समस्या कितने समय से है, आराम करें और जरूरत पड़ने पर डॉक्टर से मिलें।"
+                        else ->
+                            "I hear you clearly on our video call. Could you tell me how long you have felt this way? Stay hydrated, rest calmly, and consult a doctor if symptoms worsen."
+                    }
+                }
+            Result.success(cleanSpokenFallback to false)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Authentication Repository (Username/Password + Mobile OTP)
+    // -------------------------------------------------------------------------
+    suspend fun registerCustomUserAccount(
+        username: String,
+        displayName: String,
+        password: String
+    ): Result<com.example.data.local.UserAccountEntity> = withContext(Dispatchers.IO) {
+        val cleanUser = username.trim()
+        if (cleanUser.length < 3) {
+            return@withContext Result.failure(IllegalArgumentException("Username must be at least 3 characters."))
+        }
+        if (cleanUser.contains(' ')) {
+            return@withContext Result.failure(IllegalArgumentException("Username cannot contain spaces."))
+        }
+        if (cleanUser.equals(com.example.utils.AuthSecurityHelper.DEVELOPER_USERNAME, ignoreCase = true)) {
+            return@withContext Result.failure(IllegalArgumentException("Reserved developer username cannot be registered."))
+        }
+        if (password.length < 6) {
+            return@withContext Result.failure(IllegalArgumentException("Password must be at least 6 characters."))
+        }
+        val existing = triageDao.getUserAccountByUsernameCaseInsensitive(cleanUser)
+        if (existing != null) {
+            return@withContext Result.failure(IllegalStateException("Username '$cleanUser' is already registered. Please sign in."))
+        }
+        val salt = com.example.utils.AuthSecurityHelper.generateSalt()
+        val hash = com.example.utils.AuthSecurityHelper.hashPassword(password, salt)
+        val account = com.example.data.local.UserAccountEntity(
+            username = cleanUser,
+            displayName = displayName.trim().ifBlank { cleanUser },
+            passwordSalt = salt,
+            passwordHash = hash,
+            role = "PATIENT",
+            authMethod = "PASSWORD"
+        )
+        return@withContext try {
+            val newId = triageDao.insertUserAccount(account)
+            com.example.utils.DevLogger.i("AuthRepo", "Registered custom user account '$cleanUser'")
+            Result.success(account.copy(id = newId))
+        } catch (e: Exception) {
+            Result.failure(IllegalStateException("Could not create account for '$cleanUser': ${e.message ?: "Already exists"}"))
+        }
+    }
+
+    suspend fun loginCustomUserAccount(
+        username: String,
+        password: String
+    ): Result<com.example.data.local.UserAccountEntity> = withContext(Dispatchers.IO) {
+        val cleanUser = username.trim()
+        val existing = triageDao.getUserAccountByUsernameCaseInsensitive(cleanUser)
+            ?: return@withContext Result.failure(IllegalArgumentException("Account not found. Please sign up first."))
+        val valid = com.example.utils.AuthSecurityHelper.verifyPassword(
+            password = password,
+            salt = existing.passwordSalt,
+            expectedHash = existing.passwordHash
+        )
+        if (!valid) {
+            com.example.utils.DevLogger.w("AuthRepo", "Invalid password attempt for '${existing.username}'")
+            return@withContext Result.failure(IllegalArgumentException("Incorrect password for '${existing.username}'."))
+        }
+        com.example.utils.DevLogger.i("AuthRepo", "Logged in user '${existing.username}' via password")
+        Result.success(existing)
+    }
+
+    suspend fun findOrCreateOtpAccount(
+        phoneNumber: String
+    ): Result<com.example.data.local.UserAccountEntity> = withContext(Dispatchers.IO) {
+        val normalized = com.example.utils.AuthSecurityHelper.normalizePhoneNumber(phoneNumber)
+        if (normalized.length < 10) {
+            return@withContext Result.failure(IllegalArgumentException("Enter a valid 10-digit mobile number."))
+        }
+        val otpUsername = "mobile_$normalized"
+        val existing = triageDao.getUserAccountByPhone(normalized)
+            ?: triageDao.getUserAccountByUsernameCaseInsensitive(otpUsername)
+        if (existing != null) {
+            return@withContext Result.success(existing)
+        }
+        val account = com.example.data.local.UserAccountEntity(
+            username = otpUsername,
+            displayName = "Patient (+91 $normalized)",
+            phoneNumber = normalized,
+            role = "PATIENT",
+            authMethod = "MOBILE_OTP"
+        )
+        return@withContext try {
+            val newId = triageDao.insertUserAccount(account)
+            com.example.utils.DevLogger.i("AuthRepo", "Registered & verified mobile OTP user +91 $normalized")
+            Result.success(account.copy(id = newId))
+        } catch (e: Exception) {
+            val fallback = triageDao.getUserAccountByPhone(normalized)
+                ?: triageDao.getUserAccountByUsernameCaseInsensitive(otpUsername)
+            if (fallback != null) {
+                Result.success(fallback)
+            } else {
+                Result.failure(e)
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // AI Symptom-Based Medicine & Severity Advisor (with Online Photo Lookup)
+    // -------------------------------------------------------------------------
+    suspend fun evaluateMedicineBySymptoms(
+        symptomOrIllness: String,
+        severity: Int,
+        duration: String,
+        language: String,
+        userProfile: UserProfileEntity?
+    ): com.example.utils.MedicineAdvisorResult = withContext(Dispatchers.IO) {
+        val localBaseline = com.example.utils.MedicineAdvisorEngine.evaluateLocally(
+            symptomOrIllness = symptomOrIllness,
+            severity = severity,
+            duration = duration,
+            language = language,
+            profile = userProfile,
+            resolveImagesOnline = true
+        )
+
+        // When symptoms are mild (<=3/10) without red flags, keep strict non-medicine advice
+        if (localBaseline.tier == com.example.utils.SeverityGuidanceTier.MILD_NO_MED_NEEDED) {
+            return@withContext localBaseline
+        }
+
+        val prompt = """
+            You are a cautious Clinical Pharmacology Reference Assistant.
+            Analyze this patient's symptoms and severity and output ONLY valid JSON (no markdown code fences).
+
+            INPUT:
+            - Illness / Symptoms: "$symptomOrIllness"
+            - Severity: $severity / 10
+            - Duration: "$duration"
+            - Patient Age: ${userProfile?.age ?: 30}
+            - Known Allergies: "${userProfile?.allergies ?: "None Known"}"
+            - Chronic Conditions: "${userProfile?.chronicConditions ?: "None"}"
+            - Preferred Language: "$language" (Write doctorHeadline, clinicalSummary, usageReason, dosageNote, safetyWarning, homeCareSteps in $language!)
+
+            SAFETY RULES:
+            1. Emphasize consulting a certified doctor.
+            2. Return up to 4 evidence-based reference medicines that exist for these symptoms (keep generic English medicine name + short Wikipedia title in "wikiQuery", e.g., "Paracetamol", "Cetirizine", "Omeprazole", "Amoxicillin").
+            3. Mark antibiotics or strong drugs strictly as "Rx • Doctor Prescription Required".
+
+            REQUIRED JSON SCHEMA:
+            {
+              "doctorHeadline": "string",
+              "clinicalSummary": "string",
+              "homeCareSteps": ["string"],
+              "medicines": [
+                {
+                  "name": "string",
+                  "category": "string",
+                  "rxStatus": "string",
+                  "usageReason": "string",
+                  "dosageNote": "string",
+                  "safetyWarning": "string",
+                  "wikiQuery": "string"
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val aiOutcome = callMultimodalClinicalPromptDetailed(promptText = prompt)
+        val rawAi = (aiOutcome as? GeminiCallResult.Success)?.text
+        if (!rawAi.isNullOrBlank()) {
+            try {
+                val cleanedJson = rawAi.trim()
+                    .removePrefix("```json")
+                    .removePrefix("```")
+                    .removeSuffix("```")
+                    .trim()
+                val obj = org.json.JSONObject(cleanedJson)
+                val medArr = obj.optJSONArray("medicines")
+                val parsedMeds = mutableListOf<com.example.utils.MedicineRecommendationItem>()
+                if (medArr != null) {
+                    for (i in 0 until medArr.length()) {
+                        val item = medArr.getJSONObject(i)
+                        val name = item.optString("name").takeIf { it.isNotBlank() } ?: continue
+                        val wikiQuery = item.optString("wikiQuery", name.substringBefore(" "))
+                        val photoUrl = com.example.utils.MedicineAdvisorEngine.fetchOnlineMedicineImageUrl(wikiQuery)
+                        parsedMeds.add(
+                            com.example.utils.MedicineRecommendationItem(
+                                name = name,
+                                category = item.optString("category", "Reference Medicine"),
+                                rxStatus = item.optString("rxStatus", "Doctor Guidance"),
+                                usageReason = item.optString("usageReason", ""),
+                                dosageNote = item.optString("dosageNote", "Consult a doctor for dosage."),
+                                safetyWarning = item.optString("safetyWarning", "Verify allergies before taking."),
+                                wikiQuery = wikiQuery,
+                                imageUrl = photoUrl,
+                                onlinePhotoSearchUrl = com.example.utils.MedicineAdvisorEngine.buildOnlineSearchUrl(name)
+                            )
+                        )
+                    }
+                }
+                val stepsArr = obj.optJSONArray("homeCareSteps")
+                val parsedSteps = if (stepsArr != null) {
+                    (0 until stepsArr.length()).mapNotNull { idx -> stepsArr.optString(idx).takeIf { it.isNotBlank() } }
+                } else {
+                    localBaseline.homeCareSteps
+                }
+                if (parsedMeds.isNotEmpty()) {
+                    return@withContext localBaseline.copy(
+                        doctorHeadline = obj.optString("doctorHeadline").ifBlank { localBaseline.doctorHeadline },
+                        clinicalSummary = obj.optString("clinicalSummary").ifBlank { localBaseline.clinicalSummary },
+                        homeCareSteps = parsedSteps.ifEmpty { localBaseline.homeCareSteps },
+                        medicines = parsedMeds,
+                        aiPowered = true
+                    )
+                }
+            } catch (_: Exception) {
+                // Fall back cleanly to localBaseline with enriched images
+            }
+        }
+        val slowWarning = if (aiOutcome is GeminiCallResult.NetworkError) {
+            when {
+                language.equals("Gujarati", ignoreCase = true) ->
+                    "ઇન્ટરનેટ ધીમું હોવાથી લાઇવ AI જવાબ મળી શક્યો નથી — ખોટી માહિતી ન આવે તે માટે પ્રાથમિક સલાહ બતાવી છે. મજબૂત નેટવર્ક સાથે ફરી તપાસો."
+                language.equals("Hindi", ignoreCase = true) ->
+                    "धीमे इंटरनेट के कारण लाइव AI उत्तर नहीं मिल सका — गलत उत्तर से बचने के लिए केवल प्राथमिक संदर्भ दिखाया गया है। कृपया फिर प्रयास करें।"
+                else ->
+                    "Internet was too slow for live AI verification — showing conservative clinical reference only. Please retry with stronger connection."
+            }
+        } else {
+            null
+        }
+        localBaseline.copy(networkWarningMessage = slowWarning)
+    }
+
+    // -------------------------------------------------------------------------
+    // Developer Console: Public Doctors, Live App Upgrades & Online User Presence
+    // -------------------------------------------------------------------------
+    val allPublicDoctors: Flow<List<com.example.data.local.PublicDoctorEntity>> =
+        triageDao.getAllPublicDoctors()
+
+    val activePublicDoctors: Flow<List<com.example.data.local.PublicDoctorEntity>> =
+        triageDao.getActivePublicDoctors()
+
+    val devAppConfig: Flow<com.example.data.local.DeveloperAppConfigEntity?> =
+        triageDao.getDevAppConfigFlow()
+
+    val developerUserPresenceList: Flow<List<com.example.data.local.DeveloperUserPresenceSummary>> =
+        triageDao.getDeveloperUserPresenceFlow()
+
+    suspend fun upsertPublicDoctor(doctor: com.example.data.local.PublicDoctorEntity): Long =
+        withContext(Dispatchers.IO) {
+            val existingByCloud = if (doctor.cloudId.isNotBlank()) {
+                triageDao.getPublicDoctorByCloudId(doctor.cloudId)
+            } else {
+                null
+            }
+            val resolvedId = if (doctor.id > 0L) doctor.id else (existingByCloud?.id ?: 0L)
+            triageDao.insertOrUpdatePublicDoctor(
+                doctor.copy(
+                    id = resolvedId,
+                    updatedAt = System.currentTimeMillis()
+                )
+            )
+        }
+
+    suspend fun deletePublicDoctor(doctor: com.example.data.local.PublicDoctorEntity) =
+        withContext(Dispatchers.IO) {
+            triageDao.deletePublicDoctor(doctor)
+        }
+
+    suspend fun saveDevAppConfig(config: com.example.data.local.DeveloperAppConfigEntity) =
+        withContext(Dispatchers.IO) {
+            triageDao.insertOrUpdateDevAppConfig(
+                config.copy(
+                    id = 1,
+                    updatedAt = System.currentTimeMillis()
+                )
+            )
+        }
+
+    suspend fun getDevAppConfigOnce(): com.example.data.local.DeveloperAppConfigEntity? =
+        withContext(Dispatchers.IO) {
+            triageDao.getDevAppConfigOnce()
+        }
+
+    suspend fun recordUserHeartbeat(
+        username: String,
+        authMethod: String,
+        deltaSeconds: Long,
+        isOnline: Boolean
+    ): com.example.data.local.DeveloperUserPresenceSummary? = withContext(Dispatchers.IO) {
+        val cleanUser = username.trim()
+        if (cleanUser.isBlank()) return@withContext null
+        val now = System.currentTimeMillis()
+        var existing = triageDao.getUserAccountByUsername(cleanUser)
+        if (existing == null) {
+            // Ensure Developer account ("SHAILESH") or active session also has a presence row
+            val stub = com.example.data.local.UserAccountEntity(
+                username = cleanUser,
+                displayName = cleanUser,
+                role = if (cleanUser == com.example.utils.AuthSecurityHelper.DEVELOPER_USERNAME) "DEVELOPER" else "PATIENT",
+                authMethod = authMethod.ifBlank { "PASSWORD" },
+                totalOnlineSeconds = deltaSeconds.coerceAtLeast(0L),
+                lastOnlineAt = now,
+                isCurrentlyOnline = isOnline
+            )
+            try {
+                triageDao.insertUserAccount(stub)
+            } catch (_: Exception) {}
+            existing = triageDao.getUserAccountByUsername(cleanUser)
+        } else {
+            triageDao.recordUserOnlineHeartbeat(
+                username = cleanUser,
+                deltaSeconds = deltaSeconds.coerceAtLeast(0L),
+                timestamp = now,
+                isOnline = isOnline
+            )
+            existing = triageDao.getUserAccountByUsername(cleanUser)
+        }
+        existing?.let {
+            com.example.data.local.DeveloperUserPresenceSummary(
+                username = it.username,
+                authMethod = it.authMethod,
+                totalOnlineSeconds = it.totalOnlineSeconds,
+                lastOnlineAt = it.lastOnlineAt,
+                isCurrentlyOnline = it.isCurrentlyOnline
+            )
+        }
+    }
+
+    suspend fun markUserOffline(username: String) = withContext(Dispatchers.IO) {
+        val clean = username.trim()
+        if (clean.isBlank()) return@withContext
+        triageDao.markUserOffline(clean, System.currentTimeMillis())
+    }
+
+    // Ultra Sleep & Wellness Persistence
+    val allSleepWellnessLogs: Flow<List<com.example.data.local.SleepWellnessLogEntity>> =
+        triageDao.getAllSleepWellnessLogs()
+
+    suspend fun saveSleepWellnessLog(log: com.example.data.local.SleepWellnessLogEntity): Long =
+        withContext(Dispatchers.IO) {
+            triageDao.insertSleepWellnessLog(log)
+        }
+
+    suspend fun deleteSleepWellnessLog(log: com.example.data.local.SleepWellnessLogEntity) =
+        withContext(Dispatchers.IO) {
+            triageDao.deleteSleepWellnessLog(log)
+        }
 }

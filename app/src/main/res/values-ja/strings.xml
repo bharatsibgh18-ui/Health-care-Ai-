@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">ヘルスケア AI</string>
+    <string name="app_subtitle">バーチャル医療トリアージ</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">問診</string>
+    <string name="nav_water">水分</string>
+    <string name="nav_water_reminder">水分リマインダー</string>
+    <string name="nav_medicine">お薬</string>
+    <string name="nav_medicine_reminder">お薬リマインダー</string>
+    <string name="nav_emergency">緊急</string>
+    <string name="nav_history">健康記録</string>
+    <string name="nav_profile">プロフィール</string>
+    <string name="nav_app_info">アプリ情報</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">システム設定</string>
+    <string name="theme_dark">ダークモード</string>
+    <string name="theme_light">ライトモード</string>
+    <string name="theme_toggle_desc">ダーク / ライト / システム切替</string>
+    <string name="theme_switched_system">システムテーマに切り替えました</string>
+    <string name="theme_switched_dark">ダークモードに切り替えました</string>
+    <string name="theme_switched_light">ライトモードに切り替えました</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">自動読み上げオン</string>
+    <string name="auto_speak_off">自動読み上げオフ</string>
+    <string name="emergency_sos">緊急 SOS</string>
+    <string name="language_selector">言語</string>
+    <string name="language_switched">言語を変更しました</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">ヘルスケアアシスタントへようこそ</string>
+    <string name="chat_input_placeholder">症状や健康の悩みを入力してください...</string>
+    <string name="btn_send">送信</string>
+    <string name="btn_voice_input">音声入力</string>
+    <string name="btn_attach_image">画像を添付</string>
+    <string name="btn_add_symptoms">症状の詳細を追加</string>
+    <string name="listening">聞き取り中...</string>
+    <string name="analyzing">症状を分析中...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">緊急プロトコル</string>
+    <string name="emergency_alert_title">緊急危険アラート</string>
+    <string name="emergency_alert_desc">命に関わる可能性がある症状が検出されました。直ちに救急医療を受けてください。</string>
+    <string name="emergency_dispatch_title">即時緊急通報</string>
+    <string name="emergency_dispatch_desc">危篤状態の場合は迷わず下のボタンから緊急通報してください。</string>
+    <string name="emergency_call_112">112 緊急通報</string>
+    <string name="emergency_call_108">108 救急車</string>
+    <string name="emergency_call_104">104 健康相談</string>
+    <string name="emergency_send_gps_sos">🚨 連絡先へライブGPS SOS SMS送信</string>
+    <string name="emergency_sending_gps_sos">GPS取得およびSOS送信中...</string>
+    <string name="emergency_call_contact_format">%1$s (%2$s) に発信</string>
+    <string name="emergency_red_flags_header">🚨 命に関わる危険サイン</string>
+    <string name="emergency_red_flags_sub">以下の症状がある場合は直ちに救急外来を受診してください:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">激しい胸の痛み</string>
+    <string name="emergency_sign_chest_desc">腕・肩・首・顎に広がる圧迫感や締め付けられる痛み。</string>
+    <string name="emergency_sign_breath_title">突然の息苦しさ</string>
+    <string name="emergency_sign_breath_desc">呼吸困難や一文を話し切れない状態。</string>
+    <string name="emergency_sign_stroke_title">脳卒中の兆候 (FAST)</string>
+    <string name="emergency_sign_stroke_desc">顔のゆがみ、片腕の脱力、ろれつが回らない症状。</string>
+    <string name="emergency_sign_headache_title">突然の激しい頭痛</string>
+    <string name="emergency_sign_headache_desc">数秒で耐え難いピークに達する頭痛。</string>
+    <string name="emergency_sign_bleeding_title">大量出血または喀血</string>
+    <string name="emergency_sign_bleeding_desc">止まらない出血。</string>
+    <string name="emergency_sign_allergy_title">アナフィラキシー症状</string>
+    <string name="emergency_sign_allergy_desc">唇や舌の腫れ、喘鳴、じんましん、めまい。</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. 脳卒中チェック</string>
+    <string name="emergency_fast_f_title">F - 顔 (Face)</string>
+    <string name="emergency_fast_f_desc">笑顔を作ってもらい、片側が下がっていないか確認します。</string>
+    <string name="emergency_fast_a_title">A - 腕 (Arms)</string>
+    <string name="emergency_fast_a_desc">両腕を上げてもらい、片方が下がらないか確認します。</string>
+    <string name="emergency_fast_s_title">S - 言葉 (Speech)</string>
+    <string name="emergency_fast_s_desc">短い言葉を繰り返してもらい、ろれつを確認します。</string>
+    <string name="emergency_fast_t_title">T - 時間 (Time)</string>
+    <string name="emergency_fast_t_desc">一刻を争います！直ちに112/108へ通報してください。</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 応急処置ガイド</string>
+    <string name="emergency_fa_heart_title">• 胸痛・心筋梗塞の疑い:</string>
+    <string name="emergency_fa_heart_desc">膝を曲げて背中を支え楽な姿勢で座り、きつい衣服を緩めて安静にします。</string>
+    <string name="emergency_fa_allergy_title">• 重度アレルギー (アナフィラキシー):</string>
+    <string name="emergency_fa_allergy_desc">処方されたエピペンがある場合は直ちに太ももに注射してください。</string>
+    <string name="emergency_fa_unconscious_title">• 意識がないが呼吸あり:</string>
+    <string name="emergency_fa_unconscious_desc">気道確保のため回復体位（横向き）にし、呼吸を見守ってください。</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">毎日の水分トラッカー</string>
+    <string name="water_goal">1日の目標: 2,500 ml</string>
+    <string name="water_log_cup">+250 ml (コップ)</string>
+    <string name="water_log_bottle">+500 ml (ボトル)</string>
+    <string name="water_reminder_interval">通知間隔</string>
+    <string name="water_reminder_enable">水分アラートを有効にする</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">毎日のお薬リマインダー</string>
+    <string name="medicine_reminder_subtitle">処方薬管理 • 自動通知</string>
+    <string name="medicine_automated_alerts_title">自動服薬リマインダー</string>
+    <string name="medicine_automated_alerts_desc">飲み忘れを防ぐため設定時刻に通知が届きます。</string>
+    <string name="medicine_empty_title">お薬が登録されていません</string>
+    <string name="medicine_empty_desc">毎日のお薬やビタミンを登録して自動で通知を受け取りましょう。</string>
+    <string name="add_medicine">お薬を追加</string>
+    <string name="add_daily_medicine">毎日のお薬を追加</string>
+    <string name="add_medicine_dialog_title">服薬リマインダーを追加</string>
+    <string name="edit_medicine_dialog_title">時刻と詳細を変更</string>
+    <string name="adjust_time_title">通知時刻を調整</string>
+    <string name="adjust_time_btn">時刻変更</string>
+    <string name="medicine_name">お薬の名前</string>
+    <string name="medicine_dosage">用量 (例: 500mg、1錠)</string>
+    <string name="medicine_time">予定時刻</string>
+    <string name="medicine_time_preference">希望時間帯:</string>
+    <string name="medicine_instruction">服用方法:</string>
+    <string name="medicine_saved">お薬リマインダーを設定しました</string>
+    <string name="medicine_updated">お薬の時刻を更新しました！</string>
+    <string name="medicine_deleted_format">%1$s を削除しました</string>
+    <string name="medicine_schedule_btn">リマインダー設定</string>
+    <string name="medicine_update_btn">保存して更新</string>
+    <string name="medicine_preset_morning">朝 (08:00 AM)</string>
+    <string name="medicine_preset_noon">昼 (01:00 PM)</string>
+    <string name="medicine_preset_evening">夕方 (06:00 PM)</string>
+    <string name="medicine_preset_night">夜 (09:00 PM)</string>
+    <string name="medicine_inst_after_food">食後</string>
+    <string name="medicine_inst_before_food">食前</string>
+    <string name="medicine_inst_with_water">水と一緒に</string>
+    <string name="medicine_inst_bedtime">就寝前</string>
+    <string name="medicine_hour">時</string>
+    <string name="medicine_minute">分</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">健康・症状ログ</string>
+    <string name="symptom_severity_chart">症状の推移グラフ</string>
+    <string name="filter_all">すべての症状</string>
+    <string name="filter_headache">頭痛トラッカー</string>
+    <string name="btn_export_pdf">PDFレポート出力</string>
+    <string name="btn_backup_cloud">クラウドバックアップ (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">患者医療プロフィール</string>
+    <string name="full_name">氏名</string>
+    <string name="age">年齢</string>
+    <string name="gender">性別</string>
+    <string name="blood_group">血液型</string>
+    <string name="allergies">アレルギー</string>
+    <string name="chronic_conditions">持病</string>
+    <string name="current_medications">服用中の薬</string>
+    <string name="emergency_contact_name">緊急連絡先氏名</string>
+    <string name="emergency_contact_phone">緊急連絡先電話</string>
+    <string name="btn_save_profile">プロフィールを保存</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">保存</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_delete">削除</string>
+    <string name="action_close">閉じる</string>
+    <string name="disclaimer_text">免責事項: 本アプリは健康情報提供ツールであり、医師の診断に代わるものではありません。</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI医療レポートスキャナー</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • AI解説</string>
+    <string name="scan_camera_btn">カメラでスキャン</string>
+    <string name="scan_gallery_btn">ギャラリーから選択</string>
+    <string name="scan_pdf_btn">PDF検査結果をアップロード</string>
+    <string name="scan_type_prescription">処方箋 / Rx</string>
+    <string name="scan_type_lab_report">血液・検査結果</string>
+    <string name="scan_type_discharge">退院サマリー</string>
+    <string name="scan_type_medicine_strip">薬シート</string>
+    <string name="ocr_processing_title">AIで書類を解析中…</string>
+    <string name="ocr_processing_desc">写真/PDFを読み取りわかりやすい解説を作成しています。</string>
+    <string name="tab_ai_explanation">AI解説</string>
+    <string name="tab_raw_ocr">抽出テキスト</string>
+    <string name="btn_copy_text">テキストをコピー</string>
+    <string name="btn_ask_in_chat">チャットで相談</string>
+    <string name="btn_add_to_reminders">リマインダーに追加</string>
+    <string name="text_copied">クリップボードにコピーしました！</string>
+    <string name="saved_reports_header">保存済みレポート</string>
+    <string name="no_scanned_reports">スキャンしたレポートはまだありません。</string>
+    <string name="scan_report_fab">スキャン</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">歩数計・フィットネス</string>
+    <string name="step_counter_subtitle">センサー計測 • カロリー記録</string>
+    <string name="steps_label">歩数</string>
+    <string name="step_goal_label">1日の目標</string>
+    <string name="calories_burned_label">カロリー</string>
+    <string name="distance_walked_label">距離</string>
+    <string name="active_time_label">活動時間</string>
+    <string name="sensor_active_label">センサー稼働中</string>
+    <string name="sensor_paused_label">センサー停止中</string>
+    <string name="add_steps_btn">クイック記録</string>
+    <string name="reset_steps_btn">リセット</string>
+    <string name="set_goal_dialog_title">1日の歩数目標を設定</string>
+    <string name="weekly_movement_history">7日間の歩数推移</string>
+    <string name="activity_permission_rationale">毎日の歩数を正確に計測するため身体活動権限が必要です。</string>
+    <string name="activity_permission_btn">歩数計測を有効化</string>
+    <string name="fitness_tips_header">心肺・健康アドバイス</string>
+    <string name="nav_steps">歩数</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS・応急処置</string>
+    <string name="tab_nearby_hospitals">近くの病院・クリニック</string>
+    <string name="nearby_map_header_title">近くの医療機関</string>
+    <string name="nearby_map_header_subtitle">近くの病院・クリニック・薬局までのリアルタイムGPS距離。</string>
+    <string name="nearby_filter_all">すべて</string>
+    <string name="nearby_filter_hospitals">病院</string>
+    <string name="nearby_filter_clinics">クリニック</string>
+    <string name="nearby_filter_pharmacies">24時間薬局</string>
+    <string name="btn_open_google_maps">マップで検索</string>
+    <string name="btn_navigate_facility">経路案内</string>
+    <string name="btn_call_facility">緊急発信</string>
+    <string name="nearby_gps_detecting">GPS位置を取得中…</string>
+    <string name="nearby_gps_refresh">位置情報を更新</string>
+    <string name="nearby_beds_available">空き病床 %d 床</string>
+    <string name="emergency_room_badge">24時間救急 / ICU</string>
+    <string name="locating_permission_notice">最寄りの病院までの距離計算にGPS権限が必要です。</string>
+    <string name="grant_location_btn">GPS位置情報を許可</string>
+    <string name="btn_refresh_language">アプリと言語を更新</string>
+    <string name="toast_language_refreshed">アプリと言語を更新しました！</string>
+    <string name="btn_download_apk_label">Health Care AI APKをダウンロード</string>
+    <string name="apk_download_banner_title">Health Care AI APKをダウンロード</string>
+    <string name="apk_download_banner_desc">OCR・GPS病院・歩数計対応の最新アプリを共有またはインストール。</string>
+    <string name="btn_test_med_notification">通知テスト</string>
+    <string name="toast_med_notification_sent">テスト通知を送信しました！</string>
+    <string name="real_hospital_tracking_badge">リアルタイムGPS追跡中</string>
+    <string name="startup_permissions_dialog_title">Health Care AIへようこそ</string>
+    <string name="startup_permissions_dialog_desc">病院検索・歩数計・スキャン・音声入力・リマインダーのため権限を許可してください。</string>
+    <string name="btn_grant_all_permissions">すべての権限を許可</string>
+</resources>

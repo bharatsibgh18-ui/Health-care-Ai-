@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">الرعاية الصحية AI</string>
+    <string name="app_subtitle">الفرز الطبي الافتراضي</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">الفحص</string>
+    <string name="nav_water">الماء</string>
+    <string name="nav_water_reminder">تذكير الماء</string>
+    <string name="nav_medicine">الأدوية</string>
+    <string name="nav_medicine_reminder">تذكير الدواء</string>
+    <string name="nav_emergency">طوارئ</string>
+    <string name="nav_history">السجل الصحي</string>
+    <string name="nav_profile">الملف الشخصي</string>
+    <string name="nav_app_info">معلومات التطبيق</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">افتراضي النظام</string>
+    <string name="theme_dark">الوضع الداكن</string>
+    <string name="theme_light">الوضع الفاتح</string>
+    <string name="theme_toggle_desc">تبديل الوضع الداكن / الفاتح / النظام</string>
+    <string name="theme_switched_system">تم التبديل إلى سمة النظام</string>
+    <string name="theme_switched_dark">تم التبديل إلى الوضع الداكن</string>
+    <string name="theme_switched_light">تم التبديل إلى الوضع الفاتح</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">النطق التلقائي نشط</string>
+    <string name="auto_speak_off">النطق التلقائي متوقف</string>
+    <string name="emergency_sos">طوارئ SOS</string>
+    <string name="language_selector">اللغة</string>
+    <string name="language_switched">تم تغيير اللغة</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">مرحبًا بك في المساعد الصحي</string>
+    <string name="chat_input_placeholder">صف الأعراض أو حالتك الصحية...</string>
+    <string name="btn_send">إرسال</string>
+    <string name="btn_voice_input">إدخال صوتي</string>
+    <string name="btn_attach_image">إرفاق صورة</string>
+    <string name="btn_add_symptoms">إضافة تفاصيل الأعراض</string>
+    <string name="listening">جاري الاستماع...</string>
+    <string name="analyzing">جاري تحليل الأعراض...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">بروتوكول الطوارئ</string>
+    <string name="emergency_alert_title">تنبيه خطر طارئ</string>
+    <string name="emergency_alert_desc">تم رصد أعراض قد تهدد الحياة. اطلب الرعاية الطبية الطارئة فورًا.</string>
+    <string name="emergency_dispatch_title">اتصال طوارئ فوري</string>
+    <string name="emergency_dispatch_desc">إذا كان شخص ما في حالة حرجة فلا تتأخر. اضغط أدناه للاتصال فورًا.</string>
+    <string name="emergency_call_112">112 الطوارئ</string>
+    <string name="emergency_call_108">108 الإسعاف</string>
+    <string name="emergency_call_104">104 خط الصحة</string>
+    <string name="emergency_send_gps_sos">🚨 إرسال رسالة SOS بموقع GPS مباشر</string>
+    <string name="emergency_sending_gps_sos">جاري تحديد الموقع وإرسال SOS...</string>
+    <string name="emergency_call_contact_format">اتصال بـ %1$s (%2$s)</string>
+    <string name="emergency_red_flags_header">🚨 علامات الخطر المهددة للحياة</string>
+    <string name="emergency_red_flags_sub">توجه إلى الطوارئ فورًا إذا لاحظت أيًا من هذه العلامات:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">ألم شديد في الصدر</string>
+    <string name="emergency_sign_chest_desc">ألم ضاغط يمتد إلى الذراع أو الكتف أو الرقبة أو الفك.</string>
+    <string name="emergency_sign_breath_title">ضيق مفاجئ في التنفس</string>
+    <string name="emergency_sign_breath_desc">اختناق أو عدم القدرة على إكمال جملة كاملة.</string>
+    <string name="emergency_sign_stroke_title">أعراض السكتة الدماغية (FAST)</string>
+    <string name="emergency_sign_stroke_desc">تدلي الوجه أو ضعف الذراع أو تلعثم الكلام.</string>
+    <string name="emergency_sign_headache_title">صداع مفاجئ شديد جدًا</string>
+    <string name="emergency_sign_headache_desc">صداع حاد يصل ذروته خلال ثوانٍ.</string>
+    <string name="emergency_sign_bleeding_title">نزيف حاد أو سعال دموي</string>
+    <string name="emergency_sign_bleeding_desc">نزيف غير منضبط.</string>
+    <string name="emergency_sign_allergy_title">علامات الحساسية المفرطة</string>
+    <string name="emergency_sign_allergy_desc">تورم الشفتين أو اللسان أو صفير الصدر أو دوخة شديدة.</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 تقييم السكتة الدماغية F.A.S.T.</string>
+    <string name="emergency_fast_f_title">F - الوجه (Face)</string>
+    <string name="emergency_fast_f_desc">اطلب منه الابتسام. هل يتدلى أحد جانبي الوجه؟</string>
+    <string name="emergency_fast_a_title">A - الذراعان (Arms)</string>
+    <string name="emergency_fast_a_desc">اطلب رفع الذراعين. هل تنخفض إحداهما للأسفل؟</string>
+    <string name="emergency_fast_s_title">S - الكلام (Speech)</string>
+    <string name="emergency_fast_s_desc">اطلب تكرار جملة بسيطة. هل الكلام غير واضح؟</string>
+    <string name="emergency_fast_t_title">T - الوقت (Time)</string>
+    <string name="emergency_fast_t_desc">كل دقيقة ثمينة! اتصل بـ 112/108 فورًا.</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 إرشادات الإسعافات الأولية</string>
+    <string name="emergency_fa_heart_title">• ألم الصدر / الاشتباه بنوبة قلبية:</string>
+    <string name="emergency_fa_heart_desc">اجلس معتدلًا مع ثني الركبتين وإسناد الظهر، وفك الملابس الضيقة وابق هادئًا.</string>
+    <string name="emergency_fa_allergy_title">• حساسية شديدة (Anaphylaxis):</string>
+    <string name="emergency_fa_allergy_desc">إذا وُصف قلم EpiPen، احقنه فورًا في عضلة الفخذ الخارجية.</string>
+    <string name="emergency_fa_unconscious_title">• فاقد للوعي ويتنفس طبيعيًا:</string>
+    <string name="emergency_fa_unconscious_desc">ضعه في وضعية الإفاقة الجانبية وراقب التنفس باستمرار.</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">متتبع شرب الماء اليومي</string>
+    <string name="water_goal">الهدف اليومي: 2,500 مل</string>
+    <string name="water_log_cup">+250 مل (كوب)</string>
+    <string name="water_log_bottle">+500 مل (زجاجة)</string>
+    <string name="water_reminder_interval">فترة التذكير</string>
+    <string name="water_reminder_enable">تفعيل تنبيهات الماء</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">تذكيرات الأدوية اليومية</string>
+    <string name="medicine_reminder_subtitle">الوصفات اليومية • تنبيهات تلقائية</string>
+    <string name="medicine_automated_alerts_title">تذكيرات الأدوية التلقائية</string>
+    <string name="medicine_automated_alerts_desc">ستصلك إشعارات منتظمة لتناول جرعاتك في الوقت المحدد.</string>
+    <string name="medicine_empty_title">لم تتم إضافة أدوية</string>
+    <string name="medicine_empty_desc">تابع أدويتك وفيتاميناتك اليومية بتنبيهات تلقائية.</string>
+    <string name="add_medicine">إضافة دواء</string>
+    <string name="add_daily_medicine">إضافة دواء يومي</string>
+    <string name="add_medicine_dialog_title">إضافة تذكير دواء</string>
+    <string name="edit_medicine_dialog_title">تعديل وقت وتفاصيل الدواء</string>
+    <string name="adjust_time_title">ضبط وقت التذكير</string>
+    <string name="adjust_time_btn">تعديل الوقت</string>
+    <string name="medicine_name">اسم الدواء</string>
+    <string name="medicine_dosage">الجرعة (مثل 500mg، قرص واحد)</string>
+    <string name="medicine_time">الوقت المحدد</string>
+    <string name="medicine_time_preference">الوقت المفضل:</string>
+    <string name="medicine_instruction">التعليمات:</string>
+    <string name="medicine_saved">تم جدولة تذكير الدواء</string>
+    <string name="medicine_updated">تم تحديث وقت الدواء!</string>
+    <string name="medicine_deleted_format">تمت إزالة %1$s</string>
+    <string name="medicine_schedule_btn">جدولة التذكير</string>
+    <string name="medicine_update_btn">حفظ وتحديث</string>
+    <string name="medicine_preset_morning">الصباح (08:00 AM)</string>
+    <string name="medicine_preset_noon">الظهر (01:00 PM)</string>
+    <string name="medicine_preset_evening">المساء (06:00 PM)</string>
+    <string name="medicine_preset_night">الليل (09:00 PM)</string>
+    <string name="medicine_inst_after_food">بعد الأكل</string>
+    <string name="medicine_inst_before_food">قبل الأكل</string>
+    <string name="medicine_inst_with_water">مع الماء</string>
+    <string name="medicine_inst_bedtime">قبل النوم</string>
+    <string name="medicine_hour">الساعة</string>
+    <string name="medicine_minute">الدقيقة</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">سجل الصحة والأعراض</string>
+    <string name="symptom_severity_chart">شدة الأعراض عبر الزمن</string>
+    <string name="filter_all">جميع الأعراض</string>
+    <string name="filter_headache">متتبع الصداع</string>
+    <string name="btn_export_pdf">تصدير تقرير PDF</string>
+    <string name="btn_backup_cloud">نسخ احتياطي سحابي (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">الملف الطبي للمريض</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="age">العمر</string>
+    <string name="gender">الجنس</string>
+    <string name="blood_group">فصيلة الدم</string>
+    <string name="allergies">الحساسية</string>
+    <string name="chronic_conditions">الأمراض المزمنة</string>
+    <string name="current_medications">الأدوية الحالية</string>
+    <string name="emergency_contact_name">اسم جهة اتصال الطوارئ</string>
+    <string name="emergency_contact_phone">هاتف الطوارئ</string>
+    <string name="btn_save_profile">حفظ الملف الشخصي</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">حفظ</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_close">إغلاق</string>
+    <string name="disclaimer_text">إخلاء مسؤولية: هذا التطبيق أداة توعوية صحية ولا يغني عن استشارة الطبيب المختص.</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">ماسح التقارير الطبية بالذكاء الاصطناعي</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • شرح الذكاء الاصطناعي</string>
+    <string name="scan_camera_btn">المسح بالكاميرا</string>
+    <string name="scan_gallery_btn">الرفع من المعرض</string>
+    <string name="scan_pdf_btn">رفع تقرير PDF</string>
+    <string name="scan_type_prescription">وصفة طبية / Rx</string>
+    <string name="scan_type_lab_report">تحاليل ومختبر</string>
+    <string name="scan_type_discharge">ملخص الخروج</string>
+    <string name="scan_type_medicine_strip">شريط دواء</string>
+    <string name="ocr_processing_title">جاري تحليل المستند بالذكاء الاصطناعي…</string>
+    <string name="ocr_processing_desc">تتم قراءة الصورة أو ملف PDF وإعداد شرح مبسط لك.</string>
+    <string name="tab_ai_explanation">شرح مبسط بالذكاء الاصطناعي</string>
+    <string name="tab_raw_ocr">النص المستخرج</string>
+    <string name="btn_copy_text">نسخ النص</string>
+    <string name="btn_ask_in_chat">اسأل في المحادثة</string>
+    <string name="btn_add_to_reminders">إضافة للتذكيرات</string>
+    <string name="text_copied">تم النسخ إلى الحافظة!</string>
+    <string name="saved_reports_header">التقارير المحفوظة</string>
+    <string name="no_scanned_reports">لا توجد تقارير ممسوحة بعد.</string>
+    <string name="scan_report_fab">مسح تقرير</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">عداد الخطوات واللياقة</string>
+    <string name="step_counter_subtitle">مستشعر الجهاز • السعرات والنشاط</string>
+    <string name="steps_label">خطوة</string>
+    <string name="step_goal_label">الهدف اليومي</string>
+    <string name="calories_burned_label">السعرات</string>
+    <string name="distance_walked_label">المسافة</string>
+    <string name="active_time_label">الوقت النشط</string>
+    <string name="sensor_active_label">المستشعر نشط</string>
+    <string name="sensor_paused_label">المستشعر متوقف</string>
+    <string name="add_steps_btn">إضافة سريعة</string>
+    <string name="reset_steps_btn">إعادة ضبط اليوم</string>
+    <string name="set_goal_dialog_title">تحديد هدف الخطوات اليومي</string>
+    <string name="weekly_movement_history">اتجاه الخطوات لـ 7 أيام</string>
+    <string name="activity_permission_rationale">مطلوب إذن النشاط البدني لحساب خطواتك اليومية بدقة.</string>
+    <string name="activity_permission_btn">تفعيل عداد الخطوات</string>
+    <string name="fitness_tips_header">نصائح صحة القلب واللياقة</string>
+    <string name="nav_steps">الخطوات</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">الطوارئ والإسعاف</string>
+    <string name="tab_nearby_hospitals">المستشفيات والعيادات القريبة</string>
+    <string name="nearby_map_header_title">المراكز الطبية القريبة</string>
+    <string name="nearby_map_header_subtitle">المسافة المباشرة عبر GPS إلى المستشفيات والعيادات والصيدليات.</string>
+    <string name="nearby_filter_all">الكل</string>
+    <string name="nearby_filter_hospitals">المستشفيات</string>
+    <string name="nearby_filter_clinics">العيادات</string>
+    <string name="nearby_filter_pharmacies">صيدلية 24/7</string>
+    <string name="btn_open_google_maps">البحث في الخرائط</string>
+    <string name="btn_navigate_facility">الاتجاهات</string>
+    <string name="btn_call_facility">اتصال طارئ</string>
+    <string name="nearby_gps_detecting">جاري تحديد موقع GPS…</string>
+    <string name="nearby_gps_refresh">تحديث الموقع</string>
+    <string name="nearby_beds_available">%d سرير متاح</string>
+    <string name="emergency_room_badge">طوارئ / عناية 24/7</string>
+    <string name="locating_permission_notice">مطلوب إذن GPS لحساب المسافة إلى أقرب مستشفى.</string>
+    <string name="grant_location_btn">تفعيل موقع GPS</string>
+    <string name="btn_refresh_language">تحديث التطبيق واللغة</string>
+    <string name="toast_language_refreshed">تم تحديث التطبيق واللغة بنجاح!</string>
+    <string name="btn_download_apk_label">تنزيل Health Care AI APK</string>
+    <string name="apk_download_banner_title">تنزيل Health Care AI APK</string>
+    <string name="apk_download_banner_desc">قم بتثبيت أو مشاركة التطبيق المحدث مع OCR والمستشفيات وعداد الخطوات.</string>
+    <string name="btn_test_med_notification">اختبار إشعار الدواء</string>
+    <string name="toast_med_notification_sent">تم إرسال إشعار الاختبار!</string>
+    <string name="real_hospital_tracking_badge">تتبع GPS المباشر نشط</string>
+    <string name="startup_permissions_dialog_title">مرحبًا بك في Health Care AI</string>
+    <string name="startup_permissions_dialog_desc">يرجى منح الأذونات المطلوبة للمستشفيات والخطوات والمسح والصوت والتذكيرات.</string>
+    <string name="btn_grant_all_permissions">منح جميع الأذونات</string>
+</resources>

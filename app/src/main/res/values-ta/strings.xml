@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">ஹெல்த் கேர் AI</string>
+    <string name="app_subtitle">மெய்நிகர் மருத்துவ உதவி</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">பரிசோதனை</string>
+    <string name="nav_water">தண்ணீர்</string>
+    <string name="nav_water_reminder">தண்ணீர் நினைவூட்டல்</string>
+    <string name="nav_medicine">மருந்து</string>
+    <string name="nav_medicine_reminder">மருந்து நினைவூட்டல்</string>
+    <string name="nav_emergency">அவசரம்</string>
+    <string name="nav_history">சுகாதார பதிவு</string>
+    <string name="nav_profile">சுயவிவரம்</string>
+    <string name="nav_app_info">செயலி தகவல்</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">கணினி இயல்பு</string>
+    <string name="theme_dark">இருண்ட பயன்முறை</string>
+    <string name="theme_light">ஒளி பயன்முறை</string>
+    <string name="theme_toggle_desc">இருண்ட / ஒளி / கணினி தீம் மாற்று</string>
+    <string name="theme_switched_system">கணினி தீமுக்கு மாற்றப்பட்டது</string>
+    <string name="theme_switched_dark">இருண்ட பயன்முறைக்கு மாற்றப்பட்டது</string>
+    <string name="theme_switched_light">ஒளி பயன்முறைக்கு மாற்றப்பட்டது</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">தானியங்கி குரல் இயக்கம்</string>
+    <string name="auto_speak_off">தானியங்கி குரல் நிறுத்தம்</string>
+    <string name="emergency_sos">அவசர SOS</string>
+    <string name="language_selector">மொழி</string>
+    <string name="language_switched">மொழி மாற்றப்பட்டது</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">சுகாதார உதவியாளருக்கு வரவேற்கிறோம்</string>
+    <string name="chat_input_placeholder">அறிகுறிகள் அல்லது உடல்நலப் பிரச்சனையை விவரிக்கவும்...</string>
+    <string name="btn_send">அனுப்பு</string>
+    <string name="btn_voice_input">குரல் உள்ளீடு</string>
+    <string name="btn_attach_image">படம் இணை</string>
+    <string name="btn_add_symptoms">அறிகுறி விவரம் சேர்</string>
+    <string name="listening">கேட்கிறது...</string>
+    <string name="analyzing">அறிகுறிகளை பகுப்பாய்வு செய்கிறது...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">அவசர நெறிமுறை</string>
+    <string name="emergency_alert_title">அவசர ஆபத்து எச்சரிக்கை</string>
+    <string name="emergency_alert_desc">உயிருக்கு ஆபத்தான அறிகுறிகள் கண்டறியப்பட்டன. உடனே அவசர மருத்துவ உதவி பெறவும்.</string>
+    <string name="emergency_dispatch_title">உடனடி அவசர அழைப்பு</string>
+    <string name="emergency_dispatch_desc">யாரேனும் ஆபத்தில் இருந்தால் தாமதிக்காமல் கீழே தட்டி அவசர அழைப்பு விடுக்கவும்.</string>
+    <string name="emergency_call_112">112 பொது அவசரம்</string>
+    <string name="emergency_call_108">108 ஆம்புலன்ஸ்</string>
+    <string name="emergency_call_104">104 சுகாதார உதவி</string>
+    <string name="emergency_send_gps_sos">🚨 தொடர்புக்கு நேரடி GPS SOS SMS அனுப்பு</string>
+    <string name="emergency_sending_gps_sos">GPS கண்டறிந்து SOS அனுப்புகிறது...</string>
+    <string name="emergency_call_contact_format">%1$s (%2$s) அழைக்கவும்</string>
+    <string name="emergency_red_flags_header">🚨 உயிருக்கு ஆபத்தான அறிகுறிகள்</string>
+    <string name="emergency_red_flags_sub">கீழ்க்கண்ட அறிகுறிகள் இருந்தால் உடனே மருத்துவமனை செல்லவும்:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">கடுமையான நெஞ்சு வலி</string>
+    <string name="emergency_sign_chest_desc">கை, தோள், கழுத்து அல்லது தாடைக்கு பரவும் அழுத்தமான வலி.</string>
+    <string name="emergency_sign_breath_title">திடீர் மூச்சுத்திணறல்</string>
+    <string name="emergency_sign_breath_desc">மூச்சு விட சிரமம் அல்லது முழு வாக்கியம் பேச முடியாமை.</string>
+    <string name="emergency_sign_stroke_title">பக்கவாத அறிகுறிகள் (FAST)</string>
+    <string name="emergency_sign_stroke_desc">முகம் சாய்தல், கை தளர்ச்சி அல்லது பேச்சு குழறுதல்.</string>
+    <string name="emergency_sign_headache_title">திடீர் கடுமையான தலைவலி</string>
+    <string name="emergency_sign_headache_desc">சில நொடிகளில் தாங்க முடியாத உச்சத்தை அடையும் தலைவலி.</string>
+    <string name="emergency_sign_bleeding_title">கடுமையான இரத்தப்போக்கு</string>
+    <string name="emergency_sign_bleeding_desc">கட்டுப்படுத்த முடியாத இரத்தப்போக்கு அல்லது இருமலில் இரத்தம்.</string>
+    <string name="emergency_sign_allergy_title">கடுமையான ஒவ்வாமை அறிகுறிகள்</string>
+    <string name="emergency_sign_allergy_desc">உதடு/நாக்கு வீக்கம், மூச்சுத்திணறல், தடிப்பு அல்லது மயக்கம்.</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. பக்கவாத பரிசோதனை</string>
+    <string name="emergency_fast_f_title">F - முகம் (Face)</string>
+    <string name="emergency_fast_f_desc">சிரிக்கச் சொல்லுங்கள். முகத்தின் ஒரு பக்கம் சாய்கிறதா?</string>
+    <string name="emergency_fast_a_title">A - கைகள் (Arms)</string>
+    <string name="emergency_fast_a_desc">இரு கைகளையும் உயர்த்தச் சொல்லுங்கள். ஒரு கை கீழே விழுகிறதா?</string>
+    <string name="emergency_fast_s_title">S - பேச்சு (Speech)</string>
+    <string name="emergency_fast_s_desc">எளிய வாக்கியத்தைச் சொல்லச் சொல்லுங்கள். பேச்சு தெளிவில்லாமல் உள்ளதா?</string>
+    <string name="emergency_fast_t_title">T - நேரம் (Time)</string>
+    <string name="emergency_fast_t_desc">ஒவ்வொரு நொடியும் முக்கியம்! உடனே 112/108 அழைக்கவும்.</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 முதலுதவி வழிமுறைகள்</string>
+    <string name="emergency_fa_heart_title">• நெஞ்சு வலி / மாரடைப்பு சந்தேகம்:</string>
+    <string name="emergency_fa_heart_desc">முழங்கால்களை மடித்து முதுகுக்கு ஆதரவுடன் நிமிர்ந்து அமரவும். இறுக்கமான உடையை தளர்த்தவும்.</string>
+    <string name="emergency_fa_allergy_title">• கடுமையான ஒவ்வாமை (Anaphylaxis):</string>
+    <string name="emergency_fa_allergy_desc">பரிந்துரைக்கப்பட்ட EpiPen இருந்தால் உடனே தொடையில் செலுத்தவும்.</string>
+    <string name="emergency_fa_unconscious_title">• மயக்கம் ஆனால் சுவாசம் இயல்பு:</string>
+    <string name="emergency_fa_unconscious_desc">சுவாசப்பாதை திறந்திருக்க ஒரு பக்கமாக படுக்க வைத்து சுவாசத்தைக் கண்காணிக்கவும்.</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">தினசரி தண்ணீர் கண்காணிப்பு</string>
+    <string name="water_goal">தினசரி இலக்கு: 2,500 ml</string>
+    <string name="water_log_cup">+250 ml (கிளாஸ்)</string>
+    <string name="water_log_bottle">+500 ml (பாட்டில்)</string>
+    <string name="water_reminder_interval">நினைவூட்டல் இடைவெளி</string>
+    <string name="water_reminder_enable">தண்ணீர் எச்சரிக்கை இயக்கு</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">தினசரி மருந்து நினைவூட்டல்கள்</string>
+    <string name="medicine_reminder_subtitle">தினசரி மருந்துகள் • தானியங்கி எச்சரிக்கை</string>
+    <string name="medicine_automated_alerts_title">தானியங்கி மருந்து நினைவூட்டல்</string>
+    <string name="medicine_automated_alerts_desc">சரியான நேரத்தில் மருந்து உட்கொள்ள அறிவிப்புகள் அனுப்பப்படும்.</string>
+    <string name="medicine_empty_title">மருந்துகள் சேர்க்கப்படவில்லை</string>
+    <string name="medicine_empty_desc">தினசரி மாத்திரைகள் மற்றும் மருந்துகளை நேரப்படி கண்காணிக்கவும்.</string>
+    <string name="add_medicine">மருந்து சேர்</string>
+    <string name="add_daily_medicine">தினசரி மருந்து சேர்</string>
+    <string name="add_medicine_dialog_title">மருந்து நினைவூட்டல் சேர்</string>
+    <string name="edit_medicine_dialog_title">மருந்து நேரம் &amp; விவரம் மாற்று</string>
+    <string name="adjust_time_title">நினைவூட்டல் நேரம் மாற்று</string>
+    <string name="adjust_time_btn">நேரம் மாற்று</string>
+    <string name="medicine_name">மருந்து பெயர்</string>
+    <string name="medicine_dosage">அளவு (எ.கா. 500mg, 1 மாத்திரை)</string>
+    <string name="medicine_time">திட்டமிட்ட நேரம்</string>
+    <string name="medicine_time_preference">விருப்ப நேரம்:</string>
+    <string name="medicine_instruction">வழிமுறைகள்:</string>
+    <string name="medicine_saved">மருந்து நினைவூட்டல் அமைக்கப்பட்டது</string>
+    <string name="medicine_updated">மருந்து நேரம் புதுப்பிக்கப்பட்டது!</string>
+    <string name="medicine_deleted_format">%1$s நீக்கப்பட்டது</string>
+    <string name="medicine_schedule_btn">நினைவூட்டல் அமை</string>
+    <string name="medicine_update_btn">சேமி &amp; புதுப்பி</string>
+    <string name="medicine_preset_morning">காலை (08:00 AM)</string>
+    <string name="medicine_preset_noon">மதியம் (01:00 PM)</string>
+    <string name="medicine_preset_evening">மாலை (06:00 PM)</string>
+    <string name="medicine_preset_night">இரவு (09:00 PM)</string>
+    <string name="medicine_inst_after_food">உணவுக்குப் பின்</string>
+    <string name="medicine_inst_before_food">உணவுக்கு முன்</string>
+    <string name="medicine_inst_with_water">தண்ணீருடன்</string>
+    <string name="medicine_inst_bedtime">தூங்கும் முன்</string>
+    <string name="medicine_hour">மணி</string>
+    <string name="medicine_minute">நிமிடம்</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">சுகாதாரம் &amp; அறிகுறி பதிவு</string>
+    <string name="symptom_severity_chart">காலப்போக்கில் அறிகுறி தீவிரம்</string>
+    <string name="filter_all">அனைத்து அறிகுறிகள்</string>
+    <string name="filter_headache">தலைவலி கண்காணிப்பு</string>
+    <string name="btn_export_pdf">PDF அறிக்கை ஏற்றுமதி</string>
+    <string name="btn_backup_cloud">கிளவுட் காப்பு (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">நோயாளி மருத்துவ சுயவிவரம்</string>
+    <string name="full_name">முழு பெயர்</string>
+    <string name="age">வயது</string>
+    <string name="gender">பாலினம்</string>
+    <string name="blood_group">இரத்த வகை</string>
+    <string name="allergies">ஒவ்வாமை</string>
+    <string name="chronic_conditions">நாள்பட்ட நோய்கள்</string>
+    <string name="current_medications">தற்போதைய மருந்துகள்</string>
+    <string name="emergency_contact_name">அவசர தொடர்பு பெயர்</string>
+    <string name="emergency_contact_phone">அவசர தொடர்பு எண்</string>
+    <string name="btn_save_profile">சுயவிவரத்தை சேமி</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">சேமி</string>
+    <string name="action_cancel">ரத்து</string>
+    <string name="action_delete">நீக்கு</string>
+    <string name="action_close">மூடு</string>
+    <string name="disclaimer_text">பொறுப்புத்துறப்பு: இது கல்வி நோக்க மருத்துவ உதவி மட்டுமே; தகுதியான மருத்துவர் ஆலோசனைக்கு மாற்று அல்ல.</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI மருத்துவ அறிக்கை ஸ்கேனர்</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • AI விளக்கம்</string>
+    <string name="scan_camera_btn">கேமராவில் ஸ்கேன் செய்</string>
+    <string name="scan_gallery_btn">கேலரியில் பதிவேற்று</string>
+    <string name="scan_pdf_btn">PDF அறிக்கை பதிவேற்று</string>
+    <string name="scan_type_prescription">மருந்துச்சீட்டு / Rx</string>
+    <string name="scan_type_lab_report">ஆய்வக &amp; இரத்த அறிக்கை</string>
+    <string name="scan_type_discharge">மருத்துவமனை சுருக்கம்</string>
+    <string name="scan_type_medicine_strip">மருந்து அட்டை</string>
+    <string name="ocr_processing_title">AI மூலம் ஆவணம் பகுப்பாய்வு…</string>
+    <string name="ocr_processing_desc">உங்கள் படம்/PDF படிக்கப்பட்டு எளிய மொழியில் விளக்கம் தயாராகிறது.</string>
+    <string name="tab_ai_explanation">AI எளிய விளக்கம்</string>
+    <string name="tab_raw_ocr">ஸ்கேன் செய்யப்பட்ட உரை</string>
+    <string name="btn_copy_text">உரையை நகலெடு</string>
+    <string name="btn_ask_in_chat">அரட்டையில் கேளுங்கள்</string>
+    <string name="btn_add_to_reminders">நினைவூட்டலில் சேர்</string>
+    <string name="text_copied">கிளிப்போர்டில் நகலெடுக்கப்பட்டது!</string>
+    <string name="saved_reports_header">சேமித்த அறிக்கைகள்</string>
+    <string name="no_scanned_reports">இன்னும் அறிக்கைகள் ஸ்கேன் செய்யப்படவில்லை.</string>
+    <string name="scan_report_fab">அறிக்கை ஸ்கேன்</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">அடிகள் எண்ணிக்கை &amp; உடற்பயிற்சி</string>
+    <string name="step_counter_subtitle">வன்பொருள் சென்சார் • கலோரி கண்காணிப்பு</string>
+    <string name="steps_label">அடிகள்</string>
+    <string name="step_goal_label">தினசரி இலக்கு</string>
+    <string name="calories_burned_label">கலோரிகள்</string>
+    <string name="distance_walked_label">தூரம்</string>
+    <string name="active_time_label">செயலில் நேரம்</string>
+    <string name="sensor_active_label">சென்சார் இயக்கம்</string>
+    <string name="sensor_paused_label">சென்சார் நிறுத்தம்</string>
+    <string name="add_steps_btn">விரைவு பதிவு</string>
+    <string name="reset_steps_btn">நாள் மீட்டமை</string>
+    <string name="set_goal_dialog_title">தினசரி அடி இலக்கு அமை</string>
+    <string name="weekly_movement_history">7-நாள் நடைப் போக்கு</string>
+    <string name="activity_permission_rationale">உங்கள் தினசரி நடையை துல்லியமாக கணக்கிட செயல்பாட்டு அனுமதி தேவை.</string>
+    <string name="activity_permission_btn">அடி கண்காணிப்பு இயக்கு</string>
+    <string name="fitness_tips_header">இதய &amp; நல ஆலோசனைகள்</string>
+    <string name="nav_steps">அடிகள்</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS &amp; முதலுதவி</string>
+    <string name="tab_nearby_hospitals">அருகிலுள்ள மருத்துவமனைகள்</string>
+    <string name="nearby_map_header_title">அருகிலுள்ள மருத்துவ மையங்கள்</string>
+    <string name="nearby_map_header_subtitle">அருகிலுள்ள மருத்துவமனைகள், கிளினிக்குகள் மற்றும் மருந்தகங்களின் நேரடி GPS தூரம்.</string>
+    <string name="nearby_filter_all">அனைத்தும்</string>
+    <string name="nearby_filter_hospitals">மருத்துவமனைகள்</string>
+    <string name="nearby_filter_clinics">கிளினிக்குகள்</string>
+    <string name="nearby_filter_pharmacies">24/7 மருந்தகம்</string>
+    <string name="btn_open_google_maps">வரைபடத்தில் தேடு</string>
+    <string name="btn_navigate_facility">வழிகாட்டுதல்</string>
+    <string name="btn_call_facility">அவசர அழைப்பு</string>
+    <string name="nearby_gps_detecting">GPS இடம் கண்டறிகிறது…</string>
+    <string name="nearby_gps_refresh">இடம் புதுப்பி</string>
+    <string name="nearby_beds_available">%d படுக்கைகள் உள்ளன</string>
+    <string name="emergency_room_badge">24/7 அவசர / ICU</string>
+    <string name="locating_permission_notice">அருகிலுள்ள மருத்துவமனை தூரத்தை கணக்கிட GPS அனுமதி தேவை.</string>
+    <string name="grant_location_btn">GPS இடம் இயக்கு</string>
+    <string name="btn_refresh_language">செயலி &amp; மொழி புதுப்பி</string>
+    <string name="toast_language_refreshed">செயலி &amp; மொழி வெற்றிகரமாக புதுப்பிக்கப்பட்டது!</string>
+    <string name="btn_download_apk_label">Health Care AI APK பதிவிறக்கு</string>
+    <string name="apk_download_banner_title">Health Care AI APK பதிவிறக்கு</string>
+    <string name="apk_download_banner_desc">OCR, GPS மருத்துவமனை &amp; அடி எண்ணிக்கையுடன் புதுப்பிக்கப்பட்ட செயலியைப் பகிரவும்.</string>
+    <string name="btn_test_med_notification">மருந்து அறிவிப்பு சோதனை</string>
+    <string name="toast_med_notification_sent">மருந்து சோதனை அறிவிப்பு அனுப்பப்பட்டது!</string>
+    <string name="real_hospital_tracking_badge">நேரடி GPS கண்காணிப்பு செயலில்</string>
+    <string name="startup_permissions_dialog_title">Health Care AI வரவேற்பு</string>
+    <string name="startup_permissions_dialog_desc">மருத்துவமனை தூரம், நடை எண்ணிக்கை, அறிக்கை ஸ்கேன், குரல் உள்ளீடு மற்றும் நினைவூட்டல்களுக்கு அனுமதி அளிக்கவும்.</string>
+    <string name="btn_grant_all_permissions">அனைத்து அனுமதிகளும் வழங்கு</string>
+</resources>

@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">Health Care AI</string>
+    <string name="app_subtitle">Виртуальный медицинский ассистент</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">Осмотр</string>
+    <string name="nav_water">Вода</string>
+    <string name="nav_water_reminder">Напоминание о воде</string>
+    <string name="nav_medicine">Лекарства</string>
+    <string name="nav_medicine_reminder">Напоминание о лекарствах</string>
+    <string name="nav_emergency">Экстренно</string>
+    <string name="nav_history">Дневник</string>
+    <string name="nav_profile">Профиль</string>
+    <string name="nav_app_info">О приложении</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">Системная тема</string>
+    <string name="theme_dark">Тёмная тема</string>
+    <string name="theme_light">Светлая тема</string>
+    <string name="theme_toggle_desc">Переключить тему</string>
+    <string name="theme_switched_system">Включена системная тема</string>
+    <string name="theme_switched_dark">Включена тёмная тема</string>
+    <string name="theme_switched_light">Включена светлая тема</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">Автоозвучка вкл.</string>
+    <string name="auto_speak_off">Автоозвучка выкл.</string>
+    <string name="emergency_sos">Экстренный SOS</string>
+    <string name="language_selector">Язык</string>
+    <string name="language_switched">Язык изменён</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">Добро пожаловать в Медпомощник</string>
+    <string name="chat_input_placeholder">Опишите симптомы или жалобы...</string>
+    <string name="btn_send">Отправить</string>
+    <string name="btn_voice_input">Голосовой ввод</string>
+    <string name="btn_attach_image">Прикрепить фото</string>
+    <string name="btn_add_symptoms">Добавить детали</string>
+    <string name="listening">Слушаю...</string>
+    <string name="analyzing">Анализ симптомов...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">Экстренный протокол</string>
+    <string name="emergency_alert_title">ЭКСТРЕННАЯ ТРЕВОГА</string>
+    <string name="emergency_alert_desc">Обнаружены опасные симптомы. Немедленно обратитесь за скорой помощью.</string>
+    <string name="emergency_dispatch_title">Немедленный вызов помощи</string>
+    <string name="emergency_dispatch_desc">При критическом состоянии не медлите. Нажмите ниже для экстренного звонка.</string>
+    <string name="emergency_call_112">112 Экстренная служба</string>
+    <string name="emergency_call_108">108 Скорая помощь</string>
+    <string name="emergency_call_104">104 Медсправка</string>
+    <string name="emergency_send_gps_sos">🚨 Отправить GPS SOS SMS контакту</string>
+    <string name="emergency_sending_gps_sos">Определение GPS и отправка SOS...</string>
+    <string name="emergency_call_contact_format">Позвонить %1$s (%2$s)</string>
+    <string name="emergency_red_flags_header">🚨 Опасные для жизни признаки</string>
+    <string name="emergency_red_flags_sub">При любом из этих признаков немедленно обратитесь в больницу:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">Сильная боль в груди</string>
+    <string name="emergency_sign_chest_desc">Давящая боль, отдающая в руку, плечо, шею или челюсть.</string>
+    <string name="emergency_sign_breath_title">Внезапная одышка</string>
+    <string name="emergency_sign_breath_desc">Удушье или невозможность произнести фразу.</string>
+    <string name="emergency_sign_stroke_title">Признаки инсульта (FAST)</string>
+    <string name="emergency_sign_stroke_desc">Асимметрия лица, слабость руки или невнятная речь.</string>
+    <string name="emergency_sign_headache_title">Внезапная резкая головная боль</string>
+    <string name="emergency_sign_headache_desc">Нестерпимая боль, достигающая пика за секунды.</string>
+    <string name="emergency_sign_bleeding_title">Сильное кровотечение</string>
+    <string name="emergency_sign_bleeding_desc">Неконтролируемое кровотечение или кровохарканье.</string>
+    <string name="emergency_sign_allergy_title">Признаки анафилаксии</string>
+    <string name="emergency_sign_allergy_desc">Отёк губ/языка, хрипы, крапивница или головокружение.</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 Тест на инсульт F.A.S.T.</string>
+    <string name="emergency_fast_f_title">F - Лицо (Face)</string>
+    <string name="emergency_fast_f_desc">Попросите улыбнуться. Опущен ли уголок рта?</string>
+    <string name="emergency_fast_a_title">A - Руки (Arms)</string>
+    <string name="emergency_fast_a_desc">Попросите поднять обе руки. Опускается ли одна?</string>
+    <string name="emergency_fast_s_title">S - Речь (Speech)</string>
+    <string name="emergency_fast_s_desc">Попросите повторить простую фразу. Речь нечёткая?</string>
+    <string name="emergency_fast_t_title">T - Время (Time)</string>
+    <string name="emergency_fast_t_desc">Каждая минута дорога! Звоните 112/108 немедленно.</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 Первая помощь</string>
+    <string name="emergency_fa_heart_title">• Боль в груди / Подозрение на инфаркт:</string>
+    <string name="emergency_fa_heart_desc">Примите полусидячее положение с согнутыми коленями. Расстегните тесную одежду.</string>
+    <string name="emergency_fa_allergy_title">• Тяжёлая аллергия (Анафилаксия):</string>
+    <string name="emergency_fa_allergy_desc">При наличии назначенного EpiPen немедленно введите его в бедро.</string>
+    <string name="emergency_fa_unconscious_title">• Без сознания, но дышит:</string>
+    <string name="emergency_fa_unconscious_desc">Переверните на бок для освобождения дыхательных путей и следите за дыханием.</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">Трекер воды</string>
+    <string name="water_goal">Дневная цель: 2 500 мл</string>
+    <string name="water_log_cup">+250 мл (Стакан)</string>
+    <string name="water_log_bottle">+500 мл (Бутылка)</string>
+    <string name="water_reminder_interval">Интервал напоминаний</string>
+    <string name="water_reminder_enable">Включить напоминания о воде</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">Напоминания о лекарствах</string>
+    <string name="medicine_reminder_subtitle">Ежедневный приём • Автоуведомления</string>
+    <string name="medicine_automated_alerts_title">Автоматические напоминания</string>
+    <string name="medicine_automated_alerts_desc">Регулярные уведомления помогут принимать лекарства вовремя.</string>
+    <string name="medicine_empty_title">Лекарства не добавлены</string>
+    <string name="medicine_empty_desc">Добавьте ежедневные таблетки и витамины для своевременных напоминаний.</string>
+    <string name="add_medicine">Добавить лекарство</string>
+    <string name="add_daily_medicine">Добавить ежедневное</string>
+    <string name="add_medicine_dialog_title">Новое напоминание</string>
+    <string name="edit_medicine_dialog_title">Изменить время и детали</string>
+    <string name="adjust_time_title">Изменить время напоминания</string>
+    <string name="adjust_time_btn">Изменить время</string>
+    <string name="medicine_name">Название лекарства</string>
+    <string name="medicine_dosage">Дозировка (напр. 500 мг, 1 табл.)</string>
+    <string name="medicine_time">Запланированное время</string>
+    <string name="medicine_time_preference">Время дня:</string>
+    <string name="medicine_instruction">Инструкция:</string>
+    <string name="medicine_saved">Напоминание установлено</string>
+    <string name="medicine_updated">Время приёма обновлено!</string>
+    <string name="medicine_deleted_format">%1$s удалено</string>
+    <string name="medicine_schedule_btn">Установить напоминание</string>
+    <string name="medicine_update_btn">Сохранить и обновить</string>
+    <string name="medicine_preset_morning">Утро (08:00 AM)</string>
+    <string name="medicine_preset_noon">День (01:00 PM)</string>
+    <string name="medicine_preset_evening">Вечер (06:00 PM)</string>
+    <string name="medicine_preset_night">Ночь (09:00 PM)</string>
+    <string name="medicine_inst_after_food">После еды</string>
+    <string name="medicine_inst_before_food">До еды</string>
+    <string name="medicine_inst_with_water">С водой</string>
+    <string name="medicine_inst_bedtime">Перед сном</string>
+    <string name="medicine_hour">Час</string>
+    <string name="medicine_minute">Минута</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">Дневник здоровья и симптомов</string>
+    <string name="symptom_severity_chart">Динамика выраженности симптомов</string>
+    <string name="filter_all">Все симптомы</string>
+    <string name="filter_headache">Трекер головной боли</string>
+    <string name="btn_export_pdf">Экспорт PDF-отчёта</string>
+    <string name="btn_backup_cloud">Облачная копия (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Медицинский профиль пациента</string>
+    <string name="full_name">Полное имя</string>
+    <string name="age">Возраст</string>
+    <string name="gender">Пол</string>
+    <string name="blood_group">Группа крови</string>
+    <string name="allergies">Аллергии</string>
+    <string name="chronic_conditions">Хронические заболевания</string>
+    <string name="current_medications">Текущие лекарства</string>
+    <string name="emergency_contact_name">Имя экстренного контакта</string>
+    <string name="emergency_contact_phone">Телефон экстренного контакта</string>
+    <string name="btn_save_profile">Сохранить профиль</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">Сохранить</string>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_close">Закрыть</string>
+    <string name="disclaimer_text">Отказ от ответственности: Приложение носит справочный характер и не заменяет консультацию врача.</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">ИИ-сканер медицинских отчётов</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • Объяснение ИИ</string>
+    <string name="scan_camera_btn">Сканировать камерой</string>
+    <string name="scan_gallery_btn">Загрузить из галереи</string>
+    <string name="scan_pdf_btn">Загрузить PDF-анализ</string>
+    <string name="scan_type_prescription">Рецепт / Rx</string>
+    <string name="scan_type_lab_report">Анализы крови</string>
+    <string name="scan_type_discharge">Выписка</string>
+    <string name="scan_type_medicine_strip">Блистер лекарства</string>
+    <string name="ocr_processing_title">Анализ документа с помощью ИИ…</string>
+    <string name="ocr_processing_desc">Считывание фото/PDF и подготовка понятного объяснения.</string>
+    <string name="tab_ai_explanation">Объяснение ИИ</string>
+    <string name="tab_raw_ocr">Распознанный текст</string>
+    <string name="btn_copy_text">Копировать текст</string>
+    <string name="btn_ask_in_chat">Обсудить в чате</string>
+    <string name="btn_add_to_reminders">В напоминания</string>
+    <string name="text_copied">Скопировано в буфер обмена!</string>
+    <string name="saved_reports_header">Сохранённые отчёты</string>
+    <string name="no_scanned_reports">Отсканированных отчётов пока нет.</string>
+    <string name="scan_report_fab">Сканировать</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">Шагомер и фитнес</string>
+    <string name="step_counter_subtitle">Датчик шагов • Калории и активность</string>
+    <string name="steps_label">Шаги</string>
+    <string name="step_goal_label">Дневная цель</string>
+    <string name="calories_burned_label">Калории</string>
+    <string name="distance_walked_label">Дистанция</string>
+    <string name="active_time_label">Активное время</string>
+    <string name="sensor_active_label">Датчик активен</string>
+    <string name="sensor_paused_label">Датчик на паузе</string>
+    <string name="add_steps_btn">Быстрая запись</string>
+    <string name="reset_steps_btn">Сбросить день</string>
+    <string name="set_goal_dialog_title">Установить цель по шагам</string>
+    <string name="weekly_movement_history">Тренд за 7 дней</string>
+    <string name="activity_permission_rationale">Для точного подсчёта шагов требуется разрешение на отслеживание активности.</string>
+    <string name="activity_permission_btn">Включить шагомер</string>
+    <string name="fitness_tips_header">Советы для сердца и здоровья</string>
+    <string name="nav_steps">Шаги</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS и Первая помощь</string>
+    <string name="tab_nearby_hospitals">Ближайшие больницы</string>
+    <string name="nearby_map_header_title">Медцентры поблизости</string>
+    <string name="nearby_map_header_subtitle">Расстояние по GPS до больниц, клиник и аптек.</string>
+    <string name="nearby_filter_all">Все</string>
+    <string name="nearby_filter_hospitals">Больницы</string>
+    <string name="nearby_filter_clinics">Клиники</string>
+    <string name="nearby_filter_pharmacies">Аптеки 24/7</string>
+    <string name="btn_open_google_maps">Найти на карте</string>
+    <string name="btn_navigate_facility">Маршрут</string>
+    <string name="btn_call_facility">Экстренный звонок</string>
+    <string name="nearby_gps_detecting">Определение GPS…</string>
+    <string name="nearby_gps_refresh">Обновить геопозицию</string>
+    <string name="nearby_beds_available">Свободно коек: %d</string>
+    <string name="emergency_room_badge">24/7 Травмпункт / ICU</string>
+    <string name="locating_permission_notice">Доступ к GPS нужен для расчёта расстояния до ближайших больниц.</string>
+    <string name="grant_location_btn">Включить GPS</string>
+    <string name="btn_refresh_language">Обновить язык и приложение</string>
+    <string name="toast_language_refreshed">Приложение и язык успешно обновлены!</string>
+    <string name="btn_download_apk_label">Скачать Health Care AI APK</string>
+    <string name="apk_download_banner_title">Скачать Health Care AI APK</string>
+    <string name="apk_download_banner_desc">Установите или поделитесь обновлённым приложением с OCR, GPS и шагомером.</string>
+    <string name="btn_test_med_notification">Тест уведомления</string>
+    <string name="toast_med_notification_sent">Тестовое уведомление отправлено!</string>
+    <string name="real_hospital_tracking_badge">GPS-отслеживание активно</string>
+    <string name="startup_permissions_dialog_title">Добро пожаловать в Health Care AI</string>
+    <string name="startup_permissions_dialog_desc">Разрешите доступ для поиска больниц, шагомера, сканера, голоса и напоминаний.</string>
+    <string name="btn_grant_all_permissions">Предоставить все разрешения</string>
+</resources>

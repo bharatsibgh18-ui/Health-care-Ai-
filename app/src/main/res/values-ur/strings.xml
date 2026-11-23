@@ -1,0 +1,233 @@
+<resources>
+    <string name="app_name">ہیلتھ کیئر AI</string>
+    <string name="app_subtitle">ورچوئل میڈیکل معاون</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_triage">جانچ</string>
+    <string name="nav_water">پانی</string>
+    <string name="nav_water_reminder">پانی یاد دہانی</string>
+    <string name="nav_medicine">دوا</string>
+    <string name="nav_medicine_reminder">دوا یاد دہانی</string>
+    <string name="nav_emergency">ہنگامی</string>
+    <string name="nav_history">صحت ریکارڈ</string>
+    <string name="nav_profile">پروفائل</string>
+    <string name="nav_app_info">ایپ معلومات</string>
+
+    <!-- Theme Mode Labels -->
+    <string name="theme_system">سسٹم ڈیفالٹ</string>
+    <string name="theme_dark">ڈارک موڈ</string>
+    <string name="theme_light">لائٹ موڈ</string>
+    <string name="theme_toggle_desc">ڈارک / لائٹ / سسٹم تھیم بدلیں</string>
+    <string name="theme_switched_system">سسٹم تھیم پر تبدیل ہو گیا</string>
+    <string name="theme_switched_dark">ڈارک موڈ پر تبدیل ہو گیا</string>
+    <string name="theme_switched_light">لائٹ موڈ پر تبدیل ہو گیا</string>
+
+    <!-- Action & Top Bar -->
+    <string name="auto_speak_active">آٹو اسپیک فعال</string>
+    <string name="auto_speak_off">آٹو اسپیک بند</string>
+    <string name="emergency_sos">ہنگامی SOS</string>
+    <string name="language_selector">زبان</string>
+    <string name="language_switched">زبان تبدیل ہو گئی</string>
+
+    <!-- Chat / Triage Screen -->
+    <string name="welcome_screen_title">ہیلتھ کیئر اسسٹنٹ میں خوش آمدید</string>
+    <string name="chat_input_placeholder">علامات یا صحت کا مسئلہ بیان کریں...</string>
+    <string name="btn_send">بھیجیں</string>
+    <string name="btn_voice_input">وائس ان پٹ</string>
+    <string name="btn_attach_image">تصویر منسلک کریں</string>
+    <string name="btn_add_symptoms">علامات کی تفصیل شامل کریں</string>
+    <string name="listening">سن رہا ہے...</string>
+    <string name="analyzing">علامات کا تجزیہ جاری ہے...</string>
+
+    <!-- Emergency Protocol -->
+    <string name="emergency_protocol_title">ہنگامی پروٹوکول</string>
+    <string name="emergency_alert_title">ہنگامی خطرے کا انتباہ</string>
+    <string name="emergency_alert_desc">جان لیوا علامات پائی گئی ہیں۔ فوری ہنگامی طبی مدد حاصل کریں۔</string>
+    <string name="emergency_dispatch_title">فوری ہنگامی کال</string>
+    <string name="emergency_dispatch_desc">اگر کوئی شدید تکلیف میں ہے تو تاخیر نہ کریں۔ فوری کال کے لیے نیچے ٹیپ کریں۔</string>
+    <string name="emergency_call_112">112 ہنگامی</string>
+    <string name="emergency_call_108">108 ایمبولینس</string>
+    <string name="emergency_call_104">104 ہیلتھ ہیلپ لائن</string>
+    <string name="emergency_send_gps_sos">🚨 رابطے کو لائیو GPS SOS SMS بھیجیں</string>
+    <string name="emergency_sending_gps_sos">GPS حاصل کر رہا ہے &amp; SOS بھیج رہا ہے...</string>
+    <string name="emergency_call_contact_format">%1$s (%2$s) کو کال کریں</string>
+    <string name="emergency_red_flags_header">🚨 جان لیوا خطرے کی علامات</string>
+    <string name="emergency_red_flags_sub">درج ذیل میں سے کوئی علامت نظر آئے تو فوراً ہسپتال جائیں:</string>
+
+    <!-- Red Flag Items -->
+    <string name="emergency_sign_chest_title">سینے میں شدید درد</string>
+    <string name="emergency_sign_chest_desc">بازو، کندھے، گردن یا جبڑے تک پھیلنے والا دباؤ والا درد۔</string>
+    <string name="emergency_sign_breath_title">اچانک سانس کی تکلیف</string>
+    <string name="emergency_sign_breath_desc">دم گھٹنا یا پورا جملہ نہ بول پانا۔</string>
+    <string name="emergency_sign_stroke_title">فالج کی علامات (FAST)</string>
+    <string name="emergency_sign_stroke_desc">چہرہ ٹیڑھا ہونا، بازو میں کمزوری یا آواز لڑکھڑانا۔</string>
+    <string name="emergency_sign_headache_title">اچانک شدید سر درد</string>
+    <string name="emergency_sign_headache_desc">چند سیکنڈ میں ناقابل برداشت ہونے والا سر درد۔</string>
+    <string name="emergency_sign_bleeding_title">شدید خون بہنا یا کھانسی میں خون</string>
+    <string name="emergency_sign_bleeding_desc">نہ رکنے والا خون بہنا۔</string>
+    <string name="emergency_sign_allergy_title">شدید الرجی کی علامات</string>
+    <string name="emergency_sign_allergy_desc">ہونٹ یا زبان پر سوجن، سانس میں خرخراہٹ، دانے یا چکر آنا۔</string>
+
+    <!-- FAST Stroke Protocol -->
+    <string name="emergency_fast_header">🧠 F.A.S.T. فالج کی جانچ</string>
+    <string name="emergency_fast_f_title">F - چہرہ (Face)</string>
+    <string name="emergency_fast_f_desc">مسکرانے کو کہیں۔ کیا چہرے کا ایک حصہ جھکا ہوا ہے؟</string>
+    <string name="emergency_fast_a_title">A - بازو (Arms)</string>
+    <string name="emergency_fast_a_desc">دونوں بازو اٹھانے کو کہیں۔ کیا ایک بازو نیچے گرتا ہے؟</string>
+    <string name="emergency_fast_s_title">S - گفتگو (Speech)</string>
+    <string name="emergency_fast_s_desc">آسان جملہ دہرانے کو کہیں۔ کیا بات واضح نہیں؟</string>
+    <string name="emergency_fast_t_title">T - وقت (Time)</string>
+    <string name="emergency_fast_t_desc">ہر لمحہ قیمتی ہے! فوراً 112/108 پر کال کریں۔</string>
+
+    <!-- First Aid Protocol -->
+    <string name="emergency_first_aid_header">🩹 ابتدائی طبی امداد</string>
+    <string name="emergency_fa_heart_title">• سینے کا درد / دل کے دورے کا شبہ:</string>
+    <string name="emergency_fa_heart_desc">گھٹنے موڑ کر کمر کے سہارے بیٹھیں۔ تنگ کپڑے ڈھیلے کریں اور پرسکون رہیں۔</string>
+    <string name="emergency_fa_allergy_title">• شدید الرجی (Anaphylaxis):</string>
+    <string name="emergency_fa_allergy_desc">اگر تجویز کردہ EpiPen موجود ہو تو فوراً ران میں لگائیں۔</string>
+    <string name="emergency_fa_unconscious_title">• بے ہوش لیکن سانس جاری:</string>
+    <string name="emergency_fa_unconscious_desc">سانس کی نالی کھلی رکھنے کے لیے ایک کروٹ لٹائیں اور سانس کی نگرانی کریں۔</string>
+
+    <!-- Water Tracker -->
+    <string name="water_tracker_title">روزانہ پانی ٹریکر</string>
+    <string name="water_goal">روزانہ ہدف: 2,500 ml</string>
+    <string name="water_log_cup">+250 ml (گلاس)</string>
+    <string name="water_log_bottle">+500 ml (بوتل)</string>
+    <string name="water_reminder_interval">یاد دہانی کا وقفہ</string>
+    <string name="water_reminder_enable">پانی الرٹ فعال کریں</string>
+
+    <!-- Medication Reminder & Time Adjustment -->
+    <string name="medicine_reminder_title">روزانہ دوا کی یاد دہانی</string>
+    <string name="medicine_reminder_subtitle">روزانہ ادویات • خودکار الرٹس</string>
+    <string name="medicine_automated_alerts_title">خودکار دوا کی یاد دہانی</string>
+    <string name="medicine_automated_alerts_desc">وقت پر دوا لینے کے لیے باقاعدہ نوٹیفکیشن ملتے رہیں گے۔</string>
+    <string name="medicine_empty_title">کوئی دوا شامل نہیں کی گئی</string>
+    <string name="medicine_empty_desc">روزانہ گولیوں اور ادویات کے اوقات محفوظ رکھیں۔</string>
+    <string name="add_medicine">دوا شامل کریں</string>
+    <string name="add_daily_medicine">روزانہ دوا شامل کریں</string>
+    <string name="add_medicine_dialog_title">دوا یاد دہانی شامل کریں</string>
+    <string name="edit_medicine_dialog_title">دوا کا وقت اور تفصیل بدلیں</string>
+    <string name="adjust_time_title">یاد دہانی کا وقت بدلیں</string>
+    <string name="adjust_time_btn">وقت بدلیں</string>
+    <string name="medicine_name">دوا کا نام</string>
+    <string name="medicine_dosage">مقدار (مثلاً 500mg، 1 گولی)</string>
+    <string name="medicine_time">مقررہ وقت</string>
+    <string name="medicine_time_preference">پسندیدہ وقت:</string>
+    <string name="medicine_instruction">ہدایات:</string>
+    <string name="medicine_saved">دوا کی یاد دہانی مقرر ہو گئی</string>
+    <string name="medicine_updated">دوا کا وقت اپ ڈیٹ ہو گیا!</string>
+    <string name="medicine_deleted_format">%1$s حذف کر دیا گیا</string>
+    <string name="medicine_schedule_btn">یاد دہانی مقرر کریں</string>
+    <string name="medicine_update_btn">محفوظ اور اپ ڈیٹ کریں</string>
+    <string name="medicine_preset_morning">صبح (08:00 AM)</string>
+    <string name="medicine_preset_noon">دوپہر (01:00 PM)</string>
+    <string name="medicine_preset_evening">شام (06:00 PM)</string>
+    <string name="medicine_preset_night">رات (09:00 PM)</string>
+    <string name="medicine_inst_after_food">کھانے کے بعد</string>
+    <string name="medicine_inst_before_food">کھانے سے پہلے</string>
+    <string name="medicine_inst_with_water">پانی کے ساتھ</string>
+    <string name="medicine_inst_bedtime">سونے سے پہلے</string>
+    <string name="medicine_hour">گھنٹہ</string>
+    <string name="medicine_minute">منٹ</string>
+    <string name="medicine_am">AM</string>
+    <string name="medicine_pm">PM</string>
+
+    <!-- Health Log & Charts -->
+    <string name="health_log_title">صحت اور علامات کا ریکارڈ</string>
+    <string name="symptom_severity_chart">وقت کے ساتھ علامات کی شدت</string>
+    <string name="filter_all">تمام علامات</string>
+    <string name="filter_headache">سر درد ٹریکر</string>
+    <string name="btn_export_pdf">PDF رپورٹ ایکسپورٹ کریں</string>
+    <string name="btn_backup_cloud">کلاؤڈ بیک اپ (Firebase)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">مریض کا طبی پروفائل</string>
+    <string name="full_name">پورا نام</string>
+    <string name="age">عمر</string>
+    <string name="gender">جنس</string>
+    <string name="blood_group">بلڈ گروپ</string>
+    <string name="allergies">الرجیز</string>
+    <string name="chronic_conditions">دائمی بیماریاں</string>
+    <string name="current_medications">موجودہ ادویات</string>
+    <string name="emergency_contact_name">ہنگامی رابطے کا نام</string>
+    <string name="emergency_contact_phone">ہنگامی فون نمبر</string>
+    <string name="btn_save_profile">پروفائل محفوظ کریں</string>
+
+    <!-- Common Actions & Disclaimer -->
+    <string name="action_save">محفوظ کریں</string>
+    <string name="action_cancel">منسوخ کریں</string>
+    <string name="action_delete">حذف کریں</string>
+    <string name="action_close">بند کریں</string>
+    <string name="disclaimer_text">وضاحت: یہ صرف تعلیمی صحت کا معاون ہے، مستند ڈاکٹر کے مشورے کا متبادل نہیں۔</string>
+
+    <!-- AI Medical Report & Prescription Scanner (OCR) -->
+    <string name="report_scanner_title">AI میڈیکل رپورٹ اسکینر</string>
+    <string name="report_scanner_subtitle">ML Kit OCR • AI وضاحت</string>
+    <string name="scan_camera_btn">کیمرہ سے اسکین کریں</string>
+    <string name="scan_gallery_btn">گیلری سے اپ لوڈ</string>
+    <string name="scan_pdf_btn">PDF لیب رپورٹ اپ لوڈ</string>
+    <string name="scan_type_prescription">نسخہ / Rx</string>
+    <string name="scan_type_lab_report">لیب اور خون کی رپورٹ</string>
+    <string name="scan_type_discharge">ڈسچارج خلاصہ</string>
+    <string name="scan_type_medicine_strip">دوا کا پتا</string>
+    <string name="ocr_processing_title">AI سے دستاویز کا تجزیہ جاری…</string>
+    <string name="ocr_processing_desc">آپ کی تصویر/PDF پڑھ کر آسان زبان میں وضاحت تیار کی جا رہی ہے۔</string>
+    <string name="tab_ai_explanation">AI آسان وضاحت</string>
+    <string name="tab_raw_ocr">اسکین شدہ متن</string>
+    <string name="btn_copy_text">متن کاپی کریں</string>
+    <string name="btn_ask_in_chat">چیٹ میں پوچھیں</string>
+    <string name="btn_add_to_reminders">یاد دہانی میں شامل کریں</string>
+    <string name="text_copied">کلپ بورڈ پر کاپی ہو گیا!</string>
+    <string name="saved_reports_header">محفوظ شدہ اسکین رپورٹس</string>
+    <string name="no_scanned_reports">ابھی تک کوئی رپورٹ اسکین نہیں کی گئی۔</string>
+    <string name="scan_report_fab">رپورٹ اسکین</string>
+
+    <!-- Step Counter & Fitness Tracking -->
+    <string name="step_counter_title">قدم شمار اور فٹنس</string>
+    <string name="step_counter_subtitle">ہارڈویئر سینسر • کیلوری ٹریکر</string>
+    <string name="steps_label">قدم</string>
+    <string name="step_goal_label">روزانہ ہدف</string>
+    <string name="calories_burned_label">کیلوریز</string>
+    <string name="distance_walked_label">فاصلہ</string>
+    <string name="active_time_label">فعال وقت</string>
+    <string name="sensor_active_label">سینسر فعال</string>
+    <string name="sensor_paused_label">سینسر رکا ہوا</string>
+    <string name="add_steps_btn">فوری اندراج</string>
+    <string name="reset_steps_btn">دن ری سیٹ</string>
+    <string name="set_goal_dialog_title">روزانہ قدموں کا ہدف مقرر کریں</string>
+    <string name="weekly_movement_history">7 دنوں کا قدم رجحان</string>
+    <string name="activity_permission_rationale">آپ کے روزانہ قدم گننے کے لیے فزیکل ایکٹیویٹی کی اجازت درکار ہے۔</string>
+    <string name="activity_permission_btn">قدم ٹریکنگ فعال کریں</string>
+    <string name="fitness_tips_header">دل اور صحت کے مشورے</string>
+    <string name="nav_steps">قدم</string>
+
+    <!-- Nearby Hospitals & Emergency Map -->
+    <string name="tab_emergency_sos">SOS اور ابتدائی امداد</string>
+    <string name="tab_nearby_hospitals">قریبی ہسپتال اور کلینکس</string>
+    <string name="nearby_map_header_title">قریبی طبی مراکز</string>
+    <string name="nearby_map_header_subtitle">قریبی ہسپتالوں، کلینکس اور فارمیسیوں کا لائیو GPS فاصلہ۔</string>
+    <string name="nearby_filter_all">تمام مقامات</string>
+    <string name="nearby_filter_hospitals">ہسپتال</string>
+    <string name="nearby_filter_clinics">کلینکس</string>
+    <string name="nearby_filter_pharmacies">24/7 میڈیکل</string>
+    <string name="btn_open_google_maps">لائیو میپ پر تلاش کریں</string>
+    <string name="btn_navigate_facility">راستہ</string>
+    <string name="btn_call_facility">ہنگامی کال</string>
+    <string name="nearby_gps_detecting">GPS مقام تلاش کر رہا ہے…</string>
+    <string name="nearby_gps_refresh">مقام ریفریش کریں</string>
+    <string name="nearby_beds_available">%d بیڈ دستیاب</string>
+    <string name="emergency_room_badge">24/7 ٹراما / ICU</string>
+    <string name="locating_permission_notice">قریبی ہسپتال کا فاصلہ جاننے کے لیے GPS مقام کی اجازت درکار ہے۔</string>
+    <string name="grant_location_btn">GPS مقام فعال کریں</string>
+    <string name="btn_refresh_language">ایپ اور زبان ریفریش کریں</string>
+    <string name="toast_language_refreshed">ایپ اور زبان کامیابی سے ریفریش ہو گئی!</string>
+    <string name="btn_download_apk_label">Health Care AI APK ڈاؤن لوڈ</string>
+    <string name="apk_download_banner_title">Health Care AI APK ڈاؤن لوڈ</string>
+    <string name="apk_download_banner_desc">OCR، GPS ہسپتال اور اسٹیپ کاؤنٹر کے ساتھ ایپ انسٹال یا شیئر کریں۔</string>
+    <string name="btn_test_med_notification">دوا نوٹیفکیشن ٹیسٹ</string>
+    <string name="toast_med_notification_sent">دوا ٹیسٹ نوٹیفکیشن بھیج دیا گیا!</string>
+    <string name="real_hospital_tracking_badge">لائیو GPS ٹریکنگ فعال</string>
+    <string name="startup_permissions_dialog_title">Health Care AI میں خوش آمدید</string>
+    <string name="startup_permissions_dialog_desc">ہسپتال کا فاصلہ، قدم شمار، اسکیننگ، وائس ان پٹ اور یاد دہانی کے لیے اجازت دیں۔</string>
+    <string name="btn_grant_all_permissions">تمام اجازتیں دیں</string>
+</resources>
