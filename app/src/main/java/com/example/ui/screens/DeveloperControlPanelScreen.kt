@@ -28,26 +28,32 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
@@ -67,7 +73,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -76,6 +81,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.PublicDoctorEntity
+import com.example.ui.components.LanguageSelector
 import com.example.ui.theme.EmergencyRed
 import com.example.ui.theme.PrimaryTeal
 import com.example.ui.theme.SafeMint
@@ -102,7 +108,7 @@ fun DeveloperControlPanelScreen(
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val devScope = rememberCoroutineScope()
 
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(1) } // Open directly on Publish Upgrade for fast workflow
 
     LaunchedEffect(Unit) {
         viewModel.refreshDeveloperCloudConsole()
@@ -124,12 +130,47 @@ fun DeveloperControlPanelScreen(
     var doctorMobile by remember { mutableStateOf("") }
     var doctorFee by remember { mutableStateOf("₹300") }
 
-    // App config state synced with persisted config
+    // Public Upgrade Publisher state synced with persisted config
+    var upgradeVersion by remember(devAppConfig.configVersion) {
+        mutableStateOf(
+            devAppConfig.upgradeTargetVersion.ifBlank { "${com.example.BuildConfig.VERSION_NAME}.1" }
+        )
+    }
+    var upgradeTitle by remember(devAppConfig.configVersion) {
+        mutableStateOf(
+            devAppConfig.upgradeTitle.ifBlank { "Health Care AI New Upgrade" }
+        )
+    }
+    var upgradeMessage by remember(devAppConfig.configVersion) {
+        mutableStateOf(
+            devAppConfig.upgradeMessage.ifBlank {
+                "New features, 21 languages, faster AI triage & improvements are ready. Tap Download Upgrade to install the latest version."
+            }
+        )
+    }
+    var upgradeDownloadUrl by remember(devAppConfig.configVersion) {
+        mutableStateOf(devAppConfig.upgradeDownloadUrl)
+    }
+    var upgradeMandatory by remember(devAppConfig.configVersion) {
+        mutableStateOf(devAppConfig.upgradeMandatory)
+    }
+
+    // App Controls state synced with persisted config
     var bannerNotice by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.appBannerNotice) }
+    var emergencyHelpline by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.emergencyHelplineOverride) }
+    var supportPhone by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.supportContactPhone) }
     var publicDocsEnabled by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.publicDoctorConsultEnabled) }
     var videoCallEnabled by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.videoCallFeatureEnabled) }
     var medicineAdvisorEnabled by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.medicineAdvisorFeatureEnabled) }
-    var emergencyHelpline by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.emergencyHelplineOverride) }
+    var ultraHubEnabled by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.ultraHubFeatureEnabled) }
+    var pmjayFinderEnabled by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.pmjayFinderEnabled) }
+    var pmjayPortalUrl by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.pmjayPortalUrlOverride) }
+    var reportScannerEnabled by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.reportScannerFeatureEnabled) }
+    var splashDurationSec by remember(devAppConfig.configVersion) { mutableIntStateOf(devAppConfig.splashDurationSeconds.coerceIn(2, 10)) }
+    var splashTopCredit by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.splashTopCreditText) }
+    var splashSchoolName by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.splashSchoolNameText) }
+    var maintenanceEnabled by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.maintenanceModeEnabled) }
+    var maintenanceMessage by remember(devAppConfig.configVersion) { mutableStateOf(devAppConfig.maintenanceMessage) }
 
     val timeFmt = remember { SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault()) }
 
@@ -166,10 +207,12 @@ fun DeveloperControlPanelScreen(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Logged in: ${authSession.username} • v${devAppConfig.configVersion}",
+                                text = "${authSession.username} • Config v${devAppConfig.configVersion}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = PrimaryTeal,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -186,17 +229,18 @@ fun DeveloperControlPanelScreen(
                     }
                 },
                 actions = {
+                    LanguageSelector(viewModel = viewModel, showRefreshButton = false)
                     IconButton(
                         onClick = { viewModel.refreshDeveloperCloudConsole() },
                         modifier = Modifier.testTag("dev_console_refresh_btn")
                     ) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Sync Cloud")
+                        Icon(Icons.Default.Refresh, contentDescription = tr("Sync Cloud", "ક્લાઉડ સિંક", "क्लाउड सिंक"))
                     }
                     IconButton(
                         onClick = { viewModel.setScreen(AppScreen.DEVELOPER_LOGS) },
                         modifier = Modifier.testTag("dev_console_open_logs_btn")
                     ) {
-                        Icon(Icons.Default.BugReport, contentDescription = "Developer Logs")
+                        Icon(Icons.Default.BugReport, contentDescription = tr("Developer Logs", "ડેવલપર લોગ્સ", "डेवलपर लॉग्स"))
                     }
                     IconButton(
                         onClick = { viewModel.logoutAccount() },
@@ -204,7 +248,7 @@ fun DeveloperControlPanelScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = "Sign Out",
+                            contentDescription = tr("Sign Out", "સાઇન આઉટ", "साइन आउट"),
                             tint = EmergencyRed
                         )
                     }
@@ -221,7 +265,10 @@ fun DeveloperControlPanelScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            PrimaryTabRow(selectedTabIndex = selectedTab) {
+            PrimaryScrollableTabRow(
+                selectedTabIndex = selectedTab,
+                edgePadding = 8.dp
+            ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
@@ -241,18 +288,32 @@ fun DeveloperControlPanelScreen(
                     onClick = { selectedTab = 1 },
                     text = {
                         Text(
-                            tr("App Upgrades", "એપ અપગ્રેડ", "ऐप अपग्रेड"),
+                            tr("Publish Upgrade", "અપગ્રેડ પબ્લિશ", "अपग्रेड पब्लिश"),
+                            maxLines = 1,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    icon = { Icon(Icons.Default.SystemUpdate, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    modifier = Modifier.testTag("dev_console_tab_upgrades")
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    text = {
+                        Text(
+                            tr("App Controls", "એપ કંટ્રોલ", "ऐप कंट्रोल"),
                             maxLines = 1,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     },
                     icon = { Icon(Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                    modifier = Modifier.testTag("dev_console_tab_upgrades")
+                    modifier = Modifier.testTag("dev_console_tab_controls")
                 )
                 Tab(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
                     text = {
                         Text(
                             tr("Users (${userPresenceList.size})", "યુઝર્સ (${userPresenceList.size})", "यूज़र्स (${userPresenceList.size})"),
@@ -268,7 +329,7 @@ fun DeveloperControlPanelScreen(
 
             when (selectedTab) {
                 // ---------------------------------------------------------
-                // TAB 0: PUBLIC DOCTORS + MOBILE NUMBER + VIDEO CALL CONFIG
+                // TAB 0: PUBLIC DOCTORS + MOBILE NUMBER & BOOKING
                 // ---------------------------------------------------------
                 0 -> {
                     LazyColumn(
@@ -485,7 +546,7 @@ fun DeveloperControlPanelScreen(
                 }
 
                 // ---------------------------------------------------------
-                // TAB 1: LIVE MANUAL APP UPGRADES & FEATURE TOGGLES
+                // TAB 1: PUBLIC APP UPGRADE PUBLISHER (PUSH TO ALL USERS)
                 // ---------------------------------------------------------
                 1 -> {
                     LazyColumn(
@@ -495,8 +556,247 @@ fun DeveloperControlPanelScreen(
                     ) {
                         item {
                             Card(
+                                shape = RoundedCornerShape(18.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = tr(
+                                                "Publish Public App Upgrade",
+                                                "બધા યુઝર્સ માટે એપ અપગ્રેડ પબ્લિશ કરો",
+                                                "सभी यूज़र्स के लिए ऐप अपग्रेड पब्लिश करें"
+                                            ),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Surface(
+                                            shape = RoundedCornerShape(50),
+                                            color = if (devAppConfig.upgradePublished) SafeMint.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surfaceVariant
+                                        ) {
+                                            Text(
+                                                text = if (devAppConfig.upgradePublished) {
+                                                    "LIVE • v${devAppConfig.upgradeTargetVersion}"
+                                                } else {
+                                                    tr("Not Published", "પબ્લિશ નથી", "पब्लिश नहीं")
+                                                },
+                                                style = MaterialTheme.typography.labelSmall,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = if (devAppConfig.upgradePublished) PrimaryTeal else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Text(
+                                        text = tr(
+                                            "When you publish an upgrade here, every user immediately receives an App Upgrade popup & Home banner with a Download Upgrade button.",
+                                            "જ્યારે તમે અહીંથી અપગ્રેડ પબ્લિશ કરશો, ત્યારે દરેક યુઝરના એપમાં તરત જ અપગ્રેડનો મેસેજ અને 'અપગ્રેડ ડાઉનલોડ કરો' બટન આવી જશે.",
+                                            "जब आप यहाँ से अपग्रेड पब्लिश करेंगे, तो सभी यूज़र्स के ऐप में तुरंत अपग्रेड का संदेश और 'अपग्रेड डाउनलोड करें' विकल्प दिखेगा।"
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+
+                                    OutlinedTextField(
+                                        value = upgradeVersion,
+                                        onValueChange = { upgradeVersion = it },
+                                        label = { Text(tr("New Upgrade Version (e.g. 18.0)", "નવું અપગ્રેડ વર્ઝન (જેમ કે 18.0)", "नया अपग्रेड वर्ज़न (जैसे 18.0)")) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().testTag("dev_upgrade_version_input")
+                                    )
+
+                                    OutlinedTextField(
+                                        value = upgradeTitle,
+                                        onValueChange = { upgradeTitle = it },
+                                        label = { Text(tr("Upgrade Title", "અપગ્રેડ શીર્ષક", "अपग्रेड शीर्षक")) },
+                                        placeholder = { Text("Health Care AI v18.0 Major Upgrade") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().testTag("dev_upgrade_title_input")
+                                    )
+
+                                    OutlinedTextField(
+                                        value = upgradeMessage,
+                                        onValueChange = { upgradeMessage = it },
+                                        label = { Text(tr("Upgrade Message / What's New *", "અપગ્રેડ મેસેજ / નવી સુવિધાઓ *", "अपग्रेड संदेश / नई सुविधाएं *")) },
+                                        minLines = 3,
+                                        maxLines = 5,
+                                        modifier = Modifier.fillMaxWidth().testTag("dev_upgrade_message_input")
+                                    )
+
+                                    OutlinedTextField(
+                                        value = upgradeDownloadUrl,
+                                        onValueChange = { upgradeDownloadUrl = it },
+                                        label = { Text(tr("Download Upgrade Link (APK / GitHub Releases URL)", "અપગ્રેડ ડાઉનલોડ લિંક (APK / GitHub URL)", "अपग्रेड डाउनलोड लिंक (APK / GitHub URL)")) },
+                                        placeholder = { Text("https://github.com/your-org/healthcare-ai/releases/latest") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().testTag("dev_upgrade_url_input")
+                                    )
+
+                                    FeatureToggleRow(
+                                        title = tr(
+                                            "Mandatory Upgrade (Keep prompt until downloaded)",
+                                            "ફરજિયાત અપગ્રેડ (ડાઉનલોડ સુધી મેસેજ બતાવો)",
+                                            "अनिवार्य अपग्रेड (डाउनलोड तक संदेश दिखाएं)"
+                                        ),
+                                        checked = upgradeMandatory,
+                                        onCheckedChange = { upgradeMandatory = it },
+                                        tag = "dev_upgrade_mandatory_switch"
+                                    )
+
+                                    Button(
+                                        onClick = {
+                                            viewModel.publishPublicAppUpgrade(
+                                                targetVersion = upgradeVersion,
+                                                title = upgradeTitle,
+                                                message = upgradeMessage,
+                                                downloadUrl = upgradeDownloadUrl,
+                                                mandatory = upgradeMandatory
+                                            )
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(50.dp).testTag("dev_publish_upgrade_btn")
+                                    ) {
+                                        Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(20.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            tr("Publish Public Upgrade", "બધા યુઝર્સ માટે અપગ્રેડ પબ્લિશ કરો", "सभी यूज़र्स के लिए अपग्रेड पब्लिश करें"),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+
+                                    if (devAppConfig.upgradePublished) {
+                                        OutlinedButton(
+                                            onClick = { viewModel.clearPublishedAppUpgrade() },
+                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = EmergencyRed),
+                                            modifier = Modifier.fillMaxWidth().height(48.dp).testTag("dev_unpublish_upgrade_btn")
+                                        ) {
+                                            Icon(Icons.Default.Cancel, contentDescription = null, modifier = Modifier.size(18.dp))
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                tr("Turn Off Upgrade Notice", "અપગ્રેડ સૂચના બંધ કરો", "अपग्रेड सूचना बंद करें"),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Live User Preview Card
+                        item {
+                            Card(
                                 shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = tr(
+                                            "Live Preview (What Every User Sees)",
+                                            "લાઇવ પ્રિવ્યૂ (દરેક યુઝરને આવું દેખાશે)",
+                                            "लाइव प्रीव्यू (हर यूज़र को ऐसा दिखेगा)"
+                                        ),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.SystemUpdate,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = "${tr("App Upgrade Available", "નવું એપ અપગ્રેડ ઉપલબ્ધ છે", "नया ऐप अपग्रेड उपलब्ध है")} • v${upgradeVersion.ifBlank { com.example.BuildConfig.VERSION_NAME }}",
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = upgradeTitle.ifBlank { "Health Care AI Upgrade" },
+                                                style = MaterialTheme.typography.bodySmall,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        text = upgradeMessage.ifBlank { "..." },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Button(
+                                        onClick = {
+                                            com.example.utils.AppUpgradeDownloadHelper.openUpgradeDownload(
+                                                context = context,
+                                                rawUrl = upgradeDownloadUrl,
+                                                language = selectedLanguage
+                                            )
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(48.dp).testTag("dev_preview_download_upgrade_btn")
+                                    ) {
+                                        Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            tr("Download Upgrade", "અપગ્રેડ ડાઉનલોડ કરો", "अपग्रेड डाउनलोड करें"),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Share installed APK directly
+                        item {
+                            OutlinedButton(
+                                onClick = {
+                                    devScope.launch {
+                                        com.example.utils.ApkShareHelper.shareInstalledApk(context, selectedLanguage)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth().height(48.dp).testTag("dev_share_apk_btn")
+                            ) {
+                                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    tr(
+                                        "Share Upgraded HealthCareAI_v${com.example.BuildConfig.VERSION_NAME}.apk",
+                                        "અપગ્રેડેડ HealthCareAI_v${com.example.BuildConfig.VERSION_NAME}.apk શેર કરો",
+                                        "अपग्रेडेड HealthCareAI_v${com.example.BuildConfig.VERSION_NAME}.apk शेयर करें"
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // ---------------------------------------------------------
+                // TAB 2: EXPANDED LIVE APP CONTROLS (BRANDING, SPLASH, FEATURES, MAINTENANCE)
+                // ---------------------------------------------------------
+                2 -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        // Section 1: Announcements & Helplines
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
@@ -504,9 +804,9 @@ fun DeveloperControlPanelScreen(
                                 ) {
                                     Text(
                                         text = tr(
-                                            "Manual Live App Upgrades (Push to All Users)",
-                                            "લાઇવ એપ અપગ્રેડ અને મેન્યુઅલ ફેરફારો",
-                                            "लाइव ऐप अपग्रेड और मैनुअल बदलाव"
+                                            "Public Announcement & Helplines",
+                                            "પબ્લિક સૂચના અને હેલ્પલાઇન નંબર્સ",
+                                            "पब्लिक सूचना और हेल्पलाइन नंबर"
                                         ),
                                         style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.Bold,
@@ -519,24 +819,137 @@ fun DeveloperControlPanelScreen(
                                         label = {
                                             Text(
                                                 tr(
-                                                    "Public Announcement / App Upgrade Banner",
-                                                    "દર્દીઓ માટે લાઇવ સૂચના / અપગ્રેડ મેસેજ",
-                                                    "मरीजों के लिए लाइव सूचना / अपग्रेड संदेश"
+                                                    "Public Announcement Banner",
+                                                    "દર્દીઓ માટે લાઇવ સૂચના બેનર",
+                                                    "मरीजों के लिए लाइव सूचना बैनर"
                                                 )
                                             )
                                         },
-                                        placeholder = { Text("New evening tele-consultation camp open!") },
+                                        placeholder = { Text("Free health camp open at Model School Sayla!") },
                                         modifier = Modifier.fillMaxWidth().testTag("dev_cfg_banner_input")
                                     )
 
-                                    OutlinedTextField(
-                                        value = emergencyHelpline,
-                                        onValueChange = { emergencyHelpline = it },
-                                        label = { Text(tr("Emergency Helpline Number", "ઇમરજન્સી હેલ્પલાઇન નંબર", "आपातकालीन हेल्पलाइन नंबर")) },
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth().testTag("dev_cfg_helpline_input")
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        OutlinedTextField(
+                                            value = emergencyHelpline,
+                                            onValueChange = { emergencyHelpline = it },
+                                            label = { Text(tr("Emergency Helpline", "ઇમરજન્સી નંબર", "आपातकालीन नंबर")) },
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                                            singleLine = true,
+                                            modifier = Modifier.weight(1f).testTag("dev_cfg_helpline_input")
+                                        )
+                                        OutlinedTextField(
+                                            value = supportPhone,
+                                            onValueChange = { supportPhone = it },
+                                            label = { Text(tr("Support Phone", "સપોર્ટ ફોન", "सपोर्ट फ़ोन")) },
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                                            singleLine = true,
+                                            modifier = Modifier.weight(1f).testTag("dev_cfg_support_phone_input")
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Section 2: Startup Splash & School Branding Controls
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Text(
+                                        text = tr(
+                                            "Startup Animation & Branding Controls",
+                                            "શરૂઆતનું એનિમેશન અને બ્રાન્ડિંગ કંટ્રોલ",
+                                            "स्टार्टअप एनीमेशन और ब्रांडिंग कंट्रोल"
+                                        ),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
                                     )
+
+                                    Text(
+                                        text = tr(
+                                            "Splash Animation Duration: ${splashDurationSec}s",
+                                            "શરૂઆતના એનિમેશનનો સમય: ${splashDurationSec} સેકન્ડ",
+                                            "स्टार्टअप एनीमेशन अवधि: ${splashDurationSec} सेकंड"
+                                        ),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(rememberScrollState()),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        listOf(3, 5, 7, 10).forEach { seconds ->
+                                            FilterChip(
+                                                selected = splashDurationSec == seconds,
+                                                onClick = { splashDurationSec = seconds },
+                                                label = { Text("${seconds}s", fontWeight = FontWeight.Bold) },
+                                                modifier = Modifier.testTag("dev_cfg_splash_duration_$seconds")
+                                            )
+                                        }
+                                    }
+
+                                    OutlinedTextField(
+                                        value = splashTopCredit,
+                                        onValueChange = { splashTopCredit = it },
+                                        label = { Text(tr("Splash Top Credit Text", "લોગો ઉપરનું ક્રેડિટ લખાણ", "लोगो के ऊपर क्रेडिट टेक्स्ट")) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().testTag("dev_cfg_splash_credit_input")
+                                    )
+
+                                    OutlinedTextField(
+                                        value = splashSchoolName,
+                                        onValueChange = { splashSchoolName = it },
+                                        label = { Text(tr("Splash School / Organization Name", "લોગો નીચે સ્કૂલ / સંસ્થાનું નામ", "लोगो के नीचे स्कूल / संस्था का नाम")) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().testTag("dev_cfg_splash_school_input")
+                                    )
+                                }
+                            }
+                        }
+
+                        // Section 3: Feature Toggles & PMJAY URL Override
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = tr(
+                                            "Live App Features & Portal Controls",
+                                            "લાઇવ એપ ફીચર્સ અને પોર્ટલ કંટ્રોલ",
+                                            "लाइव ऐप फीचर्स और पोर्टल कंट्रोल"
+                                        ),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+
+                                    OutlinedTextField(
+                                        value = pmjayPortalUrl,
+                                        onValueChange = { pmjayPortalUrl = it },
+                                        label = { Text(tr("PMJAY Hospital Portal URL", "PMJAY હોસ્પિટલ પોર્ટલ લિંક", "PMJAY अस्पताल पोर्टल URL")) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().testTag("dev_cfg_pmjay_url_input")
+                                    )
+
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
                                     FeatureToggleRow(
                                         title = tr("Public Doctor Directory & Booking", "પબ્લિક ડૉક્ટર ડાયરેક્ટરી", "पब्लिक डॉक्टर डायरेक्टरी"),
@@ -556,54 +969,116 @@ fun DeveloperControlPanelScreen(
                                         onCheckedChange = { medicineAdvisorEnabled = it },
                                         tag = "dev_cfg_med_advisor_switch"
                                     )
+                                    FeatureToggleRow(
+                                        title = tr("Ultra Health Command Center", "અલ્ટ્રા હેલ્થ કમાન્ડ સેન્ટર", "अल्ट्रा हेल्थ कमांड सेंटर"),
+                                        checked = ultraHubEnabled,
+                                        onCheckedChange = { ultraHubEnabled = it },
+                                        tag = "dev_cfg_ultra_hub_switch"
+                                    )
+                                    FeatureToggleRow(
+                                        title = tr("NEAR PMJAY HOSPITAL FIND Portal", "નજીકની PMJAY હોસ્પિટલ શોધો બટન", "नज़दीकी PMJAY अस्पताल खोजें बटन"),
+                                        checked = pmjayFinderEnabled,
+                                        onCheckedChange = { pmjayFinderEnabled = it },
+                                        tag = "dev_cfg_pmjay_finder_switch"
+                                    )
+                                    FeatureToggleRow(
+                                        title = tr("Medical Report & Rx Scanner", "મેડિકલ રિપોર્ટ અને Rx સ્કેનર", "मेडिकल रिपोर्ट और Rx स्कैनर"),
+                                        checked = reportScannerEnabled,
+                                        onCheckedChange = { reportScannerEnabled = it },
+                                        tag = "dev_cfg_scanner_switch"
+                                    )
+                                }
+                            }
+                        }
 
-                                    Button(
-                                        onClick = {
-                                            viewModel.saveDeveloperAppConfig(
-                                                appBannerNotice = bannerNotice,
-                                                publicDoctorConsultEnabled = publicDocsEnabled,
-                                                videoCallFeatureEnabled = videoCallEnabled,
-                                                medicineAdvisorFeatureEnabled = medicineAdvisorEnabled,
-                                                emergencyHelplineOverride = emergencyHelpline
-                                            )
-                                        },
-                                        modifier = Modifier.fillMaxWidth().height(48.dp).testTag("dev_cfg_save_btn")
-                                    ) {
-                                        Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                        // Section 4: Maintenance Notice Mode
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Warning,
+                                            contentDescription = null,
+                                            tint = EmergencyRed,
+                                            modifier = Modifier.size(18.dp)
+                                        )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            tr("Publish Live App Upgrade", "અપગ્રેડ લાઇવ પબ્લિશ કરો", "लाइव अपग्रेड पब्लिश करें"),
-                                            fontWeight = FontWeight.Bold
+                                            text = tr(
+                                                "Maintenance Notice Control",
+                                                "મેન્ટેનન્સ સૂચના કંટ્રોલ",
+                                                "मेंटेनेंस सूचना कंट्रोल"
+                                            ),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = EmergencyRed
                                         )
                                     }
-
-                                    OutlinedButton(
-                                        onClick = { viewModel.setScreen(AppScreen.DEVELOPER_LOGS) },
-                                        modifier = Modifier.fillMaxWidth().height(48.dp).testTag("dev_open_logs_btn")
-                                    ) {
-                                        Icon(Icons.Default.BugReport, contentDescription = null, modifier = Modifier.size(18.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(tr("Open System Developer Logs", "સિસ્ટમ ડેવલપર લોગ્સ ખોલો", "सिस्टम डेवलपर लॉग्स खोलें"))
-                                    }
-
-                                    OutlinedButton(
-                                        onClick = {
-                                            devScope.launch {
-                                                com.example.utils.ApkShareHelper.shareInstalledApk(context, selectedLanguage)
-                                            }
-                                        },
-                                        modifier = Modifier.fillMaxWidth().height(48.dp).testTag("dev_share_apk_btn")
-                                    ) {
-                                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            tr(
-                                                "Share Upgraded HealthCareAI_v${com.example.BuildConfig.VERSION_NAME}.apk",
-                                                "અપગ્રેડેડ HealthCareAI_v${com.example.BuildConfig.VERSION_NAME}.apk શેર કરો",
-                                                "अपग्रेडेड HealthCareAI_v${com.example.BuildConfig.VERSION_NAME}.apk शेयर करें"
-                                            )
+                                    FeatureToggleRow(
+                                        title = tr("Show Maintenance Banner to All Users", "બધા યુઝર્સને મેન્ટેનન્સ સૂચના બતાવો", "सभी यूज़र्स को मेंटेनेंस बैनर दिखाएं"),
+                                        checked = maintenanceEnabled,
+                                        onCheckedChange = { maintenanceEnabled = it },
+                                        tag = "dev_cfg_maintenance_switch"
+                                    )
+                                    if (maintenanceEnabled) {
+                                        OutlinedTextField(
+                                            value = maintenanceMessage,
+                                            onValueChange = { maintenanceMessage = it },
+                                            label = { Text(tr("Maintenance Message", "મેન્ટેનન્સ મેસેજ", "मेंटेनेंस संदेश")) },
+                                            placeholder = { Text("Scheduled server upgrade in progress. Offline tools remain available.") },
+                                            modifier = Modifier.fillMaxWidth().testTag("dev_cfg_maintenance_msg_input")
                                         )
                                     }
+                                }
+                            }
+                        }
+
+                        // Save & Publish Controls Button + Developer Logs
+                        item {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Button(
+                                    onClick = {
+                                        viewModel.saveDeveloperAppConfig(
+                                            appBannerNotice = bannerNotice,
+                                            publicDoctorConsultEnabled = publicDocsEnabled,
+                                            videoCallFeatureEnabled = videoCallEnabled,
+                                            medicineAdvisorFeatureEnabled = medicineAdvisorEnabled,
+                                            emergencyHelplineOverride = emergencyHelpline,
+                                            ultraHubFeatureEnabled = ultraHubEnabled,
+                                            pmjayFinderEnabled = pmjayFinderEnabled,
+                                            pmjayPortalUrlOverride = pmjayPortalUrl,
+                                            reportScannerFeatureEnabled = reportScannerEnabled,
+                                            splashDurationSeconds = splashDurationSec,
+                                            splashTopCreditText = splashTopCredit,
+                                            splashSchoolNameText = splashSchoolName,
+                                            maintenanceModeEnabled = maintenanceEnabled,
+                                            maintenanceMessage = maintenanceMessage,
+                                            supportContactPhone = supportPhone
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth().height(50.dp).testTag("dev_cfg_save_btn")
+                                ) {
+                                    Icon(Icons.Default.CloudUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        tr("Save & Publish App Controls", "બધા ફેરફારો સેવ અને પબ્લિશ કરો", "सभी बदलाव सेव और पब्लिश करें"),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                OutlinedButton(
+                                    onClick = { viewModel.setScreen(AppScreen.DEVELOPER_LOGS) },
+                                    modifier = Modifier.fillMaxWidth().height(48.dp).testTag("dev_open_logs_btn")
+                                ) {
+                                    Icon(Icons.Default.BugReport, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(tr("Open System Developer Logs", "સિસ્ટમ ડેવલપર લોગ્સ ખોલો", "सिस्टम डेवलपर लॉग्स खोलें"))
                                 }
                             }
                         }
@@ -611,7 +1086,7 @@ fun DeveloperControlPanelScreen(
                 }
 
                 // ---------------------------------------------------------
-                // TAB 2: PRIVACY-PRESERVING USER USERNAMES & ONLINE TIME
+                // TAB 3: PRIVACY-PRESERVING USER USERNAMES & ONLINE TIME
                 // ---------------------------------------------------------
                 else -> {
                     val onlineCount = userPresenceList.count { it.isCurrentlyOnline }

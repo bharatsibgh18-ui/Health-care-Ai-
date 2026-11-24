@@ -117,12 +117,16 @@ import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.ClinicalAiTab
 import com.example.ui.viewmodel.MediAssistViewModel
 import com.example.ui.viewmodel.SymptomDetails
+import com.example.ui.viewmodel.UltraHealthTab
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AccessibilityNew
 import androidx.compose.material.icons.filled.Biotech
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Emergency
 import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material.icons.filled.Watch
@@ -148,7 +152,41 @@ fun ChatTriageScreen(
     val selectedImageUri by viewModel.selectedImageUri.collectAsState()
     val devAppConfig by viewModel.devAppConfig.collectAsState()
     val retryableQuery by viewModel.retryableQuery.collectAsState()
+    val todayWaterMl by viewModel.todayTotalWaterMl.collectAsState()
+    val waterTargetMl by viewModel.waterTargetMl.collectAsState()
+    val todayStepRecord by viewModel.todayStepRecord.collectAsState()
+    val medicines by viewModel.medicines.collectAsState()
+    val allAdherenceLogs by viewModel.allAdherenceLogs.collectAsState()
+    val sleepLogs by viewModel.sleepWellnessLogs.collectAsState()
+    val vitalLogs by viewModel.vitalLogs.collectAsState()
+    val mealNutritionLogs by viewModel.mealNutritionLogs.collectAsState()
+    val dailyCalorieTarget by viewModel.dailyCalorieTarget.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
+
+    val homeTodaySteps = todayStepRecord?.steps ?: 0
+    val homeStepTarget = todayStepRecord?.targetSteps ?: 8000
+    val homeDateKey = remember { java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date()) }
+    val homeTodayCalories = remember(mealNutritionLogs, homeDateKey, dailyCalorieTarget) {
+        com.example.utils.NutritionPresetCatalog.calculateDailySummary(
+            logs = mealNutritionLogs,
+            dateKey = homeDateKey,
+            targetCalories = dailyCalorieTarget
+        ).totalCalories
+    }
+    val homeHealthScore = remember(
+        todayWaterMl, waterTargetMl, homeTodaySteps, homeStepTarget, medicines, allAdherenceLogs, sleepLogs, vitalLogs
+    ) {
+        com.example.utils.UltraHealthScoreEngine.calculate(
+            todayWaterMl = todayWaterMl,
+            waterTargetMl = waterTargetMl,
+            todaySteps = homeTodaySteps,
+            stepTarget = homeStepTarget,
+            activeMedicines = medicines.filter { it.isActive },
+            adherenceLogs = allAdherenceLogs,
+            sleepLogs = sleepLogs,
+            vitalLogs = vitalLogs
+        ).overallScore
+    }
 
     var attachedContext by remember { mutableStateOf<SymptomDetails?>(null) }
     var moreMenuExpanded by remember { mutableStateOf(false) }
@@ -1352,25 +1390,32 @@ fun ChatTriageScreen(
                                 },
                                 modifier = Modifier.testTag("language_refresh_button")
                             )
-                            DropdownMenuItem(
-                                text = { Text("NEAR PMJAY HOSPITAL FIND", fontWeight = FontWeight.SemiBold) },
-                                leadingIcon = { Icon(Icons.Default.LocalHospital, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                                trailingIcon = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                                onClick = {
-                                    moreMenuExpanded = false
-                                    com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context)
-                                },
-                                modifier = Modifier.testTag("menu_near_pmjay_hospital_btn")
-                            )
-                            DropdownMenuItem(
-                                text = { Text(tr("AI Medicine Advisor", "AI દવા સલાહકાર", "AI दवा सलाहकार")) },
-                                leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                                onClick = {
-                                    moreMenuExpanded = false
-                                    viewModel.setScreen(AppScreen.AI_MEDICINE_ADVISOR)
-                                },
-                                modifier = Modifier.testTag("open_medicine_advisor_menu_btn")
-                            )
+                            if (devAppConfig.pmjayFinderEnabled) {
+                                DropdownMenuItem(
+                                    text = { Text("NEAR PMJAY HOSPITAL FIND", fontWeight = FontWeight.SemiBold) },
+                                    leadingIcon = { Icon(Icons.Default.LocalHospital, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                    trailingIcon = { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                    onClick = {
+                                        moreMenuExpanded = false
+                                        com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(
+                                            context = context,
+                                            urlOverride = devAppConfig.pmjayPortalUrlOverride
+                                        )
+                                    },
+                                    modifier = Modifier.testTag("menu_near_pmjay_hospital_btn")
+                                )
+                            }
+                            if (devAppConfig.medicineAdvisorFeatureEnabled) {
+                                DropdownMenuItem(
+                                    text = { Text(tr("AI Medicine Advisor", "AI દવા સલાહકાર", "AI दवा सलाहकार")) },
+                                    leadingIcon = { Icon(Icons.Default.Medication, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                                    onClick = {
+                                        moreMenuExpanded = false
+                                        viewModel.setScreen(AppScreen.AI_MEDICINE_ADVISOR)
+                                    },
+                                    modifier = Modifier.testTag("open_medicine_advisor_menu_btn")
+                                )
+                            }
                             DropdownMenuItem(
                                 text = { Text(tr("Daily Symptom Logger", "દૈનિક લક્ષણ લોગર", "दैनिक लक्षण लॉगर")) },
                                 leadingIcon = { Icon(Icons.Default.Healing, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
@@ -1475,7 +1520,100 @@ fun ChatTriageScreen(
                 }
             }
 
-            // Live Developer Upgrade / Public Announcement Banner (if published by Developer)
+            // Live Published App Upgrade Banner (pushed by Developer -> visible to ALL users with Download Upgrade)
+            if (devAppConfig.upgradePublished) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.fillMaxWidth().testTag("home_app_upgrade_banner")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${tr("App Upgrade Available", "નવું એપ અપગ્રેડ ઉપલબ્ધ છે", "नया ऐप अपग्रेड उपलब्ध है")} • v${devAppConfig.upgradeTargetVersion.ifBlank { com.example.BuildConfig.VERSION_NAME }}",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (devAppConfig.upgradeMessage.isNotBlank()) {
+                                Text(
+                                    text = devAppConfig.upgradeMessage,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                com.example.utils.AppUpgradeDownloadHelper.openUpgradeDownload(
+                                    context = context,
+                                    rawUrl = devAppConfig.upgradeDownloadUrl,
+                                    language = selectedLanguage
+                                )
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                            modifier = Modifier.height(36.dp).testTag("home_banner_download_upgrade_btn")
+                        ) {
+                            Text(
+                                text = tr("Download Upgrade", "અપગ્રેડ ડાઉનલોડ કરો", "अपग्रेड डाउनलोड करें"),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Live Maintenance Notice Banner (if enabled by Developer)
+            if (devAppConfig.maintenanceModeEnabled) {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxWidth().testTag("home_maintenance_banner")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = devAppConfig.maintenanceMessage.ifBlank {
+                                tr(
+                                    "Scheduled maintenance in progress. Offline health tools remain active.",
+                                    "મેન્ટેનન્સ ચાલુ છે. ઓફલાઇન આરોગ્ય સુવિધાઓ ચાલુ છે.",
+                                    "मेंटेनेंस जारी है। ऑफलाइन स्वास्थ्य सुविधाएं सक्रिय हैं।"
+                                )
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+            }
+
+            // Live Developer Public Announcement Banner (if published by Developer)
             if (devAppConfig.appBannerNotice.isNotBlank()) {
                 Surface(
                     color = MaterialTheme.colorScheme.tertiaryContainer,
@@ -1544,6 +1682,11 @@ fun ChatTriageScreen(
                     // Welcome & Quick Starters View
                     WelcomeTriageView(
                         selectedLanguage = selectedLanguage,
+                        devAppConfig = devAppConfig,
+                        healthScore = homeHealthScore,
+                        todaySteps = homeTodaySteps,
+                        todayWaterMl = todayWaterMl,
+                        todayCalories = homeTodayCalories,
                         onSelectSymptom = { symptomPrompt ->
                             viewModel.sendMessage(symptomPrompt)
                         },
@@ -1552,6 +1695,9 @@ fun ChatTriageScreen(
                         },
                         onOpenScreen = { screen ->
                             viewModel.setScreen(screen)
+                        },
+                        onOpenUltraTab = { tab ->
+                            viewModel.openUltraHealthHub(tab)
                         },
                         onOpenClinicalTab = { tab ->
                             viewModel.openClinicalAiSuite(tab)
@@ -1986,9 +2132,15 @@ fun ChatTriageScreen(
 @Composable
 fun WelcomeTriageView(
     selectedLanguage: String = "English",
+    devAppConfig: com.example.data.local.DeveloperAppConfigEntity = com.example.data.local.DeveloperAppConfigEntity(),
+    healthScore: Int = 72,
+    todaySteps: Int = 0,
+    todayWaterMl: Int = 0,
+    todayCalories: Int = 0,
     onSelectSymptom: (String) -> Unit,
     onOpenQuestionnaire: () -> Unit,
     onOpenScreen: (AppScreen) -> Unit = {},
+    onOpenUltraTab: (UltraHealthTab) -> Unit = { onOpenScreen(AppScreen.ULTRA_HEALTH_HUB) },
     onOpenClinicalTab: (ClinicalAiTab) -> Unit = {},
     onShareApp: () -> Unit = {}
 ) {
@@ -2038,112 +2190,190 @@ fun WelcomeTriageView(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
         )
 
-        // Ultra Clinical Glass Hero Banner Card
-        Spacer(modifier = Modifier.height(6.dp))
-        com.example.ui.components.UltraGradientHeroCard(
-            modifier = Modifier.testTag("home_ultra_hub_hero_card"),
-            cornerRadius = 20.dp,
-            contentPadding = 14.dp
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+        // Ultra Clinical Glass Live Command Dock
+        if (devAppConfig.ultraHubFeatureEnabled) {
+            Spacer(modifier = Modifier.height(6.dp))
+            com.example.ui.components.UltraGradientHeroCard(
+                colors = listOf(
+                    com.example.ui.theme.UltraTealStart,
+                    com.example.ui.theme.UltraCyanEnd,
+                    com.example.ui.theme.UltraIndigoStart
+                ),
+                modifier = Modifier.testTag("home_ultra_hub_hero_card"),
+                cornerRadius = 22.dp,
+                contentPadding = 14.dp
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = trLang(
-                            selectedLanguage,
-                            "✨ Ultra Health Command Center",
-                            "✨ અલ્ટ્રા હેલ્થ કમાન્ડ સેન્ટર",
-                            "✨ अल्ट्रा हेल्थ कमांड सेंटर"
-                        ),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = androidx.compose.ui.graphics.Color.White
-                    )
-                    Text(
-                        text = trLang(
-                            selectedLanguage,
-                            "Health Score • Med Streaks • Scannable QR Medical ID • BMI & Sleep • Lab Trends",
-                            "હેલ્થ સ્કોર • દવા સ્ટ્રીક • QR મેડિકલ ID • BMI અને ઊંઘ • લેબ ટ્રેન્ડ",
-                            "हेल्थ स्कोर • दवा स्ट्रीक • QR मेडिकल ID • BMI व नींद • लैब ट्रेंड"
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.88f)
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = { onOpenScreen(AppScreen.ULTRA_HEALTH_HUB) },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = androidx.compose.ui.graphics.Color.White,
-                        contentColor = com.example.ui.theme.UltraTealStart
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.height(44.dp).testTag("home_open_ultra_hub_btn")
-                ) {
-                    Text(
-                        text = trLang(selectedLanguage, "Open", "ખોલો", "खोलें"),
-                        fontWeight = FontWeight.Bold
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = trLang(
+                                    selectedLanguage,
+                                    "✨ Ultra Health Command Center",
+                                    "✨ અલ્ટ્રા હેલ્થ કમાન્ડ સેન્ટર",
+                                    "✨ अल्ट्रा हेल्थ कमांड सेंटर"
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = androidx.compose.ui.graphics.Color.White
+                            )
+                            Text(
+                                text = trLang(
+                                    selectedLanguage,
+                                    "AI Coach • Body Map • Nutrition • SOS PDF • Live Score",
+                                    "AI કોચ • બોડી મેપ • પોષણ • SOS PDF • લાઇવ સ્કોર",
+                                    "AI कोच • बॉडी मैप • पोषण • SOS PDF • लाइव स्कोर"
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.90f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = { onOpenUltraTab(UltraHealthTab.SCORE) },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = androidx.compose.ui.graphics.Color.White,
+                                contentColor = com.example.ui.theme.UltraTealStart
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.height(44.dp).testTag("home_open_ultra_hub_btn")
+                        ) {
+                            Text(
+                                text = trLang(selectedLanguage, "Open", "ખોલો", "खोलें"),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    // Live Pulse Metrics Bar
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        HomeGlassPulsePill(
+                            label = trLang(selectedLanguage, "Score", "સ્કોર", "स्कोर"),
+                            value = "$healthScore%",
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeGlassPulsePill(
+                            label = trLang(selectedLanguage, "Steps", "સ્ટેપ્સ", "कदम"),
+                            value = "$todaySteps",
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeGlassPulsePill(
+                            label = trLang(selectedLanguage, "Water", "પાણી", "पानी"),
+                            value = "${todayWaterMl}ml",
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeGlassPulsePill(
+                            label = "Kcal",
+                            value = "$todayCalories",
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    // 4 Direct Ultra Module Launch Tiles
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        HomeUltraDockTile(
+                            label = trLang(selectedLanguage, "AI Coach", "AI કોચ", "AI कोच"),
+                            icon = Icons.Default.AutoAwesome,
+                            tag = "home_ultra_dock_coach",
+                            onClick = { onOpenUltraTab(UltraHealthTab.AI_COACH) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeUltraDockTile(
+                            label = trLang(selectedLanguage, "Body Map", "બોડી મેપ", "बॉडी मैप"),
+                            icon = Icons.Default.AccessibilityNew,
+                            tag = "home_ultra_dock_bodymap",
+                            onClick = { onOpenUltraTab(UltraHealthTab.BODY_MAP) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeUltraDockTile(
+                            label = trLang(selectedLanguage, "Nutrition", "પોષણ", "पोषण"),
+                            icon = Icons.Default.Restaurant,
+                            tag = "home_ultra_dock_nutrition",
+                            onClick = { onOpenUltraTab(UltraHealthTab.NUTRITION) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        HomeUltraDockTile(
+                            label = trLang(selectedLanguage, "SOS & PDF", "SOS PDF", "SOS PDF"),
+                            icon = Icons.Default.Emergency,
+                            tag = "home_ultra_dock_sos",
+                            onClick = { onOpenUltraTab(UltraHealthTab.SOS_PASSPORT) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
 
         // Prominent NEAR PMJAY HOSPITAL FIND Portal Button (Direct link to https://hem.nha.gov.in/search)
-        Spacer(modifier = Modifier.height(10.dp))
-        Button(
-            onClick = { com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context) },
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .testTag("home_near_pmjay_hospital_btn")
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+        if (devAppConfig.pmjayFinderEnabled) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                onClick = {
+                    com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(
+                        context = context,
+                        urlOverride = devAppConfig.pmjayPortalUrlOverride
+                    )
+                },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+                    .heightIn(min = 56.dp)
+                    .testTag("home_near_pmjay_hospital_btn")
             ) {
-                Icon(
-                    imageVector = Icons.Default.LocalHospital,
-                    contentDescription = "NEAR PMJAY HOSPITAL FIND",
-                    modifier = Modifier.size(22.dp)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "NEAR PMJAY HOSPITAL FIND",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocalHospital,
+                        contentDescription = "NEAR PMJAY HOSPITAL FIND",
+                        modifier = Modifier.size(22.dp)
                     )
-                    Text(
-                        text = trLang(
-                            selectedLanguage,
-                            "Official Ayushman Bharat Portal • hem.nha.gov.in",
-                            "સત્તાવાર આયુષ્માન ભારત પોર્ટલ • hem.nha.gov.in",
-                            "आधिकारिक आयुष्मान भारत पोर्टल • hem.nha.gov.in"
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "NEAR PMJAY HOSPITAL FIND",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = trLang(
+                                selectedLanguage,
+                                "Official Ayushman Bharat Portal • hem.nha.gov.in",
+                                "સત્તાવાર આયુષ્માન ભારત પોર્ટલ • hem.nha.gov.in",
+                                "आधिकारिक आयुष्मान भारत पोर्टल • hem.nha.gov.in"
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(6.dp))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
             }
         }
 
@@ -2155,30 +2385,43 @@ fun WelcomeTriageView(
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SuggestionChip(
-                onClick = { onOpenScreen(AppScreen.ULTRA_HEALTH_HUB) },
-                label = { Text(trLang(selectedLanguage, "Ultra Hub", "અલ્ટ્રા હબ", "अल्ट्रा हब"), fontWeight = FontWeight.Bold) },
-                icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
-                modifier = Modifier.testTag("home_quick_ultra_hub")
-            )
-            SuggestionChip(
-                onClick = { com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context) },
-                label = { Text("NEAR PMJAY HOSPITAL FIND", fontWeight = FontWeight.Bold) },
-                icon = { Icon(Icons.Default.LocalHospital, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
-                modifier = Modifier.testTag("home_quick_pmjay_hospital")
-            )
-            SuggestionChip(
-                onClick = { onOpenScreen(AppScreen.AI_VIDEO_CALL) },
-                label = { Text(trLang(selectedLanguage, "AI Video Call", "વિડિયો કૉલ AI", "वीडियो कॉल AI"), fontWeight = FontWeight.Bold) },
-                icon = { Icon(Icons.Default.VideoCall, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
-                modifier = Modifier.testTag("home_quick_video_call")
-            )
-            SuggestionChip(
-                onClick = { onOpenScreen(AppScreen.AI_MEDICINE_ADVISOR) },
-                label = { Text(trLang(selectedLanguage, "AI Medicine", "AI દવા સલાહ", "AI दवा सलाह"), fontWeight = FontWeight.Bold) },
-                icon = { Icon(Icons.Default.Medication, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
-                modifier = Modifier.testTag("home_quick_medicine_advisor")
-            )
+            if (devAppConfig.ultraHubFeatureEnabled) {
+                SuggestionChip(
+                    onClick = { onOpenScreen(AppScreen.ULTRA_HEALTH_HUB) },
+                    label = { Text(trLang(selectedLanguage, "Ultra Hub", "અલ્ટ્રા હબ", "अल्ट्रा हब"), fontWeight = FontWeight.Bold) },
+                    icon = { Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                    modifier = Modifier.testTag("home_quick_ultra_hub")
+                )
+            }
+            if (devAppConfig.pmjayFinderEnabled) {
+                SuggestionChip(
+                    onClick = {
+                        com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(
+                            context = context,
+                            urlOverride = devAppConfig.pmjayPortalUrlOverride
+                        )
+                    },
+                    label = { Text("NEAR PMJAY HOSPITAL FIND", fontWeight = FontWeight.Bold) },
+                    icon = { Icon(Icons.Default.LocalHospital, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                    modifier = Modifier.testTag("home_quick_pmjay_hospital")
+                )
+            }
+            if (devAppConfig.videoCallFeatureEnabled) {
+                SuggestionChip(
+                    onClick = { onOpenScreen(AppScreen.AI_VIDEO_CALL) },
+                    label = { Text(trLang(selectedLanguage, "AI Video Call", "વિડિયો કૉલ AI", "वीडियो कॉल AI"), fontWeight = FontWeight.Bold) },
+                    icon = { Icon(Icons.Default.VideoCall, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                    modifier = Modifier.testTag("home_quick_video_call")
+                )
+            }
+            if (devAppConfig.medicineAdvisorFeatureEnabled) {
+                SuggestionChip(
+                    onClick = { onOpenScreen(AppScreen.AI_MEDICINE_ADVISOR) },
+                    label = { Text(trLang(selectedLanguage, "AI Medicine", "AI દવા સલાહ", "AI दवा सलाह"), fontWeight = FontWeight.Bold) },
+                    icon = { Icon(Icons.Default.Medication, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary) },
+                    modifier = Modifier.testTag("home_quick_medicine_advisor")
+                )
+            }
             SuggestionChip(
                 onClick = { onOpenScreen(AppScreen.STEP_COUNTER) },
                 label = { Text(trLang(selectedLanguage, "Steps", "સ્ટેપ્સ", "कदम")) },
@@ -2191,12 +2434,14 @@ fun WelcomeTriageView(
                 icon = { Icon(Icons.Default.MonitorHeart, contentDescription = null, modifier = Modifier.size(16.dp)) },
                 modifier = Modifier.testTag("home_quick_vitals")
             )
-            SuggestionChip(
-                onClick = { onOpenScreen(AppScreen.REPORT_SCANNER) },
-                label = { Text(trLang(selectedLanguage, "Rx / PDF", "Rx / PDF", "Rx / PDF")) },
-                icon = { Icon(Icons.Default.DocumentScanner, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                modifier = Modifier.testTag("home_quick_scanner")
-            )
+            if (devAppConfig.reportScannerFeatureEnabled) {
+                SuggestionChip(
+                    onClick = { onOpenScreen(AppScreen.REPORT_SCANNER) },
+                    label = { Text(trLang(selectedLanguage, "Rx / PDF", "Rx / PDF", "Rx / PDF")) },
+                    icon = { Icon(Icons.Default.DocumentScanner, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                    modifier = Modifier.testTag("home_quick_scanner")
+                )
+            }
             SuggestionChip(
                 onClick = { onOpenScreen(AppScreen.MEDICINE_REMINDER) },
                 label = { Text(trLang(selectedLanguage, "Medicines", "દવા યાદ", "दवाइयाँ")) },
@@ -2390,3 +2635,86 @@ fun QuickSymptomChipsRow(onSelect: (String) -> Unit) {
         }
     }
 }
+
+@Composable
+private fun HomeGlassPulsePill(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.16f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.28f)
+        ),
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = androidx.compose.ui.graphics.Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.86f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeUltraDockTile(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tag: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.22f),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.36f)
+        ),
+        modifier = modifier
+            .heightIn(min = 54.dp)
+            .testTag(tag)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = androidx.compose.ui.graphics.Color.White,
+                modifier = Modifier.size(19.dp)
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = androidx.compose.ui.graphics.Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+

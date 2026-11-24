@@ -158,4 +158,32 @@ class LocalizationTest {
             assertNotEquals("Hindi string should differ from English for $resId", enText, hiText)
         }
     }
+
+    @Test
+    fun `verify all 18 added languages translate splash upgrade download and hub phrases`() {
+        val newLanguages = AppLanguages.all.filter { it.id !in setOf("English", "Gujarati", "Hindi") }
+        assertEquals(18, newLanguages.size)
+
+        val phrases = listOf(
+            "Download Upgrade",
+            "App Upgrade Available",
+            "Publish Public Upgrade",
+            "Loading Smart Clinical AI...",
+            "Ultra Hub",
+            "Developer Control & Upgrades",
+            "Users (5)"
+        )
+
+        newLanguages.forEach { langInfo ->
+            phrases.forEach { enPhrase ->
+                val translated = trLang(langInfo.id, enPhrase, enPhrase, enPhrase)
+                assertTrue("Translated phrase should not be blank for ${langInfo.id}", translated.isNotBlank())
+                assertNotEquals(
+                    "Phrase '$enPhrase' should be translated for ${langInfo.id}",
+                    enPhrase,
+                    translated
+                )
+            }
+        }
+    }
 }

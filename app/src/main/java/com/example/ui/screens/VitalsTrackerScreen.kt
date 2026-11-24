@@ -197,6 +197,7 @@ fun VitalsTrackerScreen(
                     }
                 },
                 actions = {
+                    com.example.ui.components.LanguageSelector(viewModel = viewModel, showRefreshButton = false)
                     IconButton(
                         onClick = { viewModel.openClinicalAiSuite(ClinicalAiTab.REMOTE_MONITORING) },
                         modifier = Modifier.testTag("vitals_open_wearable_btn")

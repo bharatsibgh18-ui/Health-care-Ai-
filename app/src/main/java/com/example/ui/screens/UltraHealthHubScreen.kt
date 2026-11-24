@@ -1,5 +1,10 @@
 package com.example.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -21,14 +26,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AccessibilityNew
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Biotech
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Emergency
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Nightlight
 import androidx.compose.material.icons.filled.PriorityHigh
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Widgets
@@ -82,10 +90,16 @@ import com.example.ui.viewmodel.AppScreen
 import com.example.ui.viewmodel.MediAssistViewModel
 import com.example.ui.viewmodel.UltraHealthTab
 import com.example.utils.DailyHealthScoreReport
+import com.example.utils.HealthPassportPdfGenerator
 import com.example.utils.HealthScoreTier
 import com.example.utils.InsightPriority
 import com.example.utils.MedicationStreakEngine
+import com.example.utils.NutritionPresetCatalog
+import com.example.utils.UltraHealthCoachEngine
 import com.example.utils.UltraHealthScoreEngine
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,6 +110,8 @@ fun UltraHealthHubScreen(
     val activeTab by viewModel.ultraHealthTab.collectAsState()
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
+    val authSession by viewModel.authSession.collectAsState()
+    val devAppConfig by viewModel.devAppConfig.collectAsState()
     val todayWaterMl by viewModel.todayTotalWaterMl.collectAsState()
     val waterTargetMl by viewModel.waterTargetMl.collectAsState()
     val todayStepRecord by viewModel.todayStepRecord.collectAsState()
@@ -104,11 +120,19 @@ fun UltraHealthHubScreen(
     val sleepLogs by viewModel.sleepWellnessLogs.collectAsState()
     val vitalLogs by viewModel.vitalLogs.collectAsState()
     val scannedReports by viewModel.scannedReports.collectAsState()
+    val mealNutritionLogs by viewModel.mealNutritionLogs.collectAsState()
+    val dailyCalorieTarget by viewModel.dailyCalorieTarget.collectAsState()
+    val completedCoachTaskIds by viewModel.completedCoachTaskIds.collectAsState()
+    val aiCoachBrief by viewModel.aiCoachBrief.collectAsState()
+    val isAiCoachFromGemini by viewModel.isAiCoachFromGemini.collectAsState()
+    val isGeneratingCoachPlan by viewModel.isGeneratingCoachPlan.collectAsState()
+    val shakeToSosEnabled by viewModel.shakeToSosEnabled.collectAsState()
     val context = LocalContext.current
 
     val todaySteps = todayStepRecord?.steps ?: 0
     val stepTarget = todayStepRecord?.targetSteps ?: 8000
     val activeMeds = remember(medicines) { medicines.filter { it.isActive } }
+    val todayDateKey = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) }
 
     val scoreReport = remember(
         todayWaterMl, waterTargetMl, todaySteps, stepTarget, activeMeds, allAdherenceLogs, sleepLogs, vitalLogs
@@ -127,6 +151,74 @@ fun UltraHealthHubScreen(
 
     val streakAnalytics = remember(activeMeds, allAdherenceLogs) {
         MedicationStreakEngine.analyze(medicines = activeMeds, adherenceLogs = allAdherenceLogs)
+    }
+
+    val todayMealLogs = remember(mealNutritionLogs, todayDateKey) {
+        mealNutritionLogs.filter { it.dateKey == todayDateKey }
+    }
+
+    val nutritionSummary = remember(mealNutritionLogs, todayDateKey, dailyCalorieTarget) {
+        NutritionPresetCatalog.calculateDailySummary(
+            logs = mealNutritionLogs,
+            dateKey = todayDateKey,
+            targetCalories = dailyCalorieTarget
+        )
+    }
+
+    val coachPlan = remember(
+        todayDateKey,
+        scoreReport.overallScore,
+        todayWaterMl,
+        waterTargetMl,
+        todaySteps,
+        stepTarget,
+        nutritionSummary.totalCalories,
+        dailyCalorieTarget,
+        activeMeds,
+        sleepLogs,
+        vitalLogs,
+        selectedLanguage,
+        aiCoachBrief,
+        isAiCoachFromGemini
+    ) {
+        UltraHealthCoachEngine.buildDailyPlan(
+            dateKey = todayDateKey,
+            healthScore = scoreReport.overallScore,
+            todayWaterMl = todayWaterMl,
+            waterTargetMl = waterTargetMl,
+            todaySteps = todaySteps,
+            stepTarget = stepTarget,
+            todayCalories = nutritionSummary.totalCalories,
+            calorieTarget = dailyCalorieTarget,
+            activeMedicines = activeMeds,
+            sleepLogs = sleepLogs,
+            vitalLogs = vitalLogs,
+            language = selectedLanguage,
+            aiBriefOverride = aiCoachBrief,
+            isAiGenerated = isAiCoachFromGemini
+        )
+    }
+
+    val passportSnapshot = remember(
+        userProfile,
+        authSession.displayName,
+        scoreReport,
+        todaySteps,
+        todayWaterMl,
+        nutritionSummary.totalCalories,
+        activeMeds,
+        vitalLogs
+    ) {
+        HealthPassportPdfGenerator.buildSnapshot(
+            profile = userProfile,
+            fallbackName = authSession.displayName,
+            scoreReport = scoreReport,
+            todaySteps = todaySteps,
+            todayWaterMl = todayWaterMl,
+            todayCalories = nutritionSummary.totalCalories,
+            activeMedicines = activeMeds,
+            latestVitals = vitalLogs
+        )
     }
 
     // Keep Home Screen Widget synchronized with latest computed score
@@ -162,9 +254,9 @@ fun UltraHealthHubScreen(
                             )
                             Text(
                                 text = tr(
-                                    "Score • Streaks • QR ID • Wellness • Labs",
-                                    "સ્કોર • સ્ટ્રીક • QR ID • વેલનેસ • લેબ ટ્રેન્ડ",
-                                    "स्कोर • स्ट्रीक • QR ID • वेलनेस • लैब ट्रेंड"
+                                    "Score • AI Coach • Body Map • Nutrition • SOS PDF",
+                                    "સ્કોર • AI કોચ • બોડી મેપ • પોષણ • SOS PDF",
+                                    "स्कोर • AI कोच • बॉडी मैप • पोषण • SOS PDF"
                                 ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -182,6 +274,9 @@ fun UltraHealthHubScreen(
                             contentDescription = tr("Back", "પાછા જાઓ", "वापस जाएं")
                         )
                     }
+                },
+                actions = {
+                    com.example.ui.components.LanguageSelector(viewModel = viewModel, showRefreshButton = false)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -204,7 +299,7 @@ fun UltraHealthHubScreen(
                     )
                 )
         ) {
-            // Pill Tab Bar for all 5 Ultra Modules
+            // Pill Tab Bar for all 9 Ultra Clinical Modules
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -218,6 +313,34 @@ fun UltraHealthHubScreen(
                     icon = Icons.Default.MonitorHeart,
                     tag = "ultra_tab_score",
                     onClick = { viewModel.selectUltraHealthTab(UltraHealthTab.SCORE) }
+                )
+                UltraTabChip(
+                    selected = activeTab == UltraHealthTab.AI_COACH,
+                    label = tr("AI Coach", "AI કોચ", "AI कोच"),
+                    icon = Icons.Default.AutoAwesome,
+                    tag = "ultra_tab_ai_coach",
+                    onClick = { viewModel.selectUltraHealthTab(UltraHealthTab.AI_COACH) }
+                )
+                UltraTabChip(
+                    selected = activeTab == UltraHealthTab.BODY_MAP,
+                    label = tr("Body Map", "બોડી મેપ", "बॉडी मैप"),
+                    icon = Icons.Default.AccessibilityNew,
+                    tag = "ultra_tab_body_map",
+                    onClick = { viewModel.selectUltraHealthTab(UltraHealthTab.BODY_MAP) }
+                )
+                UltraTabChip(
+                    selected = activeTab == UltraHealthTab.NUTRITION,
+                    label = tr("Nutrition", "પોષણ", "पोषण"),
+                    icon = Icons.Default.Restaurant,
+                    tag = "ultra_tab_nutrition",
+                    onClick = { viewModel.selectUltraHealthTab(UltraHealthTab.NUTRITION) }
+                )
+                UltraTabChip(
+                    selected = activeTab == UltraHealthTab.SOS_PASSPORT,
+                    label = tr("SOS & PDF", "SOS અને PDF", "SOS व PDF"),
+                    icon = Icons.Default.Emergency,
+                    tag = "ultra_tab_sos_passport",
+                    onClick = { viewModel.selectUltraHealthTab(UltraHealthTab.SOS_PASSPORT) }
                 )
                 UltraTabChip(
                     selected = activeTab == UltraHealthTab.STREAKS,
@@ -249,7 +372,7 @@ fun UltraHealthHubScreen(
                 )
             }
 
-            // Tab Body
+            // Tab Body with smooth Ultra Clinical Glass fade transitions
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -258,66 +381,125 @@ fun UltraHealthHubScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                when (activeTab) {
-                    UltraHealthTab.SCORE -> UltraScoreDashboardTab(
-                        scoreReport = scoreReport,
-                        todaySteps = todaySteps,
-                        todayWaterMl = todayWaterMl,
-                        streakDays = streakAnalytics.currentStreakDays,
-                        selectedLanguage = selectedLanguage,
-                        onQuickWater = {
-                            viewModel.logWater(250)
-                            viewModel.syncHealthSummaryWidget()
-                        },
-                        onOpenTab = { viewModel.selectUltraHealthTab(it) },
-                        onOpenSteps = { viewModel.setScreen(AppScreen.STEP_COUNTER) },
-                        onSyncWidget = {
-                            viewModel.syncHealthSummaryWidget()
-                            android.widget.Toast.makeText(
-                                context,
-                                trLang(
-                                    selectedLanguage,
-                                    "Home Screen Widget synced! Long-press your home screen -> Widgets -> Health Care AI Daily Summary.",
-                                    "હોમ સ્ક્રીન વિજેટ અપડેટ થયું! હોમ સ્ક્રીન પર લાંબું દબાવી Widgets માંથી Health Care AI ઉમેરો.",
-                                    "होम स्क्रीन विजेट सिंक हो गया! होम स्क्रीन पर लॉन्ग-प्रेस करके Widgets से Health Care AI जोड़ें।"
-                                ),
-                                android.widget.Toast.LENGTH_LONG
-                            ).show()
+                AnimatedContent(
+                    targetState = activeTab,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(160))
+                    },
+                    label = "ultra_tab_transition"
+                ) { tab ->
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        when (tab) {
+                            UltraHealthTab.SCORE -> UltraScoreDashboardTab(
+                                scoreReport = scoreReport,
+                                todaySteps = todaySteps,
+                                todayWaterMl = todayWaterMl,
+                                streakDays = streakAnalytics.currentStreakDays,
+                                selectedLanguage = selectedLanguage,
+                                onQuickWater = {
+                                    viewModel.logWater(250)
+                                    viewModel.syncHealthSummaryWidget()
+                                },
+                                onOpenTab = { viewModel.selectUltraHealthTab(it) },
+                                onOpenSteps = { viewModel.setScreen(AppScreen.STEP_COUNTER) },
+                                onSyncWidget = {
+                                    viewModel.syncHealthSummaryWidget()
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        trLang(
+                                            selectedLanguage,
+                                            "Home Screen Widget synced! Long-press your home screen -> Widgets -> Health Care AI Daily Summary.",
+                                            "હોમ સ્ક્રીન વિજેટ અપડેટ થયું! હોમ સ્ક્રીન પર લાંબું દબાવી Widgets માંથી Health Care AI ઉમેરો.",
+                                            "होम स्क्रीन विजेट सिंक हो गया! होम स्क्रीन पर लॉन्ग-प्रेस करके Widgets से Health Care AI जोड़ें।"
+                                        ),
+                                        android.widget.Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            )
+
+                            UltraHealthTab.AI_COACH -> UltraAiCoachTab(
+                                plan = coachPlan,
+                                completedTaskIds = completedCoachTaskIds,
+                                isGenerating = isGeneratingCoachPlan,
+                                selectedLanguage = selectedLanguage,
+                                onToggleTask = { taskId -> viewModel.toggleCoachTaskCompleted(taskId) },
+                                onRefreshAiCoach = { viewModel.refreshAiHealthCoachPlan() }
+                            )
+
+                            UltraHealthTab.BODY_MAP -> UltraBodyMapTab(
+                                selectedLanguage = selectedLanguage,
+                                onAnalyzeWithAiTriage = { zoneTitle, symptoms, severity, duration, notes ->
+                                    viewModel.launchBodyMapTriage(
+                                        zoneTitle = zoneTitle,
+                                        symptoms = symptoms,
+                                        severity = severity,
+                                        duration = duration,
+                                        additionalNotes = notes
+                                    )
+                                }
+                            )
+
+                            UltraHealthTab.NUTRITION -> UltraNutritionTab(
+                                summary = nutritionSummary,
+                                todayLogs = todayMealLogs,
+                                selectedLanguage = selectedLanguage,
+                                onLogMeal = { mealType, foodName, calories, protein, carbs, fiber ->
+                                    viewModel.logMealNutrition(
+                                        mealType = mealType,
+                                        foodName = foodName,
+                                        calories = calories,
+                                        proteinGrams = protein,
+                                        carbsGrams = carbs,
+                                        fiberGrams = fiber
+                                    )
+                                },
+                                onDeleteMeal = { meal -> viewModel.deleteMealNutrition(meal) },
+                                onUpdateTargetCalories = { target -> viewModel.updateDailyCalorieTarget(target) }
+                            )
+
+                            UltraHealthTab.SOS_PASSPORT -> UltraSosPassportTab(
+                                snapshot = passportSnapshot,
+                                emergencyHelpline = devAppConfig.emergencyHelplineOverride
+                                    .ifBlank { userProfile?.emergencyContactPhone ?: "112" },
+                                shakeToSosEnabled = shakeToSosEnabled,
+                                selectedLanguage = selectedLanguage,
+                                onToggleShakeToSos = { enabled -> viewModel.setShakeToSosEnabled(enabled) }
+                            )
+
+                            UltraHealthTab.STREAKS -> UltraMedicationStreaksTab(
+                                analytics = streakAnalytics,
+                                medicines = activeMeds,
+                                onMarkTaken = { med ->
+                                    viewModel.recordMedicineAdherence(med, "TAKEN", "Logged from Ultra Hub")
+                                    viewModel.syncHealthSummaryWidget()
+                                },
+                                onOpenMedicineReminders = { viewModel.setScreen(AppScreen.MEDICINE_REMINDER) }
+                            )
+
+                            UltraHealthTab.MEDICAL_ID -> UltraEmergencyMedicalIdTab(
+                                profile = userProfile,
+                                selectedLanguage = selectedLanguage,
+                                onEditProfile = { viewModel.setScreen(AppScreen.PROFILE) },
+                                onOpenEmergencyGuide = { viewModel.setScreen(AppScreen.EMERGENCY_GUIDE) }
+                            )
+
+                            UltraHealthTab.WELLNESS -> UltraWellnessAndSleepTab(
+                                userProfile = userProfile,
+                                sleepLogs = sleepLogs,
+                                onSaveSleep = { hours, quality, bed, wake, weight, height, notes ->
+                                    viewModel.logSleepWellness(hours, quality, bed, wake, weight, height, notes)
+                                },
+                                onDeleteSleep = { viewModel.deleteSleepWellnessLog(it) }
+                            )
+
+                            UltraHealthTab.LAB_TRENDS -> UltraLabTrendsTab(
+                                scannedReports = scannedReports,
+                                vitalLogs = vitalLogs,
+                                onOpenScanner = { viewModel.setScreen(AppScreen.REPORT_SCANNER) },
+                                onOpenVitals = { viewModel.setScreen(AppScreen.VITALS_TRACKER) }
+                            )
                         }
-                    )
-
-                    UltraHealthTab.STREAKS -> UltraMedicationStreaksTab(
-                        analytics = streakAnalytics,
-                        medicines = activeMeds,
-                        onMarkTaken = { med ->
-                            viewModel.recordMedicineAdherence(med, "TAKEN", "Logged from Ultra Hub")
-                            viewModel.syncHealthSummaryWidget()
-                        },
-                        onOpenMedicineReminders = { viewModel.setScreen(AppScreen.MEDICINE_REMINDER) }
-                    )
-
-                    UltraHealthTab.MEDICAL_ID -> UltraEmergencyMedicalIdTab(
-                        profile = userProfile,
-                        selectedLanguage = selectedLanguage,
-                        onEditProfile = { viewModel.setScreen(AppScreen.PROFILE) },
-                        onOpenEmergencyGuide = { viewModel.setScreen(AppScreen.EMERGENCY_GUIDE) }
-                    )
-
-                    UltraHealthTab.WELLNESS -> UltraWellnessAndSleepTab(
-                        userProfile = userProfile,
-                        sleepLogs = sleepLogs,
-                        onSaveSleep = { hours, quality, bed, wake, weight, height, notes ->
-                            viewModel.logSleepWellness(hours, quality, bed, wake, weight, height, notes)
-                        },
-                        onDeleteSleep = { viewModel.deleteSleepWellnessLog(it) }
-                    )
-
-                    UltraHealthTab.LAB_TRENDS -> UltraLabTrendsTab(
-                        scannedReports = scannedReports,
-                        vitalLogs = vitalLogs,
-                        onOpenScanner = { viewModel.setScreen(AppScreen.REPORT_SCANNER) },
-                        onOpenVitals = { viewModel.setScreen(AppScreen.VITALS_TRACKER) }
-                    )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))

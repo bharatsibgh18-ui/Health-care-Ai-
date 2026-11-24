@@ -59,6 +59,10 @@ enum class AppScreen {
 
 enum class UltraHealthTab {
     SCORE,
+    AI_COACH,
+    BODY_MAP,
+    NUTRITION,
+    SOS_PASSPORT,
     STREAKS,
     MEDICAL_ID,
     WELLNESS,
@@ -120,8 +124,10 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         }
         com.example.utils.DevLogger.i(
             "AppLifecycle",
-            "MediAssistViewModel initialized (Room v16, Exact Alarms + WorkManager ready)"
+            "MediAssistViewModel initialized (Room v17, Live Public Upgrades + Exact Alarms + WorkManager ready)"
         )
+
+        startLivePublicConfigObserver()
 
         viewModelScope.launch {
             try {
@@ -2870,6 +2876,42 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
             entity ?: com.example.data.local.DeveloperAppConfigEntity()
         }.safeStateIn(com.example.data.local.DeveloperAppConfigEntity())
 
+    private var devConfigListener: com.google.firebase.firestore.ListenerRegistration? = null
+
+    private val upgradePrefs by lazy {
+        getApplication<Application>().getSharedPreferences("app_upgrade_prefs", android.content.Context.MODE_PRIVATE)
+    }
+
+    private val _dismissedUpgradeConfigVersion = MutableStateFlow(
+        runCatching { upgradePrefs.getInt("dismissed_upgrade_config_version", 0) }.getOrDefault(0)
+    )
+    val dismissedUpgradeConfigVersion: StateFlow<Int> = _dismissedUpgradeConfigVersion.asStateFlow()
+
+    fun dismissUpgradeDialog(configVersion: Int) {
+        _dismissedUpgradeConfigVersion.value = configVersion
+        runCatching {
+            upgradePrefs.edit().putInt("dismissed_upgrade_config_version", configVersion).apply()
+        }
+    }
+
+    fun startLivePublicConfigObserver() {
+        if (devConfigListener != null) return
+        try {
+            devConfigListener = firebaseBackupRepo.observeDevAppConfig { remoteConfig ->
+                viewModelScope.launch {
+                    try {
+                        val current = devAppConfig.value
+                        if (remoteConfig.configVersion >= current.configVersion ||
+                            remoteConfig.updatedAt > current.updatedAt
+                        ) {
+                            repository.saveDevAppConfig(remoteConfig)
+                        }
+                    } catch (_: Throwable) {}
+                }
+            }
+        } catch (_: Throwable) {}
+    }
+
     private val _cloudUserPresence =
         MutableStateFlow<List<com.example.data.local.DeveloperUserPresenceSummary>>(emptyList())
 
@@ -3020,21 +3062,41 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         publicDoctorConsultEnabled: Boolean,
         videoCallFeatureEnabled: Boolean,
         medicineAdvisorFeatureEnabled: Boolean,
-        emergencyHelplineOverride: String
+        emergencyHelplineOverride: String,
+        ultraHubFeatureEnabled: Boolean = devAppConfig.value.ultraHubFeatureEnabled,
+        pmjayFinderEnabled: Boolean = devAppConfig.value.pmjayFinderEnabled,
+        pmjayPortalUrlOverride: String = devAppConfig.value.pmjayPortalUrlOverride,
+        reportScannerFeatureEnabled: Boolean = devAppConfig.value.reportScannerFeatureEnabled,
+        splashDurationSeconds: Int = devAppConfig.value.splashDurationSeconds,
+        splashTopCreditText: String = devAppConfig.value.splashTopCreditText,
+        splashSchoolNameText: String = devAppConfig.value.splashSchoolNameText,
+        maintenanceModeEnabled: Boolean = devAppConfig.value.maintenanceModeEnabled,
+        maintenanceMessage: String = devAppConfig.value.maintenanceMessage,
+        supportContactPhone: String = devAppConfig.value.supportContactPhone
     ): Boolean {
         if (!_authSession.value.isDeveloper) {
             _devUpgradeStatus.value = "Unauthorized: Developer login required."
             return false
         }
-        val currentVersion = devAppConfig.value.configVersion
-        val updated = com.example.data.local.DeveloperAppConfigEntity(
+        val current = devAppConfig.value
+        val updated = current.copy(
             id = 1,
             appBannerNotice = appBannerNotice.trim(),
             publicDoctorConsultEnabled = publicDoctorConsultEnabled,
             videoCallFeatureEnabled = videoCallFeatureEnabled,
             medicineAdvisorFeatureEnabled = medicineAdvisorFeatureEnabled,
             emergencyHelplineOverride = emergencyHelplineOverride.trim().ifBlank { "112" },
-            configVersion = currentVersion + 1,
+            ultraHubFeatureEnabled = ultraHubFeatureEnabled,
+            pmjayFinderEnabled = pmjayFinderEnabled,
+            pmjayPortalUrlOverride = pmjayPortalUrlOverride.trim().ifBlank { com.example.utils.PmjayPortalHelper.PMJAY_HOSPITAL_SEARCH_URL },
+            reportScannerFeatureEnabled = reportScannerFeatureEnabled,
+            splashDurationSeconds = splashDurationSeconds.coerceIn(2, 10),
+            splashTopCreditText = splashTopCreditText.trim().ifBlank { "Created by Shailesh and Ruturaj" },
+            splashSchoolNameText = splashSchoolNameText.trim().ifBlank { "Model School Sayla" },
+            maintenanceModeEnabled = maintenanceModeEnabled,
+            maintenanceMessage = maintenanceMessage.trim(),
+            supportContactPhone = supportContactPhone.trim(),
+            configVersion = current.configVersion + 1,
             updatedBy = _authSession.value.username,
             updatedAt = System.currentTimeMillis()
         )
@@ -3046,10 +3108,84 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
                 "Developer published live app config v${updated.configVersion} (cloud=${cloudRes.isSuccess})"
             )
             _devUpgradeStatus.value = if (cloudRes.isSuccess) {
-                "Live App Upgrade v${updated.configVersion} published to Cloud!"
+                "Live App Controls v${updated.configVersion} published to all users!"
             } else {
-                "Saved Live App Config v${updated.configVersion} locally."
+                "Saved Live App Controls v${updated.configVersion} locally."
             }
+        }
+        return true
+    }
+
+    fun publishPublicAppUpgrade(
+        targetVersion: String,
+        title: String,
+        message: String,
+        downloadUrl: String,
+        mandatory: Boolean = false
+    ): Boolean {
+        if (!_authSession.value.isDeveloper) {
+            _devUpgradeStatus.value = "Unauthorized: Developer login required."
+            return false
+        }
+        val cleanVersion = targetVersion.trim().ifBlank { "${com.example.BuildConfig.VERSION_NAME}.1" }
+        val cleanTitle = title.trim().ifBlank { "New Health Care AI Upgrade v$cleanVersion" }
+        val cleanMessage = message.trim()
+        if (cleanMessage.isBlank()) {
+            _devUpgradeStatus.value = "Please enter an upgrade message for users."
+            return false
+        }
+        val cleanUrl = com.example.utils.AppUpgradeDownloadHelper.normalizeDownloadUrl(downloadUrl) ?: downloadUrl.trim()
+        val current = devAppConfig.value
+        val now = System.currentTimeMillis()
+        val updated = current.copy(
+            id = 1,
+            upgradePublished = true,
+            upgradeTargetVersion = cleanVersion,
+            upgradeTitle = cleanTitle,
+            upgradeMessage = cleanMessage,
+            upgradeDownloadUrl = cleanUrl,
+            upgradeMandatory = mandatory,
+            configVersion = current.configVersion + 1,
+            updatedBy = _authSession.value.username,
+            updatedAt = now
+        )
+        viewModelScope.launch {
+            repository.saveDevAppConfig(updated)
+            val cloudRes = firebaseBackupRepo.syncDevAppConfig(updated)
+            com.example.utils.DevLogger.i(
+                "DevConsole",
+                "Developer published PUBLIC APP UPGRADE v$cleanVersion (url=$cleanUrl, mandatory=$mandatory, cloud=${cloudRes.isSuccess})"
+            )
+            _devUpgradeStatus.value = if (cloudRes.isSuccess) {
+                "Public App Upgrade v$cleanVersion sent to ALL users with Download Upgrade!"
+            } else {
+                "Published Public App Upgrade v$cleanVersion locally (Cloud sync queued)."
+            }
+        }
+        return true
+    }
+
+    fun clearPublishedAppUpgrade(): Boolean {
+        if (!_authSession.value.isDeveloper) {
+            _devUpgradeStatus.value = "Unauthorized: Developer login required."
+            return false
+        }
+        val current = devAppConfig.value
+        val updated = current.copy(
+            id = 1,
+            upgradePublished = false,
+            configVersion = current.configVersion + 1,
+            updatedBy = _authSession.value.username,
+            updatedAt = System.currentTimeMillis()
+        )
+        viewModelScope.launch {
+            repository.saveDevAppConfig(updated)
+            val cloudRes = firebaseBackupRepo.syncDevAppConfig(updated)
+            com.example.utils.DevLogger.i(
+                "DevConsole",
+                "Developer unpublished app upgrade banner (cloud=${cloudRes.isSuccess})"
+            )
+            _devUpgradeStatus.value = "Public App Upgrade notification turned off."
         }
         return true
     }
@@ -3134,6 +3270,182 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    // -------------------------------------------------------------
+    // ULTRA CLINICAL GLASS UPGRADE: AI COACH, BODY MAP, NUTRITION, SOS
+    // -------------------------------------------------------------
+    private val ultraUpgradePrefs by lazy {
+        getApplication<Application>().getSharedPreferences("ultra_upgrade_prefs", android.content.Context.MODE_PRIVATE)
+    }
+
+    private fun todayDateKey(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+    val mealNutritionLogs: StateFlow<List<com.example.data.local.MealNutritionLogEntity>> =
+        repository.allMealNutritionLogs.safeStateIn(emptyList())
+
+    private val _dailyCalorieTarget = MutableStateFlow(
+        runCatching { ultraUpgradePrefs.getInt("daily_calorie_target", 2000) }.getOrDefault(2000)
+    )
+    val dailyCalorieTarget: StateFlow<Int> = _dailyCalorieTarget.asStateFlow()
+
+    private val _completedCoachTaskIds = MutableStateFlow(loadTodayCompletedCoachTasks())
+    val completedCoachTaskIds: StateFlow<Set<String>> = _completedCoachTaskIds.asStateFlow()
+
+    private val _aiCoachBrief = MutableStateFlow<String?>(null)
+    val aiCoachBrief: StateFlow<String?> = _aiCoachBrief.asStateFlow()
+
+    private val _isAiCoachFromGemini = MutableStateFlow(false)
+    val isAiCoachFromGemini: StateFlow<Boolean> = _isAiCoachFromGemini.asStateFlow()
+
+    private val _isGeneratingCoachPlan = MutableStateFlow(false)
+    val isGeneratingCoachPlan: StateFlow<Boolean> = _isGeneratingCoachPlan.asStateFlow()
+
+    private val _shakeToSosEnabled = MutableStateFlow(
+        runCatching { ultraUpgradePrefs.getBoolean("shake_to_sos_enabled", false) }.getOrDefault(false)
+    )
+    val shakeToSosEnabled: StateFlow<Boolean> = _shakeToSosEnabled.asStateFlow()
+
+    private fun loadTodayCompletedCoachTasks(): Set<String> {
+        return runCatching {
+            val savedDate = ultraUpgradePrefs.getString("coach_tasks_date", "")
+            if (savedDate == todayDateKey()) {
+                ultraUpgradePrefs.getStringSet("coach_tasks_done", emptySet())?.toSet() ?: emptySet()
+            } else {
+                emptySet()
+            }
+        }.getOrDefault(emptySet())
+    }
+
+    fun toggleCoachTaskCompleted(taskId: String) {
+        val updated = _completedCoachTaskIds.value.toMutableSet().apply {
+            if (!add(taskId)) remove(taskId)
+        }
+        _completedCoachTaskIds.value = updated
+        runCatching {
+            ultraUpgradePrefs.edit()
+                .putString("coach_tasks_date", todayDateKey())
+                .putStringSet("coach_tasks_done", updated)
+                .apply()
+        }
+    }
+
+    fun refreshAiHealthCoachPlan() {
+        if (_isGeneratingCoachPlan.value) return
+        viewModelScope.launch {
+            _isGeneratingCoachPlan.value = true
+            try {
+                val today = todayDateKey()
+                val waterMl = todayTotalWaterMl.value
+                val waterGoal = waterTargetMl.value
+                val stepRec = todayStepRecord.value
+                val steps = stepRec?.steps ?: 0
+                val stepGoal = stepRec?.targetSteps ?: 8000
+                val activeMeds = medicines.value.filter { it.isActive }
+                val adherence = allAdherenceLogs.value
+                val sleep = sleepWellnessLogs.value
+                val vitals = vitalLogs.value
+                val score = com.example.utils.UltraHealthScoreEngine.calculate(
+                    todayWaterMl = waterMl,
+                    waterTargetMl = waterGoal,
+                    todaySteps = steps,
+                    stepTarget = stepGoal,
+                    activeMedicines = activeMeds,
+                    adherenceLogs = adherence,
+                    sleepLogs = sleep,
+                    vitalLogs = vitals
+                ).overallScore
+                val nutrition = com.example.utils.NutritionPresetCatalog.calculateDailySummary(
+                    dateKey = today,
+                    logs = mealNutritionLogs.value,
+                    targetCalories = _dailyCalorieTarget.value
+                )
+                val (brief, isGemini) = repository.generateAiHealthCoachAdvice(
+                    healthScore = score,
+                    todayWaterMl = waterMl,
+                    waterTargetMl = waterGoal,
+                    todaySteps = steps,
+                    stepTarget = stepGoal,
+                    todayCalories = nutrition.totalCalories,
+                    calorieTarget = nutrition.targetCalories,
+                    proteinGrams = nutrition.totalProteinGrams,
+                    activeMedicinesCount = activeMeds.size,
+                    latestSleepHours = sleep.firstOrNull()?.sleepHours,
+                    profile = userProfile.value,
+                    language = _selectedLanguage.value
+                )
+                _aiCoachBrief.value = brief
+                _isAiCoachFromGemini.value = isGemini
+            } catch (_: Throwable) {
+            } finally {
+                _isGeneratingCoachPlan.value = false
+            }
+        }
+    }
+
+    fun logMealNutrition(
+        mealType: String,
+        foodName: String,
+        calories: Int,
+        proteinGrams: Double = 0.0,
+        carbsGrams: Double = 0.0,
+        fiberGrams: Double = 0.0
+    ) {
+        val cleanName = foodName.trim()
+        if (cleanName.isBlank() || calories <= 0) return
+        viewModelScope.launch {
+            repository.saveMealNutritionLog(
+                com.example.data.local.MealNutritionLogEntity(
+                    dateKey = todayDateKey(),
+                    mealType = mealType.ifBlank { "Lunch" },
+                    foodName = cleanName,
+                    calories = calories.coerceIn(1, 5000),
+                    proteinGrams = proteinGrams.coerceAtLeast(0.0),
+                    carbsGrams = carbsGrams.coerceAtLeast(0.0),
+                    fiberGrams = fiberGrams.coerceAtLeast(0.0),
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+            syncHealthSummaryWidget()
+        }
+    }
+
+    fun deleteMealNutrition(log: com.example.data.local.MealNutritionLogEntity) {
+        viewModelScope.launch {
+            repository.deleteMealNutritionLog(log)
+            syncHealthSummaryWidget()
+        }
+    }
+
+    fun updateDailyCalorieTarget(kcal: Int) {
+        val safe = kcal.coerceIn(1200, 4000)
+        _dailyCalorieTarget.value = safe
+        runCatching {
+            ultraUpgradePrefs.edit().putInt("daily_calorie_target", safe).apply()
+        }
+    }
+
+    fun setShakeToSosEnabled(enabled: Boolean) {
+        _shakeToSosEnabled.value = enabled
+        runCatching {
+            ultraUpgradePrefs.edit().putBoolean("shake_to_sos_enabled", enabled).apply()
+        }
+    }
+
+    fun launchBodyMapTriage(
+        zoneTitle: String,
+        symptoms: List<String>,
+        severity: String,
+        duration: String,
+        additionalNotes: String = ""
+    ) {
+        val symptomListText = symptoms.filter { it.isNotBlank() }.joinToString(", ")
+            .ifBlank { "localized discomfort" }
+        val notesPart = additionalNotes.trim().takeIf { it.isNotBlank() }?.let { " Additional details: $it." } ?: ""
+        val structuredPrompt =
+            "Body Map Visual Triage — Area: $zoneTitle. Symptoms: $symptomListText. Severity: $severity. Duration: $duration.$notesPart Please provide structured clinical triage guidance, red flags, safe self-care, and recommended specialist."
+        _currentScreen.value = AppScreen.TRIAGE_CHAT
+        sendMessage(structuredPrompt)
+    }
+
     fun syncHealthSummaryWidget() {
         try {
             val app = getApplication<Application>()
@@ -3193,6 +3505,10 @@ class MediAssistViewModel(application: Application) : AndroidViewModel(applicati
 
     override fun onCleared() {
         super.onCleared()
+        try {
+            devConfigListener?.remove()
+            devConfigListener = null
+        } catch (_: Exception) {}
         try {
             textToSpeech?.stop()
             textToSpeech?.shutdown()

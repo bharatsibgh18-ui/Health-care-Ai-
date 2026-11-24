@@ -81,6 +81,7 @@ fun SmartHubScreen(
     modifier: Modifier = Modifier
 ) {
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
+    val devAppConfig by viewModel.devAppConfig.collectAsState()
     val context = LocalContext.current
 
     Scaffold(
@@ -135,6 +136,9 @@ fun SmartHubScreen(
                             contentDescription = tr("Back", "પાછા જાઓ", "वापस जाएं")
                         )
                     }
+                },
+                actions = {
+                    com.example.ui.components.LanguageSelector(viewModel = viewModel, showRefreshButton = false)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -269,7 +273,12 @@ fun SmartHubScreen(
                         }
                     }
                     Button(
-                        onClick = { com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context) },
+                        onClick = {
+                            com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(
+                                context = context,
+                                urlOverride = devAppConfig.pmjayPortalUrlOverride
+                            )
+                        },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()

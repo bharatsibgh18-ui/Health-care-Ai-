@@ -8,7 +8,9 @@ import com.example.data.local.PublicDoctorEntity
 import com.example.data.local.SymptomLogEntity
 import com.example.data.local.UserProfileEntity
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
@@ -172,6 +174,39 @@ class FirebaseBackupRepository(private val context: Context) {
         }
     }
 
+    private fun parseDevAppConfig(doc: DocumentSnapshot): DeveloperAppConfigEntity {
+        return DeveloperAppConfigEntity(
+            id = 1,
+            appBannerNotice = doc.getString("appBannerNotice") ?: "",
+            publicDoctorConsultEnabled = doc.getBoolean("publicDoctorConsultEnabled") ?: true,
+            videoCallFeatureEnabled = doc.getBoolean("videoCallFeatureEnabled") ?: true,
+            medicineAdvisorFeatureEnabled = doc.getBoolean("medicineAdvisorFeatureEnabled") ?: true,
+            emergencyHelplineOverride = doc.getString("emergencyHelplineOverride") ?: "112",
+            configVersion = (doc.getLong("configVersion") ?: 1L).toInt(),
+            updatedBy = doc.getString("updatedBy") ?: "SHAILESH",
+            updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis(),
+            upgradePublished = doc.getBoolean("upgradePublished") ?: false,
+            upgradeTargetVersion = doc.getString("upgradeTargetVersion") ?: "",
+            upgradeTitle = doc.getString("upgradeTitle") ?: "",
+            upgradeMessage = doc.getString("upgradeMessage") ?: "",
+            upgradeDownloadUrl = doc.getString("upgradeDownloadUrl") ?: "",
+            upgradeMandatory = doc.getBoolean("upgradeMandatory") ?: false,
+            ultraHubFeatureEnabled = doc.getBoolean("ultraHubFeatureEnabled") ?: true,
+            pmjayFinderEnabled = doc.getBoolean("pmjayFinderEnabled") ?: true,
+            pmjayPortalUrlOverride = doc.getString("pmjayPortalUrlOverride")
+                ?.takeIf { it.isNotBlank() } ?: "https://hem.nha.gov.in/search",
+            reportScannerFeatureEnabled = doc.getBoolean("reportScannerFeatureEnabled") ?: true,
+            splashDurationSeconds = (doc.getLong("splashDurationSeconds") ?: 5L).toInt().coerceIn(2, 10),
+            splashTopCreditText = doc.getString("splashTopCreditText")
+                ?.takeIf { it.isNotBlank() } ?: "Created by Shailesh and Ruturaj",
+            splashSchoolNameText = doc.getString("splashSchoolNameText")
+                ?.takeIf { it.isNotBlank() } ?: "Model School Sayla",
+            maintenanceModeEnabled = doc.getBoolean("maintenanceModeEnabled") ?: false,
+            maintenanceMessage = doc.getString("maintenanceMessage") ?: "",
+            supportContactPhone = doc.getString("supportContactPhone") ?: ""
+        )
+    }
+
     suspend fun syncDevAppConfig(config: DeveloperAppConfigEntity): Result<Unit> {
         return try {
             val firestore = getFirestoreOrNull()
@@ -184,7 +219,23 @@ class FirebaseBackupRepository(private val context: Context) {
                 "emergencyHelplineOverride" to config.emergencyHelplineOverride,
                 "configVersion" to config.configVersion,
                 "updatedBy" to config.updatedBy,
-                "updatedAt" to config.updatedAt
+                "updatedAt" to config.updatedAt,
+                "upgradePublished" to config.upgradePublished,
+                "upgradeTargetVersion" to config.upgradeTargetVersion,
+                "upgradeTitle" to config.upgradeTitle,
+                "upgradeMessage" to config.upgradeMessage,
+                "upgradeDownloadUrl" to config.upgradeDownloadUrl,
+                "upgradeMandatory" to config.upgradeMandatory,
+                "ultraHubFeatureEnabled" to config.ultraHubFeatureEnabled,
+                "pmjayFinderEnabled" to config.pmjayFinderEnabled,
+                "pmjayPortalUrlOverride" to config.pmjayPortalUrlOverride,
+                "reportScannerFeatureEnabled" to config.reportScannerFeatureEnabled,
+                "splashDurationSeconds" to config.splashDurationSeconds,
+                "splashTopCreditText" to config.splashTopCreditText,
+                "splashSchoolNameText" to config.splashSchoolNameText,
+                "maintenanceModeEnabled" to config.maintenanceModeEnabled,
+                "maintenanceMessage" to config.maintenanceMessage,
+                "supportContactPhone" to config.supportContactPhone
             )
             firestore.collection("app_config").document("global").set(map).await()
             Result.success(Unit)
@@ -199,21 +250,26 @@ class FirebaseBackupRepository(private val context: Context) {
                 ?: return Result.failure(IllegalStateException("Cloud sync unavailable"))
             val doc = firestore.collection("app_config").document("global").get().await()
             if (!doc.exists()) return Result.success(null)
-            Result.success(
-                DeveloperAppConfigEntity(
-                    id = 1,
-                    appBannerNotice = doc.getString("appBannerNotice") ?: "",
-                    publicDoctorConsultEnabled = doc.getBoolean("publicDoctorConsultEnabled") ?: true,
-                    videoCallFeatureEnabled = doc.getBoolean("videoCallFeatureEnabled") ?: true,
-                    medicineAdvisorFeatureEnabled = doc.getBoolean("medicineAdvisorFeatureEnabled") ?: true,
-                    emergencyHelplineOverride = doc.getString("emergencyHelplineOverride") ?: "112",
-                    configVersion = (doc.getLong("configVersion") ?: 1L).toInt(),
-                    updatedBy = doc.getString("updatedBy") ?: "SHAILESH",
-                    updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
-                )
-            )
+            Result.success(parseDevAppConfig(doc))
         } catch (e: Throwable) {
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Real-time Firestore listener so every user receives developer-published live changes
+     * and App Upgrade notifications immediately without needing to restart the app.
+     */
+    fun observeDevAppConfig(onUpdate: (DeveloperAppConfigEntity) -> Unit): ListenerRegistration? {
+        return try {
+            val firestore = getFirestoreOrNull() ?: return null
+            firestore.collection("app_config").document("global")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null || snapshot == null || !snapshot.exists()) return@addSnapshotListener
+                    runCatching { parseDevAppConfig(snapshot) }.onSuccess(onUpdate)
+                }
+        } catch (_: Throwable) {
+            null
         }
     }
 

@@ -51,7 +51,7 @@ class AppStartupVerificationTest {
         AuthSecurityHelper.clearSession(context)
         composeTestRule.mainClock.autoAdvance = false
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            composeTestRule.mainClock.advanceTimeBy(500L)
+            composeTestRule.mainClock.advanceTimeBy(3000L)
             composeTestRule.onNodeWithTag("animated_splash_screen").assertIsDisplayed()
             composeTestRule.onNodeWithTag("splash_app_logo").assertIsDisplayed()
             composeTestRule.onNodeWithText("Created by Shailesh and Ruturaj").assertIsDisplayed()
@@ -140,6 +140,21 @@ class AppStartupVerificationTest {
     }
 
     @Test
+    fun `AppUpgradeDownloadHelper normalizes download URL and builds browsable ACTION_VIEW intent`() {
+        assertEquals(
+            "https://github.com/example/healthcare-ai/releases",
+            com.example.utils.AppUpgradeDownloadHelper.normalizeDownloadUrl("github.com/example/healthcare-ai/releases")
+        )
+        val intent = com.example.utils.AppUpgradeDownloadHelper.buildDownloadIntent(
+            "https://github.com/example/healthcare-ai/releases/latest"
+        )
+        assertNotNull(intent)
+        assertEquals(Intent.ACTION_VIEW, intent!!.action)
+        assertEquals("https://github.com/example/healthcare-ai/releases/latest", intent.data?.toString())
+        assertTrue(intent.categories?.contains(Intent.CATEGORY_BROWSABLE) == true)
+    }
+
+    @Test
     fun `MainActivity opens cleanly from Home Screen Widget deep links`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         AuthSecurityHelper.saveSession(
@@ -166,31 +181,41 @@ class AppStartupVerificationTest {
     }
 
     @Test
-    fun `Room MIGRATION_15_16 upgrades existing v15 SQLite database without crashing`() = runBlocking {
+    fun `Room MIGRATION_15_16_17_18 upgrades existing v15 SQLite database without crashing`() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val dbName = "test_migration_v15_to_v16.db"
+        val dbName = "test_migration_v15_to_v18.db"
         context.deleteDatabase(dbName)
         val dbFile = context.getDatabasePath(dbName)
         dbFile.parentFile?.mkdirs()
 
-        val tempV16 = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+        val tempV18 = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
             .allowMainThreadQueries()
             .build()
-        tempV16.openHelper.writableDatabase
-        tempV16.close()
+        tempV18.openHelper.writableDatabase
+        tempV18.close()
 
         val rawDb = SQLiteDatabase.openDatabase(dbFile.path, null, SQLiteDatabase.OPEN_READWRITE)
         rawDb.execSQL("DROP TABLE IF EXISTS `sleep_wellness_logs`")
+        rawDb.execSQL("DROP TABLE IF EXISTS `meal_nutrition_logs`")
         rawDb.version = 15
         rawDb.close()
 
         val migrated = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
-            .addMigrations(AppDatabase.MIGRATION_14_15, AppDatabase.MIGRATION_15_16)
+            .addMigrations(
+                AppDatabase.MIGRATION_14_15,
+                AppDatabase.MIGRATION_15_16,
+                AppDatabase.MIGRATION_16_17,
+                AppDatabase.MIGRATION_17_18
+            )
             .allowMainThreadQueries()
             .build()
         try {
             val sleepLogs = migrated.triageDao().getAllSleepWellnessLogs().first()
             assertTrue(sleepLogs.isEmpty())
+            val meals = migrated.triageDao().getAllMealNutritionLogs().first()
+            assertTrue(meals.isEmpty())
+            val cfg = migrated.triageDao().getDevAppConfigOnce()
+            assertEquals(null, cfg)
         } finally {
             migrated.close()
             context.deleteDatabase(dbName)
@@ -198,32 +223,40 @@ class AppStartupVerificationTest {
     }
 
     @Test
-    fun `Room MIGRATION_14_15 is idempotent even if pmjayCardNumber and abhaCardNumber already exist`() = runBlocking {
+    fun `Room MIGRATION_14_15_16_17_18 is idempotent even if columns already exist`() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val dbName = "test_migration_v14_idempotent.db"
         context.deleteDatabase(dbName)
         val dbFile = context.getDatabasePath(dbName)
         dbFile.parentFile?.mkdirs()
 
-        val tempV16 = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+        val tempV18 = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
             .allowMainThreadQueries()
             .build()
-        tempV16.openHelper.writableDatabase
-        tempV16.close()
+        tempV18.openHelper.writableDatabase
+        tempV18.close()
 
-        // Simulate a v14 DB that ALREADY has pmjayCardNumber/abhaCardNumber (duplicate-column edge case)
+        // Simulate a v14 DB that ALREADY has columns (duplicate-column edge case)
         val rawDb = SQLiteDatabase.openDatabase(dbFile.path, null, SQLiteDatabase.OPEN_READWRITE)
         rawDb.execSQL("DROP TABLE IF EXISTS `sleep_wellness_logs`")
+        rawDb.execSQL("DROP TABLE IF EXISTS `meal_nutrition_logs`")
         rawDb.version = 14
         rawDb.close()
 
         val migrated = Room.databaseBuilder(context, AppDatabase::class.java, dbName)
-            .addMigrations(AppDatabase.MIGRATION_14_15, AppDatabase.MIGRATION_15_16)
+            .addMigrations(
+                AppDatabase.MIGRATION_14_15,
+                AppDatabase.MIGRATION_15_16,
+                AppDatabase.MIGRATION_16_17,
+                AppDatabase.MIGRATION_17_18
+            )
             .allowMainThreadQueries()
             .build()
         try {
             val sleepLogs = migrated.triageDao().getAllSleepWellnessLogs().first()
             assertTrue(sleepLogs.isEmpty())
+            val meals = migrated.triageDao().getAllMealNutritionLogs().first()
+            assertTrue(meals.isEmpty())
             val profile = migrated.triageDao().getUserProfile().first()
             assertEquals(null, profile)
         } finally {

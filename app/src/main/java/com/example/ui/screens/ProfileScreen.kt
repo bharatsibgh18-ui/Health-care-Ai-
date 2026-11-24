@@ -553,7 +553,12 @@ fun ProfileScreen(
                     }
 
                     Button(
-                        onClick = { com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(context) },
+                        onClick = {
+                            com.example.utils.PmjayPortalHelper.openNearPmjayHospitalSearch(
+                                context = context,
+                                urlOverride = viewModel.devAppConfig.value.pmjayPortalUrlOverride
+                            )
+                        },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()

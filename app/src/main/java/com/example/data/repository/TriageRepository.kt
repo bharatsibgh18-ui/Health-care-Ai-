@@ -2290,4 +2290,65 @@ class TriageRepository(
         withContext(Dispatchers.IO) {
             triageDao.deleteSleepWellnessLog(log)
         }
+
+    // Ultra Meal & Calorie Nutrition Persistence
+    val allMealNutritionLogs: Flow<List<com.example.data.local.MealNutritionLogEntity>> =
+        triageDao.getAllMealNutritionLogs()
+
+    suspend fun saveMealNutritionLog(log: com.example.data.local.MealNutritionLogEntity): Long =
+        withContext(Dispatchers.IO) {
+            triageDao.insertMealNutritionLog(log)
+        }
+
+    suspend fun deleteMealNutritionLog(log: com.example.data.local.MealNutritionLogEntity) =
+        withContext(Dispatchers.IO) {
+            triageDao.deleteMealNutritionLog(log)
+        }
+
+    suspend fun generateAiHealthCoachAdvice(
+        healthScore: Int,
+        todayWaterMl: Int,
+        waterTargetMl: Int,
+        todaySteps: Int,
+        stepTarget: Int,
+        todayCalories: Int,
+        calorieTarget: Int,
+        proteinGrams: Double,
+        activeMedicinesCount: Int,
+        latestSleepHours: Double?,
+        profile: com.example.data.local.UserProfileEntity?,
+        language: String
+    ): Pair<String, Boolean> = withContext(Dispatchers.IO) {
+        val prompt = """
+            You are an empathetic, concise Preventive Clinical Health Coach inside Health Care AI.
+            Provide a motivating, practical 3-bullet daily wellness coaching brief based on these live metrics:
+            - Overall Health Score: $healthScore / 100
+            - Hydration: $todayWaterMl / $waterTargetMl ml
+            - Steps: $todaySteps / $stepTarget
+            - Nutrition Today: $todayCalories / $calorieTarget kcal (${proteinGrams.toInt()}g protein)
+            - Active Medicines: $activeMedicinesCount
+            - Latest Sleep: ${latestSleepHours?.let { "${"%.1f".format(it)} hrs" } ?: "Not logged"}
+            - Chronic Conditions: ${profile?.chronicConditions?.ifBlank { "None" } ?: "None"}
+
+            REQUIRED LANGUAGE: Respond completely in $language.
+            Keep it under 90 words, warm, safe, educational, and non-diagnostic.
+        """.trimIndent()
+
+        val aiText = callClinicalGeminiPrompt(prompt)
+        if (!aiText.isNullOrBlank()) {
+            aiText.trim() to true
+        } else {
+            val fallback = com.example.utils.UltraHealthCoachEngine.buildOfflineCoachingBrief(
+                healthScore = healthScore,
+                todayWaterMl = todayWaterMl,
+                waterTargetMl = waterTargetMl,
+                todaySteps = todaySteps,
+                stepTarget = stepTarget,
+                todayCalories = todayCalories,
+                calorieTarget = calorieTarget,
+                language = language
+            )
+            fallback to false
+        }
+    }
 }

@@ -68,26 +68,29 @@ import com.example.R
 import com.example.ui.theme.UltraCyanEnd
 import com.example.ui.theme.UltraIndigoStart
 import com.example.ui.theme.UltraTealStart
+import com.example.ui.theme.tr
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.sin
 
 /**
- * Engaging animated startup splash screen displaying:
- * - Top: "Created by Shailesh and Ruturaj"
+ * Engaging 5-second animated startup splash screen displaying:
+ * - Top: "Created by Shailesh and Ruturaj" (or developer-customized credit)
  * - Center: Pulsing App Logo with rotating clinical halo & animated ECG heartbeat wave
- * - Bottom: "Health Care AI" + "Model School Sayla"
+ * - Bottom: "Health Care AI" + "Model School Sayla" + localized 5s progress indicator
  */
 @Composable
 fun AnimatedSplashScreen(
-    durationMillis: Long = 2200L,
+    durationMillis: Long = 5000L,
+    createdByText: String = "Created by Shailesh and Ruturaj",
+    schoolNameText: String = "Model School Sayla",
     onSplashFinished: () -> Unit
 ) {
     var contentVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(durationMillis) {
         contentVisible = true
-        delay(durationMillis)
+        delay(durationMillis.coerceIn(2000L, 12000L))
         onSplashFinished()
     }
 
@@ -248,7 +251,7 @@ fun AnimatedSplashScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Created by Shailesh and Ruturaj",
+                            text = createdByText.ifBlank { "Created by Shailesh and Ruturaj" },
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -446,7 +449,7 @@ fun AnimatedSplashScreen(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Model School Sayla",
+                            text = schoolNameText.ifBlank { "Model School Sayla" },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color.White,
@@ -456,24 +459,24 @@ fun AnimatedSplashScreen(
                 }
             }
 
-            // BOTTOM SECTION: Smooth animated loading bar
+            // BOTTOM SECTION: Smooth 5-second animated loading bar
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxWidth(0.68f)
+                    .fillMaxWidth(0.72f)
                     .alpha(textAlpha)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(5.dp)
+                        .height(6.dp)
                         .clip(RoundedCornerShape(50))
                         .background(Color.White.copy(alpha = 0.20f))
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(loadingProgress.coerceIn(0.05f, 1f))
-                            .height(5.dp)
+                            .height(6.dp)
                             .clip(RoundedCornerShape(50))
                             .background(
                                 Brush.horizontalGradient(
@@ -484,11 +487,29 @@ fun AnimatedSplashScreen(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Loading Smart Clinical AI...",
+                    text = tr(
+                        "Loading Smart Clinical AI...",
+                        "સ્માર્ટ ક્લિનિકલ AI લોડ થઈ રહ્યું છે...",
+                        "स्मार्ट क्लिनिकल AI लोड हो रहा है..."
+                    ),
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.85f),
-                    letterSpacing = 0.3.sp
+                    color = Color.White.copy(alpha = 0.90f),
+                    letterSpacing = 0.3.sp,
+                    textAlign = TextAlign.Center
                 )
+                if (!isCompactHeight) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = tr(
+                            "Tap anywhere to continue",
+                            "આગળ વધવા માટે અહીં ટેપ કરો",
+                            "आगे बढ़ने के लिए कहीं भी टैप करें"
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.65f),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

@@ -370,7 +370,25 @@ data class DeveloperAppConfigEntity(
     val emergencyHelplineOverride: String = "112",
     val configVersion: Int = 1,
     val updatedBy: String = "SHAILESH",
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    // Public App Upgrade Publisher (shown to all users with Download Upgrade option)
+    val upgradePublished: Boolean = false,
+    val upgradeTargetVersion: String = "",
+    val upgradeTitle: String = "",
+    val upgradeMessage: String = "",
+    val upgradeDownloadUrl: String = "",
+    val upgradeMandatory: Boolean = false,
+    // Expanded Live Developer Controls
+    val ultraHubFeatureEnabled: Boolean = true,
+    val pmjayFinderEnabled: Boolean = true,
+    val pmjayPortalUrlOverride: String = "https://hem.nha.gov.in/search",
+    val reportScannerFeatureEnabled: Boolean = true,
+    val splashDurationSeconds: Int = 5,
+    val splashTopCreditText: String = "Created by Shailesh and Ruturaj",
+    val splashSchoolNameText: String = "Model School Sayla",
+    val maintenanceModeEnabled: Boolean = false,
+    val maintenanceMessage: String = "",
+    val supportContactPhone: String = ""
 )
 
 @Entity(
@@ -391,6 +409,26 @@ data class SleepWellnessLogEntity(
     val weightKg: Double = 0.0,
     val heightCm: Double = 0.0,
     val notes: String = "",
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+@Entity(
+    tableName = "meal_nutrition_logs",
+    indices = [
+        androidx.room.Index(value = ["dateKey"]),
+        androidx.room.Index(value = ["timestamp"])
+    ]
+)
+data class MealNutritionLogEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val dateKey: String, // "yyyy-MM-dd"
+    val mealType: String = "Lunch", // Breakfast, Lunch, Dinner, Snack
+    val foodName: String,
+    val calories: Int,
+    val proteinGrams: Double = 0.0,
+    val carbsGrams: Double = 0.0,
+    val fiberGrams: Double = 0.0,
     val timestamp: Long = System.currentTimeMillis()
 )
 

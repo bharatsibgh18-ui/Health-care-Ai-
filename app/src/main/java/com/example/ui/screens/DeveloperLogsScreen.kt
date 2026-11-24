@@ -158,6 +158,7 @@ fun DeveloperLogsScreen(
                     }
                 },
                 actions = {
+                    com.example.ui.components.LanguageSelector(viewModel = viewModel, showRefreshButton = false)
                     IconButton(
                         onClick = { viewModel.setScreen(AppScreen.DEVELOPER_CONSOLE) },
                         modifier = Modifier.testTag("dev_logs_open_console_btn")

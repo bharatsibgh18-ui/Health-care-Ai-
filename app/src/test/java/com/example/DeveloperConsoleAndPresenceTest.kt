@@ -171,6 +171,62 @@ class DeveloperConsoleAndPresenceTest {
     }
 
     @Test
+    fun `developer can publish public app upgrade with download link and clear it while non-developers are blocked`() = runBlocking {
+        val app = context.applicationContext as Application
+        val viewModel = MediAssistViewModel(app)
+
+        // Non-developer cannot publish public upgrade
+        assertFalse(
+            viewModel.publishPublicAppUpgrade(
+                targetVersion = "18.0",
+                title = "Unauthorized Update",
+                message = "Should fail",
+                downloadUrl = "https://example.com/app.apk",
+                mandatory = false
+            )
+        )
+
+        // Login as Developer SHAILESH
+        assertTrue(viewModel.loginAsDeveloper("SHAILESH", "Shailesh@1736"))
+
+        // Publish Public Upgrade
+        assertTrue(
+            viewModel.publishPublicAppUpgrade(
+                targetVersion = "18.0",
+                title = "Health Care AI v18.0 Live Update",
+                message = "5s splash animation, all 21 languages everywhere & faster AI triage.",
+                downloadUrl = "github.com/modelschoolsayla/healthcare-ai/releases/latest",
+                mandatory = true
+            )
+        )
+
+        val appDbDao = AppDatabase.getDatabase(app).triageDao()
+        var savedCfg = appDbDao.getDevAppConfigOnce()
+        val deadlineMs = System.currentTimeMillis() + 5000L
+        while (System.currentTimeMillis() < deadlineMs && savedCfg?.upgradePublished != true) {
+            shadowOf(Looper.getMainLooper()).idle()
+            savedCfg = appDbDao.getDevAppConfigOnce()
+            if (savedCfg?.upgradePublished != true) kotlinx.coroutines.delay(50)
+        }
+        assertNotNull(savedCfg)
+        assertTrue(savedCfg!!.upgradePublished)
+        assertEquals("18.0", savedCfg.upgradeTargetVersion)
+        assertEquals("https://github.com/modelschoolsayla/healthcare-ai/releases/latest", savedCfg.upgradeDownloadUrl)
+        assertTrue(savedCfg.upgradeMandatory)
+        assertEquals(5, savedCfg.splashDurationSeconds)
+
+        // Clear published upgrade
+        assertTrue(viewModel.clearPublishedAppUpgrade())
+        val clearDeadline = System.currentTimeMillis() + 5000L
+        while (System.currentTimeMillis() < clearDeadline && savedCfg?.upgradePublished != false) {
+            shadowOf(Looper.getMainLooper()).idle()
+            savedCfg = appDbDao.getDevAppConfigOnce()
+            if (savedCfg?.upgradePublished != false) kotlinx.coroutines.delay(50)
+        }
+        assertFalse(savedCfg!!.upgradePublished)
+    }
+
+    @Test
     fun `online duration helper formats seconds minutes and hours cleanly`() {
         assertEquals("45s", formatOnlineDuration(45))
         assertEquals("2m 5s", formatOnlineDuration(125))

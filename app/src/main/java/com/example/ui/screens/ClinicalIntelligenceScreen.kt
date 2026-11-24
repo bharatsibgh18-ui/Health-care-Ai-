@@ -140,6 +140,9 @@ fun ClinicalIntelligenceScreen(
                         )
                     }
                 },
+                actions = {
+                    com.example.ui.components.LanguageSelector(viewModel = viewModel, showRefreshButton = false)
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )

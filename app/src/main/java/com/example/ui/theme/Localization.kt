@@ -283,7 +283,8 @@ fun trLang(language: String, en: String, gu: String, hi: String): String {
         "Gujarati" -> gu
         "Hindi" -> hi
         "English" -> en
-        else -> IndianLanguagesDictionary.translate(resolved.id, en)
+        else -> com.example.ui.theme.i18n.ExtendedLanguagesDictionary.translate(resolved.id, en)
+            ?: IndianLanguagesDictionary.translate(resolved.id, en)
             ?: GlobalLanguagesDictionary.translate(resolved.id, en)
             ?: en
     }

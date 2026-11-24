@@ -375,4 +375,17 @@ interface TriageDao {
 
     @Query("SELECT * FROM sleep_wellness_logs WHERE dateKey = :dateKey ORDER BY timestamp DESC LIMIT 1")
     suspend fun getSleepLogForDate(dateKey: String): SleepWellnessLogEntity?
+
+    // Ultra Meal & Calorie Nutrition Logs (Room v18)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMealNutritionLog(log: MealNutritionLogEntity): Long
+
+    @Delete
+    suspend fun deleteMealNutritionLog(log: MealNutritionLogEntity)
+
+    @Query("SELECT * FROM meal_nutrition_logs ORDER BY timestamp DESC")
+    fun getAllMealNutritionLogs(): Flow<List<MealNutritionLogEntity>>
+
+    @Query("SELECT * FROM meal_nutrition_logs WHERE dateKey = :dateKey ORDER BY timestamp DESC")
+    fun getMealNutritionLogsForDate(dateKey: String): Flow<List<MealNutritionLogEntity>>
 }

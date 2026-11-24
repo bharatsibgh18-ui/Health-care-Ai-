@@ -30,6 +30,8 @@ import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -39,8 +41,14 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -166,6 +174,15 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val devAppConfig by viewModel.devAppConfig.collectAsState()
+
+            // Sync public app config/upgrades on app startup even before login
+            LaunchedEffect(Unit) {
+                try {
+                    viewModel.syncPublicDataFromCloud()
+                } catch (_: Throwable) {}
+            }
+
             CompositionLocalProvider(
                 LocalConfiguration provides localizedConfiguration,
                 LocalAppLanguage provides languageInfo.id,
@@ -175,6 +192,9 @@ class MainActivity : ComponentActivity() {
                     var showSplash by rememberSaveable { mutableStateOf(initialScreenExtra == null) }
                     if (showSplash) {
                         AnimatedSplashScreen(
+                            durationMillis = devAppConfig.splashDurationSeconds.coerceIn(2, 10) * 1000L,
+                            createdByText = devAppConfig.splashTopCreditText,
+                            schoolNameText = devAppConfig.splashSchoolNameText,
                             onSplashFinished = { showSplash = false }
                         )
                     } else {
@@ -192,6 +212,11 @@ fun MediAssistApp(viewModel: MediAssistViewModel) {
     val authSession by viewModel.authSession.collectAsState()
     val pendingInAppAlert by viewModel.pendingInAppAlert.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    val devAppConfig by viewModel.devAppConfig.collectAsState()
+    val dismissedUpgradeVersion by viewModel.dismissedUpgradeConfigVersion.collectAsState()
+    val selectedLanguage by viewModel.selectedLanguage.collectAsState()
+    val context = LocalContext.current
 
     pendingInAppAlert?.let { alert ->
         AlertDialog(
@@ -229,6 +254,126 @@ fun MediAssistApp(viewModel: MediAssistViewModel) {
                 }
             },
             modifier = Modifier.testTag("offline_in_app_alert_dialog")
+        )
+    }
+
+    // Global Public App Upgrade Dialog pushed by Developer to ALL users
+    val shouldShowPublicUpgradeDialog = devAppConfig.upgradePublished &&
+        currentScreen != AppScreen.DEVELOPER_CONSOLE &&
+        (devAppConfig.upgradeMandatory || dismissedUpgradeVersion < devAppConfig.configVersion)
+
+    if (shouldShowPublicUpgradeDialog && pendingInAppAlert == null) {
+        val canDismiss = !devAppConfig.upgradeMandatory || authSession.isDeveloper
+        AlertDialog(
+            onDismissRequest = {
+                if (canDismiss) {
+                    viewModel.dismissUpgradeDialog(devAppConfig.configVersion)
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.SystemUpdate,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = tr(
+                            "App Upgrade Available",
+                            "નવું એપ અપગ્રેડ ઉપલબ્ધ છે",
+                            "नया ऐप अपग्रेड उपलब्ध है"
+                        ),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Text(
+                            text = "v${devAppConfig.upgradeTargetVersion.ifBlank { com.example.BuildConfig.VERSION_NAME }}",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            },
+            text = {
+                Column {
+                    if (devAppConfig.upgradeTitle.isNotBlank()) {
+                        Text(
+                            text = devAppConfig.upgradeTitle,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                    }
+                    Text(
+                        text = devAppConfig.upgradeMessage.ifBlank {
+                            tr(
+                                "A new version of Health Care AI is published by the developer. Download the latest upgrade for new features and fixes.",
+                                "ડેવલપર દ્વારા Health Care AI નું નવું અપગ્રેડ પબ્લિશ કરવામાં આવ્યું છે. નવી સુવિધાઓ માટે અપગ્રેડ ડાઉનલોડ કરો.",
+                                "डेवलपर द्वारा Health Care AI का नया अपग्रेड पब्लिश किया गया है। नई सुविधाओं के लिए अपग्रेड डाउनलोड करें।"
+                            )
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    if (devAppConfig.upgradeMandatory) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = tr(
+                                "Required Upgrade • Please download to stay up to date.",
+                                "જરૂરી અપગ્રેડ • કૃપા કરીને નવું વર્ઝન ડાઉનલોડ કરો.",
+                                "अनिवार्य अपग्रेड • कृपया नया संस्करण डाउनलोड करें।"
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = EmergencyRed
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        com.example.utils.AppUpgradeDownloadHelper.openUpgradeDownload(
+                            context = context,
+                            rawUrl = devAppConfig.upgradeDownloadUrl,
+                            language = selectedLanguage
+                        )
+                    },
+                    modifier = Modifier.testTag("user_download_upgrade_btn")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Download,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = tr("Download Upgrade", "અપગ્રેડ ડાઉનલોડ કરો", "अपग्रेड डाउनलोड करें"),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = if (canDismiss) {
+                {
+                    OutlinedButton(
+                        onClick = { viewModel.dismissUpgradeDialog(devAppConfig.configVersion) },
+                        modifier = Modifier.testTag("user_dismiss_upgrade_btn")
+                    ) {
+                        Text(tr("Later", "પછીથી", "बाद में"))
+                    }
+                }
+            } else null,
+            modifier = Modifier.testTag("user_app_upgrade_dialog")
         )
     }
 

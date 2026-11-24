@@ -104,6 +104,7 @@ fun AppInfoScreen(
                     }
                 },
                 actions = {
+                    com.example.ui.components.LanguageSelector(viewModel = viewModel, showRefreshButton = false)
                     IconButton(
                         onClick = { viewModel.toggleThemeMode() },
                         modifier = Modifier.testTag("app_info_theme_toggle_button")

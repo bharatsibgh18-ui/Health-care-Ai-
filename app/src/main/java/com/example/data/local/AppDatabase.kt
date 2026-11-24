@@ -31,9 +31,10 @@ import androidx.room.RoomDatabase
         UserAccountEntity::class,
         PublicDoctorEntity::class,
         DeveloperAppConfigEntity::class,
-        SleepWellnessLogEntity::class
+        SleepWellnessLogEntity::class,
+        MealNutritionLogEntity::class
     ],
-    version = 16,
+    version = 18,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -98,6 +99,54 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_16_17 = object : androidx.room.migration.Migration(16, 17) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                fun addCol(col: String, sqlTypeAndDefault: String) {
+                    if (!hasColumn(db, "developer_app_config", col)) {
+                        db.execSQL("ALTER TABLE developer_app_config ADD COLUMN $col $sqlTypeAndDefault")
+                    }
+                }
+                addCol("upgradePublished", "INTEGER NOT NULL DEFAULT 0")
+                addCol("upgradeTargetVersion", "TEXT NOT NULL DEFAULT ''")
+                addCol("upgradeTitle", "TEXT NOT NULL DEFAULT ''")
+                addCol("upgradeMessage", "TEXT NOT NULL DEFAULT ''")
+                addCol("upgradeDownloadUrl", "TEXT NOT NULL DEFAULT ''")
+                addCol("upgradeMandatory", "INTEGER NOT NULL DEFAULT 0")
+                addCol("ultraHubFeatureEnabled", "INTEGER NOT NULL DEFAULT 1")
+                addCol("pmjayFinderEnabled", "INTEGER NOT NULL DEFAULT 1")
+                addCol("pmjayPortalUrlOverride", "TEXT NOT NULL DEFAULT 'https://hem.nha.gov.in/search'")
+                addCol("reportScannerFeatureEnabled", "INTEGER NOT NULL DEFAULT 1")
+                addCol("splashDurationSeconds", "INTEGER NOT NULL DEFAULT 5")
+                addCol("splashTopCreditText", "TEXT NOT NULL DEFAULT 'Created by Shailesh and Ruturaj'")
+                addCol("splashSchoolNameText", "TEXT NOT NULL DEFAULT 'Model School Sayla'")
+                addCol("maintenanceModeEnabled", "INTEGER NOT NULL DEFAULT 0")
+                addCol("maintenanceMessage", "TEXT NOT NULL DEFAULT ''")
+                addCol("supportContactPhone", "TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        val MIGRATION_17_18 = object : androidx.room.migration.Migration(17, 18) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `meal_nutrition_logs` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `dateKey` TEXT NOT NULL,
+                        `mealType` TEXT NOT NULL,
+                        `foodName` TEXT NOT NULL,
+                        `calories` INTEGER NOT NULL,
+                        `proteinGrams` REAL NOT NULL,
+                        `carbsGrams` REAL NOT NULL,
+                        `fiberGrams` REAL NOT NULL,
+                        `timestamp` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_meal_nutrition_logs_dateKey` ON `meal_nutrition_logs` (`dateKey`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_meal_nutrition_logs_timestamp` ON `meal_nutrition_logs` (`timestamp`)")
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -105,7 +154,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "mediassist_database"
                 )
-                    .addMigrations(MIGRATION_14_15, MIGRATION_15_16)
+                    .addMigrations(MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17, MIGRATION_17_18)
                     .fallbackToDestructiveMigration(true)
                     .fallbackToDestructiveMigrationOnDowngrade(true)
                     .build()
